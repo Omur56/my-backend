@@ -1,0 +1,29 @@
+{
+  "name": "react-router-nav-backend",
+  "version": "1.0.0",
+  "description": "Backend server for React Router Nav project",
+  "main": "server.js",
+   "type": "module",
+  "scripts": {
+    "start": "nodemon server.js"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.2",
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.18.0",
+    "mongoose": "^8.17.1",
+    "multer": "^2.0.2",
+    "nodemailer": "^7.0.5",
+    "twilio": "^5.8.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  },
+  "author": "",
+  "license": "ISC"
+}
