@@ -125,7 +125,7 @@ dotenv.config({ path: path.resolve("../.env") });
 
 
 app.use(cors({
-   origin: ["https://omurcars.org", "https://axtartapaz-frontend.onrender.com"],
+   origin: ["http://localhost:10000",  "https://omurcars.org", "https://axtartapaz-frontend.onrender.com"],
   credentials: true
 }));
 app.use(express.json()); 
@@ -140,8 +140,9 @@ app.use("/api", profileRoutes);
 // app.use("/api", otpRoutes);
 
 
-
-
+const BASE_URL = process.env.NODE_ENV === "production"
+  ? process.env.RENDER_URL  // render üçün
+  : `http://localhost:${process.env.PORT}`;
 
 
 // kateqoriya-mapping
@@ -601,16 +602,22 @@ app.get("/api/cars/:id", async (req, res) => {
 
 // Yeni elan əlavə et
 app.post("/api/cars", verifyToken, upload.array("images", 20), async (req, res) => {
+
+  
   try {
     const newId = await idGenerator();
+
+
+// Elanı yeniləyərkən
 
     const newAnn = new Announcement({
       ...req.body,
       id: newId,
       userId: req.user.id,
-      images: req.files.map(file => `http://localhost:${PORT}/uploads/${file.filename}`),
+      images: req.files.map(file => `${BASE_URL}/uploads/${file.filename}`),
       liked: false,
       favorite: false,
+      
     });
 
     await newAnn.save();
@@ -632,7 +639,7 @@ app.put("/api/cars/:id", verifyToken, upload.array("images", 20), async (req, re
     }
 
     if (req.files && req.files.length > 0) {
-      ann.images = req.files.map(file => `http://localhost:${PORT}/uploads/${file.filename}`);
+      ann.images = req.files.map(file => `${BASE_URL}/uploads/${file.filename}`);
     }
 
     const { title, description, price } = req.body;
@@ -777,7 +784,7 @@ app.post("/api/homGarden", verifyToken, upload.array("images", 20), async (req, 
       email: req.body["contact.email"],
       phone: req.body["contact.phone"],
     };
-    const imageUrls = req.files?.map(f => `http://localhost:5000/uploads/${f.filename}`) || [];
+    const imageUrls = req.files?.map(f => `${BASE_URL}/uploads/${f.filename}`) || [];
 
     const newHome = new HomeAndGarden({
       userId: req.user.id,
@@ -899,7 +906,7 @@ app.put("/api/homGarden/:id", verifyToken, upload.array("images", 20), async (re
       email: req.body["contact.email"],
       phone: req.body["contact.phone"]
     };
-    const imageUrls = req.files?.map(f => `http://localhost:5000/uploads/${f.filename}`) || item.images;
+    const imageUrls = req.files?.map(f => `${BASE_URL}/uploads/${f.filename}`) || item.images;
 
     Object.assign(item, {
       model, category, title, description, brand, price, location,
@@ -996,7 +1003,7 @@ app.post("/api/electronika", verifyToken, upload.array("images", 20), async (req
     const newId = await idGenerator();
 
     const imageUrls = req.files.map(
-      (file) => `http://localhost:${PORT}/uploads/${file.filename}`
+      (file) => `${BASE_URL}/uploads/${file.filename}`
     );
 
     const contact = {
@@ -1039,7 +1046,7 @@ app.put("/api/electronika/:id", verifyToken, upload.array("images", 20), async (
 
     if (req.files.length > 0) {
       const imageUrls = req.files.map(
-        (file) => `http://localhost:${PORT}/uploads/${file.filename}`
+        (file) => `${BASE_URL}/uploads/${file.filename}`
       );
       post.images = imageUrls;
     }
@@ -1155,7 +1162,7 @@ app.get("/api/accessories/:id", async (req, res) => {
 app.post("/api/accessories", verifyToken, upload.array("images", 20), async (req, res) => {
   try {
     const images = req.files.map(
-      file => `${req.protocol}://${req.get("host")}/uploads/${file.filename}`
+      file => `${BASE_URL}/uploads/${file.filename}`
     );
 
     const accessory = new Accessory({
@@ -1185,7 +1192,7 @@ app.put(
       if (req.files.length > 0) {
         images = req.files.map(
           (file) =>
-            `${req.protocol}://${req.get("host")}/uploads/${file.filename}`
+            `${BASE_URL}/uploads/${file.filename}`
         );
       }
 
@@ -1345,7 +1352,7 @@ app.post("/api/RealEstate", verifyToken, upload.array("images", 20), async (req,
     const newId = await idGenerator();
 
     const images = req.files.map(
-      (file) => `${req.protocol}://${req.get("host")}/uploads/${file.filename}`
+      (file) => `${BASE_URL}/uploads/${file.filename}`
     );
 
     const realEstatePost = new RealEstate({
@@ -1377,7 +1384,7 @@ app.put(
       if (req.files.length > 0) {
         images = req.files.map(
           (file) =>
-            `${req.protocol}://${req.get("host")}/uploads/${file.filename}`
+            `${BASE_URL}/uploads/${file.filename}`
         );
       }
 
@@ -1500,7 +1507,7 @@ app.post("/api/Household", verifyToken, upload.array("images", 20), async (req, 
   const newId = await idGenerator();
   try {
     const images = req.files.map(
-      (file) => `${req.protocol}://${req.get("host")}/uploads/${file.filename}`
+      (file) => `${BASE_URL}/uploads/${file.filename}`
     );
 
     const contact = {
@@ -1532,7 +1539,7 @@ app.put("/api/Household/:id", upload.array("images", 10), async (req, res) => {
     let images = [];
     if (req.files && req.files.length > 0) {
       images = req.files.map(
-        (file) => `${req.protocol}://${req.get("host")}/uploads/${file.filename}`
+        (file) => `${BASE_URL}/uploads/${file.filename}`
       );
     }
 
@@ -1682,7 +1689,7 @@ app.post("/api/Phone", verifyToken, upload.array("images", 20), async (req, res)
     const newId = await idGenerator();
 
     const images = req.files.map(
-      (file) => `${req.protocol}://${req.get("host")}/uploads/${file.filename}`
+      (file) => `${BASE_URL}/uploads/${file.filename}`
     );
 
     const newPhone = new Phone({
@@ -1712,7 +1719,7 @@ app.put("/api/Phone/:id", upload.array("images", 20), async (req, res) => {
     let images = [];
     if (req.files && req.files.length > 0) {
       images = req.files.map(
-        (file) => `${req.protocol}://${req.get("host")}/uploads/${file.filename}`
+        (file) => `${BASE_URL}/uploads/${file.filename}`
       );
     }
 
@@ -1854,7 +1861,7 @@ app.post("/api/Clothing", upload.array("images", 10), async (req, res) => {
   const newId = await idGenerator();
   try {
     const images = req.files.map(
-      (file) => `${req.protocol}://${req.get("host")}/uploads/${file.filename}`
+      (file) => `${BASE_URL}/uploads/${file.filename}`
     );
 
     const contact = {
@@ -1889,7 +1896,7 @@ app.put("/api/Clothing/:id", upload.array("images", 10), async (req, res) => {
     let images = [];
     if (req.files && req.files.length > 0) {
       images = req.files.map(
-        (file) => `${req.protocol}://${req.get("host")}/uploads/${file.filename}`
+        (file) => `${BASE_URL}/uploads/${file.filename}`
       );
     }
 
@@ -2010,7 +2017,7 @@ app.post("/api/Jewelry", upload.array("images", 10), async (req, res) => {
     const newId = await idGenerator();
   try {
     const images = req.files.map(
-      (file) => `${req.protocol}://${req.get("host")}/uploads/${file.filename}`
+      (file) => `${BASE_URL}/uploads/${file.filename}`
     );
 
     // contact sahəsini req.body-dən ayrıca götür
@@ -2041,7 +2048,7 @@ app.put("/api/Jewelry/:id", upload.array("images", 10), async (req, res) => {
     let images = [];
     if (req.files && req.files.length > 0) {
       images = req.files.map(
-        (file) => `${req.protocol}://${req.get("host")}/uploads/${file.filename}`
+        (file) => `${BASE_URL}/uploads/${file.filename}`
       );
     }
 
