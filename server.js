@@ -121,7 +121,13 @@ dotenv.config({ path: path.resolve("../.env") });
 
 
 
-app.use(cors());
+// app.use(cors());
+
+
+app.use(cors({
+   origin: ["https://omurcars.org"],
+  credentials: true
+}));
 app.use(express.json()); 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api", authRoutes);
