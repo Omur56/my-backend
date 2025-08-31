@@ -125,7 +125,7 @@ dotenv.config({ path: path.resolve("../.env") });
 
 
 app.use(cors({
-   origin: ["https://omurcars.org"],
+   origin: ["https://omurcars.org", "https://axtartapaz-frontend.onrender.com"],
   credentials: true
 }));
 app.use(express.json()); 
