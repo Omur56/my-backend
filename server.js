@@ -93,6 +93,16 @@ app.use("/api", profileRoutes);
 // app.use("/api", otpRoutes);
 
 
+app.use(cors({
+  origin: ["https://axtartapaz-frontend.onrender.com", "https://www.omurcars.org", "http://localhost:10000"], 
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
+
+// test üçün hamıya açmaq istəyirsənsə
+// app.use(cors());
+
+
 
 
 
