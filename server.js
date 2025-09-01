@@ -29,57 +29,13 @@ import bodyParser from "body-parser";
 import twilio from "twilio";
 import authMiddleware from "./middleware/authMiddleware.js";
 import profileRoutes from "./routes/Profile.js";
-// token yoxlayan middleware
-// import express from "express";
-// import cors from "cors";
-// import multer from "multer";
-// import path from "path";
-// import dotenv from "dotenv";
-// import connectDB from "./db.js";
 
-// // MODELLƏR
-// import Announcement from "./models/Announcement.js";
-// import HomeAndGarden from "./models/HomeAndGarden.js";
-// import Electronika from "./models/Electronika.js";
-// import Accessory from "./models/Acsesuar.js";
-// import RealEstate from "./models/RealEstate.js";
-// import HouseHold from "./models/Household.js";
-// import Phone from "./models/Phone.js";
-// import Clothing from "./models/Clothing.js";
-// import Jewelry from "./models/Jewelry.js";
-// import User from "./models/user.js";
-// import Ad from "./models/Ad.js";
-
-// // MIDDLEWARE
-// import { verifyToken } from "./middleware/verifyToken.js";
-// import authMiddleware from "./middleware/authMiddleware.js";
-
-// // ROUTES
-// import authRoutes from "./routes/auth.js";
-// import adsRouter from "./routes/ads.js";
-// import statsRouter from "./routes/stats.js";
-// import announcementRoutes from "./routes/announcements.js";
-// import profileRoutes from "./routes/Profile.js";
-
-// // DIGƏR
-// import { fileURLToPath } from "url";
-// import bcrypt from "bcryptjs";
-// import jwt from "jsonwebtoken";
-// import mongoose from "mongoose";
-// import nodemailer from "nodemailer";
-// import bodyParser from "body-parser";
-// import twilio from "twilio";
-
-
-
-
-// import otpRoutes from "./routes/otp.js";
 
 
 // .env faylını oxu
 dotenv.config();
 connectDB();
-// Əgər __dirname lazımdırsa:
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -124,8 +80,8 @@ dotenv.config({ path: path.resolve("../.env") });
 // app.use(cors());
 
 
-app.use(cors({
-   origin: ["http://localhost:10000",  "https://omurcars.org", "https://axtartapaz-frontend.onrender.com"],
+app.use(/.*/,cors({
+   origin: ["http://localhost:10000",  "https://www.omurcars.org", "https://axtartapaz-frontend.onrender.com"],
   credentials: true
 }));
 app.use(express.json()); 
@@ -138,6 +94,7 @@ app.use("/uploads", express.static("uploads"));
 app.use("/api", profileRoutes);
 // app.use(bodyParser.json());
 // app.use("/api", otpRoutes);
+
 
 
 
@@ -162,17 +119,37 @@ const modelsMap = {
 
 app.post("/api/ads", upload.array("images", 20), async (req, res) => {
   try {
-    console.log(req.body); // text field-lar
-    console.log(req.files); // yüklənmiş şəkillər
-
     const ad = new Ad({
-      ...req.body,
-      images: req.files.map(f => f.filename)
+      title: req.body.title,
+      link: req.body.link,
+      images: req.files.map((f) => f.filename),
     });
     await ad.save();
     res.status(201).json(ad);
   } catch (err) {
     console.error("POST /api/ads xətası:", err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// GET /api/ads (əsas səhifə üçün)
+app.get("/api/ads", async (req, res) => {
+  try {
+    const ads = await Ad.find();
+    res.json(ads);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// DELETE /api/ads/:id
+app.delete("/api/ads/:id", async (req, res) => {
+  try {
+    await Ad.findByIdAndDelete(req.params.id);
+    res.json({ message: "Reklam silindi" });
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -2444,6 +2421,15 @@ app.delete("/api/my-announcements/:id", verifyToken, async (req, res) => {
     console.error(err);
     res.status(500).json({ error: err.message });
   }
+});
+
+
+
+app.use(express.static(path.join(__dirname, "../frontend/build")));
+
+// ---- Catch-all route for React Router ----
+app.get(/.*/, (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/build", "index.html"));
 });
 
 
