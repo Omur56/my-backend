@@ -2422,7 +2422,7 @@ app.delete("/api/my-announcements/:id", verifyToken, async (req, res) => {
 
 
 
-const path = require("path");
+
 
 // Serve static files from the frontend build
 app.use(express.static(path.join(__dirname, "frontend/build")));
