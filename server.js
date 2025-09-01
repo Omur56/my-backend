@@ -95,7 +95,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 
-
+const BASE_URL = process.env.RENDER_URL || "http://localhost:5000";
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -1638,7 +1638,7 @@ app.delete("/api/Household/images/:imageName", async (req, res) => {
 
 // ----------------- Phone -----------------
 // -----------------------------------------
-app.get("/api/my-phone", verifyToken, async (req, res) => {
+app.get("/api/my-Phone", verifyToken, async (req, res) => {
   try {
     const items = await Phone.find({ userId: req.user.id }).sort({ data: -1 });
     res.json(items);
@@ -1787,19 +1787,23 @@ app.patch("/api/Phone/:id/favorite", async (req, res) => {
   }
 });
 
-// Şəkil silmək (hem DB-dən images massivindən, hem serverdən faylı silir)
+
 app.delete("/api/Phone/images/:imageName", async (req, res) => {
   try {
     const imageName = req.params.imageName;
+    const filePath = path.join(__dirname, "uploads", imageName);
 
-    // 1. DB-də images massivindən URL-ə uyğun şəkili sil
+    // DB-dən sil
     await Phone.updateMany(
       { images: { $regex: imageName } },
       { $pull: { images: { $regex: imageName } } }
     );
 
-   
-  
+    // Serverdən sil
+    fs.unlink(filePath, (err) => {
+      if (err) console.error("Fayl silinmədi:", err);
+    });
+
     res.json({ message: "Şəkil silindi" });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1812,7 +1816,7 @@ app.delete("/api/Phone/images/:imageName", async (req, res) => {
 // ----------------- Clothing -----------------
 
 
-app.get("/api/my-clothing", verifyToken, async (req, res) => {
+app.get("/api/my-Clothing", verifyToken, async (req, res) => {
   try {
     const items = await Clothing.find({ userId: req.user.id }).sort({ data: -1 });
     res.json(items);
