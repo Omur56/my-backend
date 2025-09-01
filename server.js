@@ -139,14 +139,7 @@ app.use("/api", profileRoutes);
 // app.use(bodyParser.json());
 // app.use("/api", otpRoutes);
 
-app.use(express.static(path.join(__dirname, "build")));
 
-app.get("*", (req, res) => {
-  res.sendFile(path.resolve(__dirname, "build", "index.html"));
-});
-const BASE_URL = process.env.NODE_ENV === "production"
-  ? process.env.RENDER_URL  // render üçün
-  : `http://localhost:${process.env.PORT}`;
 
 
 // kateqoriya-mapping
@@ -162,6 +155,7 @@ const modelsMap = {
   Phone: Phone,
 
 };
+
 
 
 
