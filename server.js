@@ -51,7 +51,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 
-const BASE_URL = process.env.RENDER_URL || "http://localhost:5000";
+const BASE_URL = process.env.BASE_URL || "http://localhost:5000";
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -1365,8 +1365,7 @@ app.put(
       let images = [];
       if (req.files.length > 0) {
         images = req.files.map(
-          (file) =>
-            `${BASE_URL}/uploads/${file.filename}`
+          (file) => `${BASE_URL}/uploads/${file.filename}`
         );
       }
 
@@ -1516,7 +1515,7 @@ app.post("/api/Household", verifyToken, upload.array("images", 20), async (req, 
 
 
 
-app.put("/api/Household/:id", upload.array("images", 10), async (req, res) => {
+app.put("/api/Household/:id", upload.array("images", 20), async (req, res) => {
   try {
     let images = [];
     if (req.files && req.files.length > 0) {
@@ -1843,7 +1842,7 @@ app.get("/api/Clothing/:id", async (req, res) => {
 });
 
 // Yeni elan əlavə et
-app.post("/api/Clothing", upload.array("images", 10), async (req, res) => {
+app.post("/api/Clothing", upload.array("images", 20), async (req, res) => {
   const newId = await idGenerator();
   try {
     const images = req.files.map(
@@ -1877,7 +1876,7 @@ app.post("/api/Clothing", upload.array("images", 10), async (req, res) => {
 
 
 // Elanı yenilə
-app.put("/api/Clothing/:id", upload.array("images", 10), async (req, res) => {
+app.put("/api/Clothing/:id", upload.array("images", 20), async (req, res) => {
   try {
     let images = [];
     if (req.files && req.files.length > 0) {

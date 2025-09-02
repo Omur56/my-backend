@@ -1,11 +1,13 @@
 
 
 import mongoose from "mongoose";
+import { v4 as uuidv4 } from "uuid";
 
 const RealEstateSchema = new mongoose.Schema({
   id: {
     type: Number,
     unique: true,
+    default: uuidv4,
   },
   title_type: String,
   type_building: String,

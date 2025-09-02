@@ -39,11 +39,13 @@
 // module.exports = mongoose.model("Clothing", ClothingSchema);
 
 import mongoose from "mongoose";
+import { v4 as uuidv4 } from "uuid";
 
 const ClothingSchema = new mongoose.Schema({
   id: {
     type: Number,
     unique: true,
+    default: uuidv4,
   },
   title: String,
   type: String,

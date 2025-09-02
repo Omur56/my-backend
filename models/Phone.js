@@ -1,9 +1,11 @@
 import mongoose from "mongoose";
+import { v4 as uuidv4 } from "uuid";
 
 const phoneSchema = new mongoose.Schema({
 id:{
   type:Number,
-  unique:true
+  unique:true,
+  default: uuidv4,
 },
   title: String,
   brand: String,
