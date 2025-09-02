@@ -1,12 +1,13 @@
 import mongoose from "mongoose";
 import { v4 as uuidv4 } from "uuid";
+
 const accessorySchema = new mongoose.Schema({
   id: {
-    type: Number,
+    type: String,
     unique: true,
     default: uuidv4,
   },
-  data: { type: Date, default: Date.now }, // yalnız bir dəfə
+  data: { type: Date, default: Date.now },
   title: { type: String, required: true },
   brand: { type: String, required: true },
   model: { type: String, required: true },
