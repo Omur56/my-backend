@@ -157,6 +157,7 @@ app.post("/api/ads", upload.array("images", 20), async (req, res) => {
       link: req.body.link,
       description: req.body.description,
       images: uploadedImages,
+      user: req.body.userId,
     });
 
     await ad.save();
@@ -311,6 +312,28 @@ app.get("/api/ads", verifyAdmin, (req, res) => {
   ]);
 });
 
+app.delete("/api/ads/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.body; // frontend göndərəcək
+
+    const ad = await Ad.findById(id);
+
+    if (!ad) {
+      return res.status(404).json({ message: "Elan tapılmadı" });
+    }
+
+    // ❌ Başqasının elanını silməsin
+    if (ad.user.toString() !== userId) {
+      return res.status(403).json({ message: "Bu elanı silmək səlahiyyətin yoxdur" });
+    }
+
+    await ad.deleteOne();
+    res.json({ message: "Elan silindi" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 
 const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
@@ -3106,7 +3129,7 @@ app.delete("/api/:model/:id", verifyToken, async (req, res) => {
 
 app.delete("/api/my-announcements/:id", verifyToken, async (req, res) => {
   try {
-    const item = await HomeAndGarden.findById(req.params.id);
+    const item = await announcement.findById(req.params.id);
     if (!item) return res.status(404).json({ message: "Elan tapılmadı" });
 
     // Yalnız elan sahibi silə bilər
