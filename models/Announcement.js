@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
-
+import { v4 as uuidv4 } from "uuid";
 const announcementSchema = new mongoose.Schema(
   {
-    id: { type: Number, required: true },
+    id: { type: Number, required: true,  default: uuidv4,  },
     category: String,
     brand: String,
     model: String,

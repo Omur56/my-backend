@@ -32,6 +32,7 @@
 
 
 import mongoose from "mongoose";
+import { v4 as uuidv4 } from "uuid";
 
 const contactSchema = new mongoose.Schema({
   name: String,
@@ -43,6 +44,7 @@ const electronikaSchema = new mongoose.Schema({
   id: {
     type: Number,
     unique: true,
+    default: uuidv4,
   },
   data: { type: Date, default: Date.now },
   category: String,

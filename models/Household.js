@@ -59,11 +59,14 @@
 
 
 import mongoose from "mongoose";
+import { v4 as uuidv4 } from "uuid";
+
 
 const HouseHoldSchema = new mongoose.Schema({
   id: {
     type: Number,
     unique: true,
+    default: uuidv4,
   },
   category: String,
   title: String,

@@ -35,13 +35,13 @@
 
 
 import mongoose from "mongoose";
-
+import { v4 as uuidv4 } from "uuid";
 
 const HomeAndGardenSchema = new mongoose.Schema({
   id: {
     type: String,
     unique: true,
-    
+    default: uuidv4,
   },
   data: { type: Date, default: Date.now },
   model: String,
