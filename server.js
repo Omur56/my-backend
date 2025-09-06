@@ -89,7 +89,29 @@ const upload = multer({ storage });
 
 
 
+// Watermark əlavə edən funksiya
+const addWatermark = async (imagePath) => {
+  const watermarkPath = "watermark.png"; // logo yolu
+  const image = sharp(imagePath);
+  const { width, height } = await image.metadata();
 
+  // Watermark ölçüsü orijinal şəkil ilə müqayisədə
+  const watermark = await sharp(watermarkPath)
+    .resize(Math.floor(width / 4)) // watermark ölçüsünü şəkilin 1/4-i qədər edirik
+    .blur(1) // azca blur
+    .toBuffer();
+
+  // Overlay tətbiqi
+  await image
+    .composite([
+      {
+        input: watermark,
+        gravity: "center", // mərkəzə yerləşdir
+        blend: "over",
+      },
+    ])
+    .toFile(imagePath.replace(/(\.\w+)$/, "-wm$1")); // watermark əlavə olunmuş şəkil
+};
 
 
 
@@ -130,6 +152,31 @@ app.use("/api", profileRoutes);
 
 // test üçün hamıya açmaq istəyirsənsə
 // app.use(cors());
+
+
+
+
+app.post("/upload", upload.array("images", 10), async (req, res) => {
+  try {
+    const files = req.files;
+
+    for (let file of files) {
+      await addWatermark(file.path);
+    }
+
+    res.status(200).json({
+      message: "Şəkillər yükləndi və watermark əlavə olundu",
+      files: files.map((f) => ({
+        original: f.path,
+        watermarked: f.path.replace(/(\.\w+)$/, "-wm$1"),
+      })),
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Xəta baş verdi" });
+  }
+});
+
 
 
 app.post("/api/ads", upload.array("images", 20), async (req, res) => {
