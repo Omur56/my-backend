@@ -204,7 +204,7 @@ app.post("/api/ads", upload.array("images", 20), async (req, res) => {
       link: req.body.link,
       description: req.body.description,
       images: uploadedImages,
-      user: req.body.userId,
+      user: req.body.user,
     });
 
     await ad.save();
