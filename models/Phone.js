@@ -2,11 +2,11 @@ import mongoose from "mongoose";
 import { v4 as uuidv4 } from "uuid";
 
 const phoneSchema = new mongoose.Schema({
-id:{
-  type:Number,
-  unique:true,
-  default: uuidv4,
-},
+  id: {
+    type: Number,
+    unique: true,
+    default: uuidv4,
+  },
   title: String,
   brand: String,
   model: String,
@@ -18,7 +18,7 @@ id:{
   sim_card: String,
   images: [String],
   description: String,
-   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
 
   contact: {
     name: String,
