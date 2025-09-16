@@ -1,0 +1,27 @@
+<!-- save as axtartap-logo-a.svg -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 80" width="360" height="80" role="img" aria-label="AxtarTap.az logo">
+  <!-- magnifier + pin icon (left) -->
+  <g transform="translate(12,8)">
+    <!-- outer circle (green) -->
+    <circle cx="28" cy="28" r="20" fill="#16A34A"></circle> <!-- green -->
+    <!-- lens inner (white) -->
+    <circle cx="28" cy="28" r="12" fill="white" opacity="0.08"></circle>
+    <!-- handle -->
+    <rect x="42" y="42" width="20" height="6" rx="3" transform="rotate(45 52 45)" fill="#16A34A"></rect>
+    <!-- pin (red accent) -->
+    <path d="M28 10c4 0 7 3 7 7 0 6-7 11-7 11s-7-5-7-11c0-4 3-7 7-7z" fill="#DC2626"></path>
+    <!-- small white hole in pin -->
+    <circle cx="28" cy="17" r="2.5" fill="white"></circle>
+  </g>
+
+  <!-- brand text -->
+  <g transform="translate(90,54)">
+    <style>
+      .brand { font: 700 28px/1 "Helvetica Neue", Arial, sans-serif; letter-spacing: -0.5px; }
+      .dot { font: 700 20px/1 "Helvetica Neue", Arial, sans-serif; }
+    </style>
+    <text x="0" y="0" class="brand" fill="#0F172A">Axtar</text>
+    <text x="86" y="0" class="brand" fill="#16A34A">Tap</text>
+    <text x="136" y="0" class="dot" fill="#16A34A">.az</text>
+  </g>
+</svg>
