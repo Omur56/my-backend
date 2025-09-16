@@ -1,5 +1,3 @@
-
-
 import mongoose from "mongoose";
 import { v4 as uuidv4 } from "uuid";
 
@@ -18,17 +16,17 @@ const RealEstateSchema = new mongoose.Schema({
   price: String,
   data: Date,
   description: String,
-   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-   data: { type: Date, default: Date.now },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  data: { type: Date, default: Date.now },
   contact: {
     name: String,
     email: String,
     phone: String,
-  
-  },  liked: Boolean,
-    favorite: Boolean,
-    data: Date,
-  images: [String], 
+  },
+  liked: Boolean,
+  favorite: Boolean,
+  data: Date,
+  images: [String],
 });
 
 const RealEstate = mongoose.model("RealEstate", RealEstateSchema);

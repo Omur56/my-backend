@@ -5,7 +5,7 @@ const userDeletedSchema = new mongoose.Schema({
   description: String,
   images: [String],
   price: Number,
-  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true } // elan kimə aiddir
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // elan kimə aiddir
 });
 
 const Ad = mongoose.model("UserDeleted", adSchema);
