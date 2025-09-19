@@ -55,7 +55,8 @@ app.use(
       "https://axtartapaz-frontend.onrender.com",
       "https://www.omurcars.org",
       "http://localhost:10000",
-      "http://axtartapaz-frontend.onrender.com",
+      "https://my-backend-wj5g.onrender.com",
+      
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
