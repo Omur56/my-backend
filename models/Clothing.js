@@ -26,7 +26,7 @@ const ClothingSchema = new mongoose.Schema({
   },
   liked: { type: Boolean, default: false },
   favorite: { type: Boolean, default: false },
-  date: { type: Date, default: Date.now },
+  data: { type: Date, default: Date.now },
 });
 
 const Clothing = mongoose.model("Clothing", ClothingSchema);

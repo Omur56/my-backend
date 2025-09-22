@@ -42,6 +42,18 @@ cloudinary.config({
 dotenv.config();
 connectDB();
 
+
+
+
+
+
+
+
+
+
+
+
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -62,10 +74,13 @@ app.use(
     credentials: true,
   })
 );
+app.use(bodyParser.json());
+
+// Routes
 
 const PORT = process.env.PORT || 5000;
 
-const BASE_URL = process.env.BASE_URL || "http://localhost:5000";
+const BASE_URL = process.env.BASE_URL || "http://localhost:10000";
 
 // const storage = multer.diskStorage({
 //   destination: function (req, file, cb) {
@@ -131,6 +146,7 @@ app.use("/api/stats", statsRouter);
 app.use("/api/announcements", announcementRoutes);
 app.use("/uploads", express.static("uploads"));
 app.use("/api", profileRoutes);
+app.use("/api/auth", authRoutes);
 // app.use(bodyParser.json());
 // app.use("/api", otpRoutes);
 
