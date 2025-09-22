@@ -6,16 +6,7 @@ import User from "../models/user.js";
 
 const router = express.Router();
 
-// Nodemailer konfiqurasiyası
-// const transporter = nodemailer.createTransport({
-//   host: process.env.SMTP_HOST,
-//   port: Number(process.env.SMTP_PORT) || 587,
-//   secure: process.env.SMTP_SECURE === "true",
-//   auth: {
-//     user: process.env.SMTP_USER,
-//     pass: process.env.SMTP_PASS, // Gmail App Password
-//   },
-// });
+
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -47,7 +38,7 @@ router.post("/forgot-password", async (req, res) => {
     user.resetPasswordExpires = Date.now() + 1000 * 60 * 15; // 15 dəq
     await user.save();
 
-    const resetLink = `${process.env.FRONTEND_BASE}/reset-password?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`;
+    const resetLink = `${process.env.BASE_URL}/reset-password?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`;
 
     await transporter.sendMail({
       from: process.env.SMTP_FROM,
