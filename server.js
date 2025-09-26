@@ -66,7 +66,7 @@ app.use(
     origin: [
       "https://axtartapaz-frontend.onrender.com",
       "https://www.omurcars.org",
-      "http://localhost:10000",
+      "http://localhost:3000",
       "https://my-backend-wj5g.onrender.com",
       
     ],
@@ -78,7 +78,7 @@ app.use(bodyParser.json());
 
 // Routes
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 10000;
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:10000";
 
