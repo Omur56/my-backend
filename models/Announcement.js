@@ -11,6 +11,8 @@ const announcementSchema = new mongoose.Schema(
     price: String,
     location: String,
     images: [String],
+    mainImage: String, 
+    images1: [String],
     km: String,
     motor: String,
     transmission: String,
