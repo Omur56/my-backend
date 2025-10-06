@@ -51,17 +51,3 @@ export const verifyToken = (req, res, next) => {
 };
 
 
- // const authHeader = req.headers.authorization;
-  // if (!authHeader) return res.status(401).json("Access Denied");
-
-  // const token = authHeader.split(" ")[1];
-  // if (!token) return res.status(401).json("Access Denied");
-
-  // try {
-  //   const verified = jwt.verify(token, "SECRET_KEY");
-  //   req.userId = verified.id;
-  //   next();
-  // } catch (err) {
-  //   res.status(401).json("Invalid Token");
-  // }
-
