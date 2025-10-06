@@ -3076,18 +3076,36 @@ app.get("/api/users/:id", verifyToken, async (req, res) => {
   }
 });
 
-app.get(
-  "/api/announcements/my-announcements",
-  verifyToken,
-  async (req, res) => {
-    try {
-      const myAnnouncements = await Announcement.find({ owner: req.userId });
-      res.json(myAnnouncements);
-    } catch (err) {
-      res.status(500).json(err);
+// app.get(
+//   "/api/announcements/my-announcements",
+//   verifyToken,
+//   async (req, res) => {
+//     try {
+//       const myAnnouncements = await Announcement.find({ owner: req.userId });
+//       res.json(myAnnouncements);
+//     } catch (err) {
+//       res.status(500).json(err);
+//     }
+//   }
+// );
+
+
+
+app.delete("/api/my-announcements/:id", verifyToken, async (req, res) => {
+  try {
+    const deleted = await Announcement.findOneAndDelete({ id: req.params.id });
+    if (!deleted) {
+      return res.status(404).json({ message: "Elan tapılmadı" });
     }
+    res.json({ message: "Elan uğurla silindi" });
+  } catch (err) {
+    console.error("Silinmə xətası:", err);
+    res.status(500).json({ error: err.message });
   }
-);
+});
+
+
+
 
 app.get("/api/my-announcements", verifyToken, async (req, res) => {
   try {
@@ -3203,25 +3221,25 @@ app.delete("/api/:model/:id", verifyToken, async (req, res) => {
   }
 });
 
-app.delete("/api/my-announcements/:id", verifyToken, async (req, res) => {
-  try {
-    const item = await announcement.findById(req.params.id);
-    if (!item) return res.status(404).json({ message: "Elan tapılmadı" });
+// app.delete("/api/my-announcements/:id", verifyToken, async (req, res) => {
+//   try {
+//     const item = await announcement.findById(req.params.id);
+//     if (!item) return res.status(404).json({ message: "Elan tapılmadı" });
 
-    // Yalnız elan sahibi silə bilər
-    if (item.userId.toString() !== req.user.id) {
-      return res
-        .status(403)
-        .json({ message: "Bu elanı silmək icazəniz yoxdur" });
-    }
+//     // Yalnız elan sahibi silə bilər
+//     if (item.userId.toString() !== req.user.id) {
+//       return res
+//         .status(403)
+//         .json({ message: "Bu elanı silmək icazəniz yoxdur" });
+//     }
 
-    await item.deleteOne();
-    res.json({ message: "Elan uğurla silindi" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
-  }
-});
+//     await item.deleteOne();
+//     res.json({ message: "Elan uğurla silindi" });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: err.message });
+//   }
+// });
 
 // Serve static files from the frontend build
 app.use(express.static(path.join(__dirname, "frontend/build")));
