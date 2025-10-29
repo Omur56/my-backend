@@ -7,6 +7,7 @@ const ClothingSchema = new mongoose.Schema({
     unique: true,
     default: uuidv4,
   },
+  _id: String,
   title: String,
   type: String,
   description: String,

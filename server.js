@@ -212,17 +212,6 @@ app.post("/api/ads", upload.array("images", 20), async (req, res) => {
   }
 });
 
-// kateqoriya-mapping
-const modelsMap = {
-  realEstate: RealEstate,
-  homeAndGarden: HomeAndGarden,
-  Clothing: Clothing,
-  Announcement: Announcement,
-  Electronika: Electronika,
-  Accessory: Accessory,
-  HouseHold: HouseHold,
-  Phone: Phone,
-};
 
 // app.post("/api/ads", upload.array("images", 20), async (req, res) => {
 //   try {
@@ -283,31 +272,21 @@ app.delete("/:category/:id", authMiddleware, async (req, res) => {
     const Model = modelsMap[category];
     if (!Model) return res.status(400).json({ message: "Invalid category" });
 
-    const ad = await Model.findById(id);
+    // UUID / custom id ilə axtar
+    const ad = await Model.findOne({ id });
     if (!ad) return res.status(404).json({ message: "Ad not found" });
 
     // Yalnız sahibi silə bilər
-    if (ad.user.toString() !== req.user.id)
+    if (ad.userId.toString() !== req.user._id.toString())
       return res.status(403).json({ message: "Not authorized" });
 
-    await Model.findByIdAndDelete(id);
+    await Model.findOneAndDelete({ id });
     res.json({ message: "Ad deleted" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 });
-async function idGenerator() {
-  let unique = false;
-  let newId;
-
-  while (!unique) {
-    newId = Math.floor(10000 + Math.random() * 90000);
-    const exists = await Announcement.findOne({ id: newId });
-    if (!exists) unique = true;
-  }
-  return newId;
-}
 
 const ADMIN_USER = {
   username: "Omrs",
@@ -3091,18 +3070,21 @@ app.get("/api/users/:id", verifyToken, async (req, res) => {
 
 
 
-app.delete("/api/my-announcements/:id", verifyToken, async (req, res) => {
-  try {
-    const deleted = await Announcement.findOneAndDelete({ id: req.params.id });
-    if (!deleted) {
-      return res.status(404).json({ message: "Elan tapılmadı" });
-    }
-    res.json({ message: "Elan uğurla silindi" });
-  } catch (err) {
-    console.error("Silinmə xətası:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
+// app.delete("/api/my-announcements/:id", verifyToken, async (req, res) => {
+//   try {
+//     const deleted = await Announcement.findOneAndDelete({ id: req.params.id });
+//     if (!deleted) {
+//       return res.status(404).json({ message: "Elan tapılmadı" });
+//     }
+//     res.json({ message: "Elan uğurla silindi" });
+//   } catch (err) {
+//     console.error("Silinmə xətası:", err);
+//     res.status(500).json({ error: err.message });
+//   }
+// });
+
+
+
 
 
 
@@ -3157,6 +3139,10 @@ app.get("/api/my-announcements", verifyToken, async (req, res) => {
   }
 });
 
+
+
+
+// MODELLƏR XORITƏSİ — YUXARIDA BİR DƏFƏ YAZILSIN
 const models = {
   homGarden: HomeAndGarden,
   clothing: Clothing,
@@ -3168,58 +3154,95 @@ const models = {
   electronika: Electronika,
 };
 
+// DELETE — BÜTÜN MODELLƏR ÜÇÜN
 app.delete("/api/:model/:id", verifyToken, async (req, res) => {
   try {
     const { model, id } = req.params;
     const Model = models[model];
-    if (!Model) return res.status(400).json({ message: "Yanlış model adı" });
 
-    const item = await Model.findById(id);
-    if (!item) return res.status(404).json({ message: "Elan tapılmadı" });
+    if (!Model) {
+      return res.status(400).json({ message: "Yanlış model adı" });
+    }
 
-    if (item.userId.toString() !== req.user.id)
-      return res.status(403).json({ message: "İcazəniz yoxdur" });
+    // YALNIZ id ilə tapırıq (uuid)
+    const item = await Model.findOne({ id: id });
+    if (!item) {
+      return res.status(404).json({ message: "Elan tapılmadı" });
+    }
 
-    await item.deleteOne();
-    res.json({ message: "Elan uğurla silindi" });
+    // Yalnız öz elanını silə bilər
+    if (item.userId.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Bu elanı silmək icazəniz yoxdur" });
+    }
+
+    await Model.deleteOne({ id: id });
+
+    return res.json({ message: "Elan uğurla silindi" });
   } catch (err) {
+    console.error("Silinmə xətası:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
-app.delete("/api/:model/:id", verifyToken, async (req, res) => {
-  const { model, id } = req.params;
 
-  const models = {
-    homGarden: HomeAndGarden,
-    clothing: Clothing,
-    phone: Phone,
-    household: HouseHold,
-    realestate: RealEstate,
-    accessory: Accessory,
-    cars: Announcement,
-    electronika: Electronika,
-  };
 
-  const SelectedModel = models[model];
-  if (!SelectedModel)
-    return res.status(400).json({ message: "Yanlış model adı" });
 
-  try {
-    const item = await SelectedModel.findById(id);
-    if (!item) return res.status(404).json({ message: "Elan tapılmadı" });
 
-    if (item.userId.toString() !== req.user.id)
-      return res
-        .status(403)
-        .json({ message: "Bu elanı silmək icazəniz yoxdur" });
 
-    await item.deleteOne();
-    res.json({ message: "Elan uğurla silindi" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+
+
+// app.delete("/api/:model/:id", verifyToken, async (req, res) => {
+//   try {
+//     const { model, id } = req.params;
+//     const Model = models[model];
+//     if (!Model) return res.status(400).json({ message: "Yanlış model adı" });
+
+//     const item = await Model.findById(id);
+//     if (!item) return res.status(404).json({ message: "Elan tapılmadı" });
+
+//     if (item.userId.toString() !== req.user.id)
+//       return res.status(403).json({ message: "İcazəniz yoxdur" });
+
+//     await item.deleteOne();
+//     res.json({ message: "Elan uğurla silindi" });
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// });
+
+// app.delete("/api/:model/:id", verifyToken, async (req, res) => {
+//   const { model, id } = req.params;
+
+//   const models = {
+//     homGarden: HomeAndGarden,
+//     clothing: Clothing,
+//     phone: Phone,
+//     household: HouseHold,
+//     realestate: RealEstate,
+//     accessory: Accessory,
+//     cars: Announcement,
+//     electronika: Electronika,
+//   };
+
+//   const SelectedModel = models[model];
+//   if (!SelectedModel)
+//     return res.status(400).json({ message: "Yanlış model adı" });
+
+//   try {
+//     const item = await SelectedModel.findById(id);
+//     if (!item) return res.status(404).json({ message: "Elan tapılmadı" });
+
+//     if (item.userId.toString() !== req.user.id)
+//       return res
+//         .status(403)
+//         .json({ message: "Bu elanı silmək icazəniz yoxdur" });
+
+//     await item.deleteOne();
+//     res.json({ message: "Elan uğurla silindi" });
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// });
 
 // app.delete("/api/my-announcements/:id", verifyToken, async (req, res) => {
 //   try {
