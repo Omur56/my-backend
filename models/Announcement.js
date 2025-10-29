@@ -51,7 +51,7 @@ import { v4 as uuidv4 } from "uuid";
 const announcementSchema = new mongoose.Schema(
   {
     id: { type: String, required: true, default: uuidv4 }, // ✅ düzəldildi
-
+    
     category: String,
     brand: String,
     model: String,
