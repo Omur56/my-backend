@@ -3,7 +3,7 @@
 // const announcementSchema = new mongoose.Schema(
 //   {
 //     id: { type: Number, required: true, default: uuidv4 },
-   
+
 //     category: String,
 //     brand: String,
 //     model: String,
@@ -12,7 +12,7 @@
 //     price: String,
 //     location: String,
 //     images: [String],
-//     mainImage: String, 
+//     mainImage: String,
 //     images1: [String],
 //     km: String,
 //     motor: String,
@@ -43,15 +43,14 @@
 // const Announcement = mongoose.model("Announcement", announcementSchema);
 // export default Announcement;
 
-
-
 import mongoose from "mongoose";
 import { v4 as uuidv4 } from "uuid";
 
 const announcementSchema = new mongoose.Schema(
   {
-    id: { type: String, required: true, default: uuidv4 }, // ✅ düzəldildi
-    
+    // id: { type: String, required: true, default: uuidv4 }, // ✅ düzəldildi
+    id: { type: String, required: true, default: () => uuidv4() },
+
     category: String,
     brand: String,
     model: String,
@@ -87,6 +86,7 @@ const announcementSchema = new mongoose.Schema(
 
     liked: { type: Boolean, default: false },
     favorite: { type: Boolean, default: false },
+    data: { type: Date, default: Date.now },
 
     createdAt: { type: Date, default: Date.now },
   },

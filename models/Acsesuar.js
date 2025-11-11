@@ -7,7 +7,7 @@ const accessorySchema = new mongoose.Schema({
     unique: true,
     default: uuidv4,
   },
-  _id: String,
+ 
   data: { type: Date, default: Date.now },
   title: { type: String, required: true },
   brand: { type: String, required: true },
