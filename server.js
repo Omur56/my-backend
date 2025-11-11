@@ -741,6 +741,43 @@ app.get("/api/cars/:id", async (req, res) => {
 // });
 
 // Yeni elan əlavə et
+// app.post(
+//   "/api/cars",
+//   verifyToken,
+//   upload.array("images", 20),
+//   async (req, res) => {
+//     try {
+//       const newId = await idGenerator();
+
+//       // Cloudinary-yə şəkil yükləmə
+//       const uploadedImages = [];
+//       for (const file of req.files) {
+//         const result = await cloudinary.uploader.upload(file.path, {
+//           folder: "cars",
+//         });
+//         uploadedImages.push(result.secure_url);
+//         if (fs.existsSync(file.path)) fs.unlinkSync(file.path); // Lokal faylı sil
+//       }
+
+//       const newAnn = new Announcement({
+//         ...req.body,
+//         id: newId,
+//         userId: req.user.id,
+//         images: uploadedImages,
+//         liked: false,
+//         favorite: false,
+//       });
+
+//       await newAnn.save();
+//       res.status(201).json(newAnn);
+//     } catch (err) {
+//       console.error("❌ Cars əlavə olunarkən xəta:", err);
+//       res.status(500).json({ error: err.message });
+//     }
+//   }
+// );
+
+
 app.post(
   "/api/cars",
   verifyToken,
@@ -749,7 +786,10 @@ app.post(
     try {
       const newId = await idGenerator();
 
-      // Cloudinary-yə şəkil yükləmə
+      // 1️⃣ mainImageIndex dəyərini al (frontend-dən gəlir)
+      const mainImageIndex = parseInt(req.body.mainImageIndex);
+
+      // 2️⃣ Cloudinary-yə şəkilləri yüklə
       const uploadedImages = [];
       for (const file of req.files) {
         const result = await cloudinary.uploader.upload(file.path, {
@@ -759,11 +799,21 @@ app.post(
         if (fs.existsSync(file.path)) fs.unlinkSync(file.path); // Lokal faylı sil
       }
 
+      // 3️⃣ Əsas şəkili təyin et
+      let mainImage = null;
+      if (!isNaN(mainImageIndex) && uploadedImages[mainImageIndex]) {
+        mainImage = uploadedImages[mainImageIndex];
+      } else if (uploadedImages.length > 0) {
+        mainImage = uploadedImages[0]; // fallback
+      }
+
+      // 4️⃣ Yeni elan yarat
       const newAnn = new Announcement({
         ...req.body,
         id: newId,
         userId: req.user.id,
         images: uploadedImages,
+        mainImage, // ✅ əlavə etdik
         liked: false,
         favorite: false,
       });
@@ -776,6 +826,9 @@ app.post(
     }
   }
 );
+
+
+
 
 // Elanı yenilə
 app.put(
@@ -1879,26 +1932,49 @@ app.post(
     try {
       const newId = await idGenerator();
 
+  const mainImageIndex = parseInt(req.body.mainImageIndex);
+  
+      // const uploadedImages = [];
+
+      // for (const file of req.files) {
+      //   // Windows path-də backslash (\) problem yarada bilər
+      //   const filePath = file.path.replace(/\\/g, "/");
+
+      //   // Cloudinary-yə upload et
+      //   const result = await cloudinary.uploader.upload(filePath, {
+      //     folder: "realestate",
+      //   });
+      //   uploadedImages.push(result.secure_url);
+
+      //   // Local faylı sil
+      //   if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+      // }
+
+
       const uploadedImages = [];
-
       for (const file of req.files) {
-        // Windows path-də backslash (\) problem yarada bilər
-        const filePath = file.path.replace(/\\/g, "/");
-
-        // Cloudinary-yə upload et
-        const result = await cloudinary.uploader.upload(filePath, {
+        const result = await cloudinary.uploader.upload(file.path, {
           folder: "realestate",
         });
         uploadedImages.push(result.secure_url);
-
-        // Local faylı sil
-        if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+        if (fs.existsSync(file.path)) fs.unlinkSync(file.path); // Lokal faylı sil
       }
+
+
+            // 3️⃣ Əsas şəkili təyin et
+      let mainImage = null;
+      if (!isNaN(mainImageIndex) && uploadedImages[mainImageIndex]) {
+        mainImage = uploadedImages[mainImageIndex];
+      } else if (uploadedImages.length > 0) {
+        mainImage = uploadedImages[0]; // fallback
+      }
+
 
       const realEstatePost = new RealEstate({
         id: newId,
         ...req.body,
         images: uploadedImages,
+        mainImage, // Əsas şəkili əlavə et
         userId: req.user.id,
         contact: {
           name: req.body["contact.name"],
@@ -3109,22 +3185,22 @@ app.delete("/api/my-announcements/:id", verifyToken, async (req, res) => {
 
 app.get("/api/my-announcements", verifyToken, async (req, res) => {
   try {
-    const homeAds = await HomeAndGarden.find({ userId: req.user.id }).lean();
+    const homeAds = await HomeAndGarden.find({ userId: req.user._id }).lean();
     homeAds.forEach((ad) => (ad.modelName = "homGarden"));
 
-    const clothingAds = await Clothing.find({ userId: req.user.id }).lean();
+    const clothingAds = await Clothing.find({ userId: req.user._id }).lean();
     clothingAds.forEach((ad) => (ad.modelName = "Clothing"));
 
-    const phoneAds = await Phone.find({ userId: req.user.id }).lean();
+    const phoneAds = await Phone.find({ userId: req.user._id }).lean();
     phoneAds.forEach((ad) => (ad.modelName = "Phone"));
 
-    const householdAds = await HouseHold.find({ userId: req.user.id }).lean();
+    const householdAds = await HouseHold.find({ userId: req.user._id }).lean();
     householdAds.forEach((ad) => (ad.modelName = "Household"));
 
-    const realEstateAds = await RealEstate.find({ userId: req.user.id }).lean();
+    const realEstateAds = await RealEstate.find({ userId: req.user._id }).lean();
     realEstateAds.forEach((ad) => (ad.modelName = "RealEstate"));
 
-    const accessoryAds = await Accessory.find({ userId: req.user.id }).lean();
+    const accessoryAds = await Accessory.find({ userId: req.user._id }).lean();
     accessoryAds.forEach((ad) => (ad.modelName = "accessories"));
 
     const announcementAds = await Announcement.find({
