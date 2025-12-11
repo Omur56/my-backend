@@ -1,13 +1,21 @@
 {
   "files": {
-    "main.css": "/static/css/main.b00ac99f.css",
-    "main.js": "/static/js/main.d5a5de98.js",
+    "main.css": "/static/css/main.a3548628.css",
+    "main.js": "/static/js/main.d4f4eac2.js",
+    "static/media/cat_1.png": "/static/media/cat_1.799be79891d07d791f4e.png",
+    "static/media/geyim.png": "/static/media/geyim.a306b4e7551d25d826ca.png",
+    "static/media/dasinmaz.png": "/static/media/dasinmaz.4c638ae94b17604d7ebc.png",
+    "static/media/meiset.png": "/static/media/meiset.23ba0798e31fdbfce9d5.png",
+    "static/media/ehtiyyat.png": "/static/media/ehtiyyat.8ee8682f436876e56d4e.png",
+    "static/media/ev_ve_bag.png": "/static/media/ev_ve_bag.167d57aa87ca673b9e4d.png",
+    "static/media/telefon.png": "/static/media/telefon.5abc0e28b62ef0565b8e.png",
+    "static/media/elektronika.png": "/static/media/elektronika.919f010305c077c7ca61.png",
     "index.html": "/index.html",
-    "main.b00ac99f.css.map": "/static/css/main.b00ac99f.css.map",
-    "main.d5a5de98.js.map": "/static/js/main.d5a5de98.js.map"
+    "main.a3548628.css.map": "/static/css/main.a3548628.css.map",
+    "main.d4f4eac2.js.map": "/static/js/main.d4f4eac2.js.map"
   },
   "entrypoints": [
-    "static/css/main.b00ac99f.css",
-    "static/js/main.d5a5de98.js"
+    "static/css/main.a3548628.css",
+    "static/js/main.d4f4eac2.js"
   ]
 }
