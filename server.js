@@ -68,6 +68,7 @@ app.use(
       "https://axtartapaz-frontend.onrender.com",
       "https://www.omurcars.org",
       "http://localhost:3000",
+      "http://localhost:10000",
       "https://my-backend-wj5g.onrender.com",
       
     ],
