@@ -141,6 +141,7 @@ dotenv.config({ path: path.resolve("../.env") });
 // app.use(cors());
 
 app.use(express.json());
+
 app.use("/uploads", express.static(path.join(__dirname, "uploads", "build")));
 app.use("/api", authRoutes);
 app.use("/api/ads", adsRouter);
@@ -1053,7 +1054,7 @@ app.delete("/api/:category/:id", verifyToken, async (req, res) => {
 
 // Yeni elan əlavə et
 app.post(
-  "/api/homGarden",
+  "/api/homeGarden",
   verifyToken,
   upload.array("images", 20),
   async (req, res) => {
@@ -1114,7 +1115,7 @@ app.post(
 
 // Elanı yenilə
 app.put(
-  "/api/homGarden/:id",
+  "/api/homeGarden/:id",
   verifyToken,
   upload.array("images", 20),
   async (req, res) => {
@@ -1180,7 +1181,7 @@ app.put(
   }
 );
 
-app.get("/api/homGarden/my-announcements", verifyToken, async (req, res) => {
+app.get("/api/homeGarden/my-announcements", verifyToken, async (req, res) => {
   try {
     const items = await HomeAndGarden.find({ userId: req.user.id }).sort({
       data: -1,
@@ -1191,7 +1192,7 @@ app.get("/api/homGarden/my-announcements", verifyToken, async (req, res) => {
   }
 });
 // GET bütün elanlar
-app.get("/api/homGarden", async (req, res) => {
+app.get("/api/homeGarden", async (req, res) => {
   try {
     const items = await HomeAndGarden.find().sort({ data: -1 });
     res.json(items);
@@ -1201,7 +1202,7 @@ app.get("/api/homGarden", async (req, res) => {
 });
 
 // GET tək elan
-app.get("/api/homGarden/:id", async (req, res) => {
+app.get("/api/homeGarden/:id", async (req, res) => {
   try {
     const item = await HomeAndGarden.findById(req.params.id);
     if (!item) return res.status(404).json({ message: "Elan tapılmadı" });
@@ -1212,7 +1213,7 @@ app.get("/api/homGarden/:id", async (req, res) => {
 });
 
 // GET istifadəçinin öz elanları
-app.get("/api/homGarden/:id", verifyToken, async (req, res) => {
+app.get("/api/homeGarden/:id", verifyToken, async (req, res) => {
   try {
     const items = await HomeAndGarden.find({ userId: req.user.id }).sort({
       data: -1,
@@ -1224,7 +1225,7 @@ app.get("/api/homGarden/:id", verifyToken, async (req, res) => {
 });
 
 // İstifadəçinin elan silməsi
-app.delete("/api/homGarden/:id", verifyToken, async (req, res) => {
+app.delete("/api/homeGarden/:id", verifyToken, async (req, res) => {
   try {
     const item = await HomeAndGarden.findById(req.params.id);
 
@@ -1269,7 +1270,7 @@ app.delete("/api/homGarden/:id", verifyToken, async (req, res) => {
 // });
 
 // DELETE - elan sil
-app.delete("/api/homGarden/:id", verifyToken, async (req, res) => {
+app.delete("/api/homeGarden/:id", verifyToken, async (req, res) => {
   try {
     const item = await HomeAndGarden.findById(req.params.id);
     if (!item) return res.status(404).json({ message: "Elan tapılmadı" });
@@ -1283,7 +1284,7 @@ app.delete("/api/homGarden/:id", verifyToken, async (req, res) => {
 });
 
 // PATCH like
-app.patch("/api/homGarden/:id/like", verifyToken, async (req, res) => {
+app.patch("/api/homeGarden/:id/like", verifyToken, async (req, res) => {
   try {
     const item = await HomeAndGarden.findById(req.params.id);
     if (!item) return res.status(404).json({ message: "Elan tapılmadı" });
@@ -1296,7 +1297,7 @@ app.patch("/api/homGarden/:id/like", verifyToken, async (req, res) => {
 });
 
 // PATCH favorite
-app.patch("/api/homGarden/:id/favorite", verifyToken, async (req, res) => {
+app.patch("/api/homeGarden/:id/favorite", verifyToken, async (req, res) => {
   try {
     const item = await HomeAndGarden.findById(req.params.id);
     if (!item) return res.status(404).json({ message: "Elan tapılmadı" });
