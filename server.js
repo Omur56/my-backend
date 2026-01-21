@@ -128,7 +128,7 @@ const addWatermark = async (imagePath) => {
 dotenv.config({ path: path.resolve("../.env") });
 
 
-app.use(express.json({ limit: "50mb" }));
+app.use(express.json());
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads", "build")));
 app.use("/api", authRoutes);
@@ -2059,7 +2059,7 @@ app.patch("/api/Jewelry/:id/like", async (req, res) => {
 // Favorite toggle
 app.patch("/api/Jewelry/:id/favorite", async (req, res) => {
   try {
-    const post = await Clothing.findById(req.params.id);
+    const post = await Jewelry.findById(req.params.id);
     if (!post) return res.status(404).json({ message: "Elan tapılmadı" });
 
     post.favorite = !post.favorite;
@@ -2076,7 +2076,7 @@ app.delete("/api/Jewelry/images/:imageName", async (req, res) => {
     const imageName = req.params.imageName;
 
     // 1. DB-də images massivindən URL-ə uyğun şəkili sil
-    await Clothing.updateMany(
+    await Jewelry.updateMany(
       { images: { $regex: imageName } },
       { $pull: { images: { $regex: imageName } } }
     );
@@ -2315,7 +2315,7 @@ app.get("/api/my-announcements", verifyToken, async (req, res) => {
 });
 
 const models = {
-  homGarden: HomeAndGarden,
+  homeGarden: HomeAndGarden,
   clothing: Clothing,
   phone: Phone,
   household: HouseHold,
@@ -2348,7 +2348,7 @@ app.delete("/api/:model/:id", verifyToken, async (req, res) => {
   const { model, id } = req.params;
 
   const models = {
-    homGarden: HomeAndGarden,
+    homeGarden: HomeAndGarden,
     clothing: Clothing,
     phone: Phone,
     household: HouseHold,
