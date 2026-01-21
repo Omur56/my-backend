@@ -35,9 +35,6 @@ import sharp from "sharp";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 
-
-
-
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.CLOUD_API_KEY,
@@ -55,20 +52,6 @@ const app = express();
 
 // const PORT = 5000;
 
-
-// app.use(
-//   "/api",
-//   rateLimit({
-//     windowMs: 15 * 60 * 1000, // 15 dəqiqə
-//     max: 100, // eyni IP üçün maksimum 100 sorğu
-//     standardHeaders: true, // rate limit məlumatını `RateLimit-*` header-larda göstər
-//     legacyHeaders: false, // `X-RateLimit-*` header-larını deaktiv et
-//   })
-// );
-
-app.use(helmet());
-
-
 app.use(
   cors({
     origin: [
@@ -84,13 +67,35 @@ app.use(
 );
 app.use(bodyParser.json());
 
+app.use(
+  "/api",
+  rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 dəqiqə
+    max: 100, // eyni IP üçün maksimum 100 sorğu
+    standardHeaders: true, // rate limit məlumatını `RateLimit-*` header-larda göstər
+    legacyHeaders: false, // `X-RateLimit-*` header-larını deaktiv et
+  })
+);
+
+
+app.use(helmet());
+
+
 // Routes
 
 const PORT = process.env.PORT || 10000;
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:10000";
 
-
+// const storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, path.join(__dirname, "uploads"));
+//   },
+//   filename: function (req, file, cb) {
+//     const uniqueName = `${Date.now()}-${file.originalname}`;
+//     cb(null, uniqueName);
+//   },
+// });
 
 // Multer config
 const storage = multer.diskStorage({
@@ -123,12 +128,24 @@ const addWatermark = async (imagePath) => {
     .toFile(imagePath.replace(/(\.\w+)$/, "-wm$1")); // watermark əlavə olunmuş şəkil
 };
 
+// Şəkil yükləmə route
 
+// const upload = multer({ storage });
+
+// const upload = multer({
+//   storage,
+//   limits: { fileSize: 5 * 1024 * 1024, files: 20 },
+// });
 
 dotenv.config({ path: path.resolve("../.env") });
 
+// Routes
 
-app.use(express.json());
+// app.use(cors());
+
+// app.use(express.json());
+
+app.use(express.json({ limit: "10mb" }));
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads", "build")));
 app.use("/api", authRoutes);
@@ -138,9 +155,11 @@ app.use("/api/announcements", announcementRoutes);
 app.use("/uploads", express.static("uploads"));
 app.use("/api", profileRoutes);
 app.use("/api/auth", authRoutes);
-app.disable("x-powered-by");
+// app.use(bodyParser.json());
+// app.use("/api", otpRoutes);
 
-
+// test üçün hamıya açmaq istəyirsənsə
+// app.use(cors());
 
 app.post("/upload", upload.array("images", 10), async (req, res) => {
   try {
@@ -213,7 +232,42 @@ const modelsMap = {
   Phone: Phone,
 };
 
+// app.post("/api/ads", upload.array("images", 20), async (req, res) => {
+//   try {
+//     const ad = new Ad({
+//       title: req.body.title,
+//       link: req.body.link,
+//       images: req.files.map((f) => f.filename),
+//     });
+//     await ad.save();
+//     res.status(201).json(ad);
+//   } catch (err) {
+//     console.error("POST /api/ads xətası:", err);
+//     res.status(500).json({ message: err.message });
+//   }
+// });
 
+// // GET /api/ads (əsas səhifə üçün)
+// app.get("/api/ads", async (req, res) => {
+//   try {
+//     const ads = await Ad.find();
+//     res.json(ads);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: err.message });
+//   }
+// });
+
+// DELETE /api/ads/:id
+// app.delete("/api/ads/:id", async (req, res) => {
+//   try {
+//     await Ad.findByIdAndDelete(req.params.id);
+//     res.json({ message: "Reklam silindi" });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: err.message });
+//   }
+// });
 
 // GET /api/my-{category} - istifadəçinin bütün elanları
 app.get("/my-:category", authMiddleware, async (req, res) => {
@@ -373,6 +427,237 @@ app.post("/api/verify-otp", (req, res) => {
   res.json({ message: "Telefon təsdiqləndi" });
 });
 
+// app.get("/api/my-cars", verifyToken, async (req, res) => {
+//   try {
+//     const cars = await Announcement.find({ userId: req.user.id }).sort({ data: -1 });
+//     res.json(cars);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// });
+
+// app.get("/api/cars/:id", async (req, res) => {
+//   try {
+//     const car = await Announcement.findOne({ id: Number(req.params.id) });
+//     if (!car) return res.status(404).json({ message: "Elan tapılmadı" });
+//     res.json(car); // 200 status ilə qaytarır
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: "Server xətası" });
+//   }
+// });
+
+// // Bütün elanları gətir
+// app.get("/api/cars", async (req, res) => {
+
+//   try {
+//     const cars = await Announcement.find().sort({ data: -1 });
+//     res.json(cars);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// });
+
+// app.post("/api/cars", upload.array("images", 20 ), async (req, res) => {
+//   const newId = await idGenerator();
+//   try {
+//      const { id } = req.params;
+
+//     const {
+
+//     category,
+//     ban_type,
+//     brand,
+//     model,
+//     year,
+//     price,
+//     location,
+//     images,
+//     km,
+//     motor,
+//     transmission,
+//     liked,
+//     favorite,
+//     engine,
+//     data,
+
+//     description, } = req.body;
+
+//     const contact = {
+//       name: req.body["contact.name"],
+//       email: req.body["contact.email"],
+//       phone: req.body["contact.phone"],
+//   }
+//  const imageUrls = req.files.map(file => `http://localhost:${PORT}/uploads/${file.filename}`);
+
+//   const newAnn = new Announcement({
+//       id: newId,
+//       ban_type,
+//       category,
+//       brand,
+//       model,
+//       year,
+//       price,
+//       location,
+//       images,
+//       km,
+//       motor,
+//       transmission,
+//       engine,
+//       contact,
+//       liked: liked === "true",
+//       favorite: favorite === "true",
+//       data : data ? new Date(data) : new Date(),
+//       description,
+//        userId: req.user.id,
+
+//    images: imageUrls,
+//       // image: req.file ? `http://localhost:${PORT}/uploads/${req.file.filename}` : "",
+// })
+
+// await newAnn.save();
+// res.status(201).json(newAnn);
+// } catch (err) {
+//   res.status(500).json({error: err.message});
+// }
+// });
+
+// // Multer upload və verifyToken middleware əvvəlcədən əlavə olunub
+
+// app.put("/api/cars/:id",verifyToken, upload.array("images", 20), async (req, res) => {
+//    try {
+//     const ann = await Announcement.findById(req.params.id);
+//     if (!ann) return res.status(404).json({ message: "Elan tapılmadı" });
+
+//     // İstifadəçi sahib deyil -> icazə yoxdur
+//     if (ann.userId !== req.user.id) {
+//       return res.status(403).json({ message: "Bu elanı yeniləmək hüququn yoxdur" });
+//     }
+
+//     // əgər sahibdirsə yeniləməyə davam et...
+//     Object.assign(ann, req.body);
+//     await ann.save();
+//     res.json(ann);
+//     const { id } = req.params;
+//     const {
+//          category,
+//          ban_type,
+//     brand,
+//     model,
+//     year,
+//     price,
+//     location,
+//     images,
+//     km,
+//     motor,
+//     transmission,
+//     liked,
+//     favorite,
+//     engine,
+//     data,
+//     description,
+
+//     } = req.body;
+//     const contact = {
+//       name: req.body.name,
+//       email: req.body.email,
+//       phone: req.body.phone,
+//     };
+//  let imageUrls = [];
+
+//     if (req.files && req.files.length > 0) {
+//       imageUrls = req.files.map(file => `http://localhost:${PORT}/uploads/${file.filename}`);
+//     }
+
+//     const updatedFields = {
+//       id:  Date.now(),
+//         category,
+//       model,
+//       ban_type,
+//       year,
+//       brand,
+//       price,
+//       location,
+//       images,
+//       km,
+//       motor,
+//       transmission,
+//       description,
+//       engine,
+//       contact,
+//       liked: liked === "true",
+//       favorite: favorite === "true",
+//       data: data ? new Date(data) : new Date(),
+//          images: req.files
+//     ? req.files.map(file => `http://localhost:${PORT}/uploads/${file.filename}`)
+//     : [],
+//     };
+
+//      if (imageUrls.length > 0) {
+//       updatedFields.images = imageUrls; // şəkilləri yenilə
+//     }
+
+//     if (req.file) {
+//       updatedFields.images = `http://localhost:${PORT}/uploads/${req.files.filename}`;
+//     }
+//     const update = await Announcement.findByIdAndUpdate(id, updatedFields, { new: true});
+//     res.json(update);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message})
+//   }
+// });
+
+// app.delete("/api/cars/:id", verifyToken, async (req, res) => {
+//   try {
+
+//     const ann = await Announcement.findById(req.params.id);
+//     if (!ann) return res.status(404).json({ message: "Elan tapılmadı" });
+
+//     if (ann.userId !== req.user.id) {
+//       return res.status(403).json({ message: "Bu elanı silmək hüququn yoxdur" });
+//     }
+
+//     await ann.deleteOne();
+//     res.status(204).send();
+
+//     const { id } = req.params;
+//   await Announcement.findByIdAndDelete(req.params.id);
+//     res.status(204).send();
+//   } catch  (err){
+//     res.status(500).json({ error: err.message})
+//   }
+// });
+
+// app.patch("/api/cars/:id/like", async (req, res) => {
+//   try {
+//       const car = await Announcement.findById(req.params.id);
+//       car.liked = !car.liked;
+//       await car.save();
+//       res.json(car);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message})
+//   }
+// });
+
+// app.patch("/api/cars/:id/favorite", async (req, res) => {
+//   try {
+//     const car = await Announcement.findById(req.params.id);
+//     car.favorite = !car.favorite;
+//     await car.save();
+//     res.json(car);
+//   }catch (err) {
+//     res.status(500).json({error: err.message})
+//   }
+// });
+
+// app.get("/api/my-cars", verifyToken, async (req, res) => {
+//   try {
+//     const cars = await Announcement.find({ userId: req.user.id }).sort({ data: -1 });
+//     res.json(cars);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// });
 
 // Bütün elanları gətir
 app.get("/api/cars", async (req, res) => {
@@ -410,6 +695,95 @@ app.get("/api/cars/:id", async (req, res) => {
   }
 });
 
+// // Yeni elan əlavə et
+// app.post("/api/cars", verifyToken, upload.array("images", 20), async (req, res) => {
+
+//   try {
+//     const newId = await idGenerator();
+
+// // Elanı yeniləyərkən
+
+//     const newAnn = new Announcement({
+//       ...req.body,
+//       id: newId,
+//       userId: req.user.id,
+//       images: req.files.map(file => `${BASE_URL}/uploads/${file.filename}`),
+//       liked: false,
+//       favorite: false,
+
+//     });
+
+//     await newAnn.save();
+//     res.status(201).json(newAnn);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: err.message });
+//   }
+// });
+
+// // Elanı yenilə
+// app.put("/api/cars/:id", verifyToken, upload.array("images", 20), async (req, res) => {
+//   try {
+//     const ann = await Announcement.findById(req.params.id);
+//     if (!ann) return res.status(404).json({ message: "Elan tapılmadı" });
+
+//     if (ann.userId !== req.user.id) {
+//       return res.status(403).json({ message: "Bu elanı yeniləmək hüququn yoxdur" });
+//     }
+
+//     if (req.files && req.files.length > 0) {
+//       ann.images = req.files.map(file => `${BASE_URL}/uploads/${file.filename}`);
+//     }
+
+//     const { title, description, price } = req.body;
+//     if (title) ann.title = title;
+//     if (description) ann.description = description;
+//     if (price) ann.price = price;
+
+//     await ann.save();
+//     res.json(ann);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: err.message });
+//   }
+// });
+
+// Yeni elan əlavə et
+// app.post(
+//   "/api/cars",
+//   verifyToken,
+//   upload.array("images", 20),
+//   async (req, res) => {
+//     try {
+//       const newId = await idGenerator();
+
+//       // Cloudinary-yə şəkil yükləmə
+//       const uploadedImages = [];
+//       for (const file of req.files) {
+//         const result = await cloudinary.uploader.upload(file.path, {
+//           folder: "cars",
+//         });
+//         uploadedImages.push(result.secure_url);
+//         if (fs.existsSync(file.path)) fs.unlinkSync(file.path); // Lokal faylı sil
+//       }
+
+//       const newAnn = new Announcement({
+//         ...req.body,
+//         id: newId,
+//         userId: req.user.id,
+//         images: uploadedImages,
+//         liked: false,
+//         favorite: false,
+//       });
+
+//       await newAnn.save();
+//       res.status(201).json(newAnn);
+//     } catch (err) {
+//       console.error("❌ Cars əlavə olunarkən xəta:", err);
+//       res.status(500).json({ error: err.message });
+//     }
+//   }
+// );
 
 app.post(
   "/api/cars",
@@ -569,6 +943,115 @@ app.delete("/api/:category/:id", verifyToken, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+// ----------------- HomeAndGarden -----------------
+
+// POST /api/homGarden - yeni elan
+// app.post("/api/homGarden", verifyToken, upload.array("images", 20), async (req, res) => {
+//   try {
+//     const {
+//       model,
+//       category,
+//       title,
+//       description,
+//       brand,
+//       price,
+//       location,
+//       liked,
+//       favorite,
+//       data
+//     } = req.body;
+
+//     const contact = {
+//       name: req.body["contact.name"],
+//       email: req.body["contact.email"],
+//       phone: req.body["contact.phone"],
+//     };
+
+//     const imageUrls = req.files?.map(f => `http://localhost:5000/uploads/${f.filename}`) || [];
+
+//     const newHome = new HomeAndGarden({
+//       userId: req.user.id,
+//       model,
+//       category,
+//       title,
+//       description,
+//       brand,
+//       price,
+//       location,
+//       contact,
+//       liked: liked === "true",
+//       favorite: favorite === "true",
+//       data: data ? new Date(data) : new Date(),
+//       images: imageUrls
+//     });
+
+//     await newHome.save();
+//     res.status(201).json(newHome);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: err.message });
+//   }
+// });
+
+// app.post("/api/homGarden", verifyToken, upload.array("images", 20), async (req, res) => {
+//   try {
+//     const { model, category, title, description, brand, price, location, liked, favorite, data } = req.body;
+//     const contact = {
+//       name: req.body["contact.name"],
+//       email: req.body["contact.email"],
+//       phone: req.body["contact.phone"],
+//     };
+//     const imageUrls = req.files?.map(f => `${BASE_URL}/uploads/${f.filename}`) || [];
+
+//     const newHome = new HomeAndGarden({
+//       userId: req.user.id,
+//       model, category, title, description, brand, price, location,
+//       contact, liked: liked === "true", favorite: favorite === "true",
+//       data: data ? new Date(data) : new Date(),
+//       images: imageUrls,
+//     });
+
+//     await newHome.save();
+//     res.status(201).json(newHome);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: err.message });
+//   }
+// });
+
+// app.get("/api/homGarden/my-announcements", verifyToken, async (req, res) => {
+//   const items = await Announcement.find({ userId: req.user.id });
+//   res.json(items);
+// });
+
+// PUT - elan yenilə
+// app.put("/api/homGarden/:id", verifyToken, upload.array("images", 20), async (req, res) => {
+//   try {
+//     const item = await HomeAndGarden.findById(req.params.id);
+//     if (!item) return res.status(404).json({ message: "Elan tapılmadı" });
+//     if (item.userId.toString() !== req.user.id) return res.status(403).json({ message: "İcazəniz yoxdur" });
+
+//     const { model, category, title, description, brand, price, location, liked, favorite, data } = req.body;
+//     const contact = {
+//       name: req.body["contact.name"],
+//       email: req.body["contact.email"],
+//       phone: req.body["contact.phone"]
+//     };
+//     const imageUrls = req.files?.map(f => `${BASE_URL}/uploads/${f.filename}`) || item.images;
+
+//     Object.assign(item, {
+//       model, category, title, description, brand, price, location,
+//       contact, liked: liked === "true", favorite: favorite === "true",
+//       data: data ? new Date(data) : item.data,
+//       images: imageUrls
+//     });
+
+//     await item.save();
+//     res.json(item);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// });
 
 // Yeni elan əlavə et
 app.post(
@@ -765,6 +1248,28 @@ app.delete("/api/homeGarden/:id", verifyToken, async (req, res) => {
   }
 });
 
+// // Elanı yeniləmək (yalnız sahib edə bilər)
+// app.put("/api/homGarden/:id", verifyToken, async (req, res) => {
+//   try {
+//     const item = await HomeAndGarden.findById(req.params.id);
+//     if (!item) return res.status(404).json({ message: "Elan tapılmadı" });
+
+//     if (item.userId.toString() !== req.user.id) {
+//       return res.status(403).json({ message: "Bu elanı dəyişmək icazəniz yoxdur" });
+//     }
+
+//     const updated = await HomeAndGarden.findByIdAndUpdate(
+//       req.params.id,
+//       req.body,
+//       { new: true }
+//     );
+
+//     res.json(updated);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// });
+
 // DELETE - elan sil
 app.delete("/api/homeGarden/:id", verifyToken, async (req, res) => {
   try {
@@ -844,6 +1349,83 @@ app.delete("/api/electronika/:id", verifyToken, async (req, res) => {
   }
 });
 
+// // Yeni elan əlavə et
+// app.post("/api/electronika", verifyToken, upload.array("images", 20), async (req, res) => {
+//   try {
+//     const newId = await idGenerator();
+
+//     const imageUrls = req.files.map(
+//       (file) => `${BASE_URL}/uploads/${file.filename}`
+//     );
+
+//     const contact = {
+//       name: req.body["contact.name"] || "",
+//       email: req.body["contact.email"] || "",
+//       phone: req.body["contact.phone"] || "",
+//     };
+
+//     const newPost = new Electronika({
+//       id: newId,
+//       category: req.body.category,
+//       title: req.body.title,
+//       brand: req.body.brand,
+//       model: req.body.model,
+//       price: req.body.price,
+//       location: req.body.location,
+//       description: req.body.description,
+//       images: imageUrls,
+//       contact,
+//       liked: false,
+//       favorite: false,
+//       data: req.body.data ? new Date(req.body.data) : Date.now(),
+//       userId: req.user.id, // vacib
+//     });
+
+//     await newPost.save();
+//     res.status(201).json(newPost);
+//   } catch (error) {
+//     res.status(400).json({ message: error.message });
+//   }
+// });
+
+// // UPDATE elan
+// app.put("/api/electronika/:id", verifyToken, upload.array("images", 20), async (req, res) => {
+//   try {
+//     const post = await Electronika.findById(req.params.id);
+//     if (!post) return res.status(404).json({ message: "Post tapılmadı" });
+//     if (post.userId.toString() !== req.user.id)
+//       return res.status(403).json({ message: "Bu elanı dəyişmək hüququn yoxdur" });
+
+//     if (req.files.length > 0) {
+//       const imageUrls = req.files.map(
+//         (file) => `${BASE_URL}/uploads/${file.filename}`
+//       );
+//       post.images = imageUrls;
+//     }
+
+//     post.title = req.body.title || post.title;
+//     post.brand = req.body.brand || post.brand;
+//     post.model = req.body.model || post.model;
+//     post.price = req.body.price || post.price;
+//     post.location = req.body.location || post.location;
+//     post.description = req.body.description || post.description;
+
+//     post.contact = {
+//       name: req.body["contact.name"] || post.contact.name,
+//       email: req.body["contact.email"] || post.contact.email,
+//       phone: req.body["contact.phone"] || post.contact.phone,
+//     };
+
+//     post.data = req.body.data ? new Date(req.body.data) : post.data;
+
+//     await post.save();
+//     res.json(post);
+//   } catch (error) {
+//     res.status(400).json({ message: error.message });
+//   }
+// });
+
+// Yeni elan əlavə et
 app.post(
   "/api/electronika",
   verifyToken,
@@ -1029,6 +1611,62 @@ app.get("/api/accessories/:id", async (req, res) => {
   }
 });
 
+// app.post("/api/accessories", verifyToken, upload.array("images", 20), async (req, res) => {
+//   try {
+//     const images = req.files.map(
+//       file => `${BASE_URL}/uploads/${file.filename}`
+//     );
+
+//     const accessory = new Accessory({
+//       ...req.body,
+//       images,
+//       userId: req.user.id, // <- burda istifadəçinin ID-si
+//       contact: {
+//         name: req.body["contact.name"],
+//         email: req.body["contact.email"],
+//         phone: req.body["contact.phone"],
+//       },
+//     });
+
+//     await accessory.save();
+//     res.status(201).json(accessory);
+//   } catch (err) {
+//     res.status(400).json({ error: err.message });
+//   }
+// });
+
+// app.put(
+//   "/api/accessories/:id",
+//   upload.array("images", 10),
+//   async (req, res) => {
+//     try {
+//       let images = [];
+//       if (req.files.length > 0) {
+//         images = req.files.map(
+//           (file) =>
+//             `${BASE_URL}/uploads/${file.filename}`
+//         );
+//       }
+
+//       const updated = await Accessory.findByIdAndUpdate(
+//         req.params.id,
+//         {
+//           ...req.body,
+//           ...(images.length > 0 && { images }),
+//           contact: {
+//             name: req.body["contact.name"],
+//             email: req.body["contact.email"],
+//             phone: req.body["contact.phone"],
+//           },
+//         },
+//         { new: true }
+//       );
+//       res.json(updated);
+//     } catch (err) {
+//       res.status(400).json({ error: err.message });
+//     }
+//   }
+// );
 
 app.post(
   "/api/accessories",
@@ -1231,6 +1869,65 @@ app.get("/api/RealEstate", async (req, res) => {
   }
 });
 
+// app.post("/api/RealEstate", verifyToken, upload.array("images", 20), async (req, res) => {
+//   try {
+//     const newId = await idGenerator();
+
+//     const images = req.files.map(
+//       (file) => `${BASE_URL}/uploads/${file.filename}`
+//     );
+
+//     const realEstatePost = new RealEstate({
+//       id: newId,
+//       ...req.body,
+//       images,
+//       userId: req.user.id, // burada token-dan gələn userId əlavə olunur
+//       contact: {
+//         name: req.body["contact.name"],
+//         email: req.body["contact.email"],
+//         phone: req.body["contact.phone"],
+//       },
+//     });
+
+//     await realEstatePost.save();
+//     res.status(201).json(realEstatePost);
+//   } catch (err) {
+//     res.status(400).json({ error: err.message });
+//   }
+// });
+
+// app.put(
+//   "/api/RealEstate/:id",
+//   upload.array("images", 20),
+//   async (req, res) => {
+//     try {
+//       let images = [];
+//       if (req.files.length > 0) {
+//         images = req.files.map(
+//           (file) => `${BASE_URL}/uploads/${file.filename}`
+//         );
+//       }
+
+//       const updated = await RealEstate.findByIdAndUpdate(
+//         req.params.id,
+//         {
+//           ...req.body,
+//           ...(images.length > 0 && { images }),
+//           contact: {
+//             name: req.body["contact.name"],
+//             email: req.body["contact.email"],
+//             phone: req.body["contact.phone"],
+//           },
+//         },
+//         { new: true }
+//       );
+//       res.json(updated);
+//     } catch (err) {
+//       res.status(400).json({ error: err.message });
+//     }
+//   }
+// );
+
 app.post(
   "/api/RealEstate",
   verifyToken,
@@ -1241,7 +1938,22 @@ app.post(
 
       const mainImageIndex = parseInt(req.body.mainImageIndex);
 
-      
+      // const uploadedImages = [];
+
+      // for (const file of req.files) {
+      //   // Windows path-də backslash (\) problem yarada bilər
+      //   const filePath = file.path.replace(/\\/g, "/");
+
+      //   // Cloudinary-yə upload et
+      //   const result = await cloudinary.uploader.upload(filePath, {
+      //     folder: "realestate",
+      //   });
+      //   uploadedImages.push(result.secure_url);
+
+      //   // Local faylı sil
+      //   if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+      // }
+
       const uploadedImages = [];
       for (const file of req.files) {
         const result = await cloudinary.uploader.upload(file.path, {
@@ -1409,6 +2121,71 @@ app.get("/api/Household/:id", async (req, res) => {
   }
 });
 
+// app.post("/api/Household", verifyToken, upload.array("images", 20), async (req, res) => {
+//   const newId = await idGenerator();
+//   try {
+//     const images = req.files.map(
+//       (file) => `${BASE_URL}/uploads/${file.filename}`
+//     );
+
+//     const contact = {
+//       name: req.body["contact.name"] || "",
+//       email: req.body["contact.email"] || "",
+//       phone: req.body["contact.phone"] || "",
+//     };
+
+//     const newHouseHold = new HouseHold({
+//       id: newId,
+//       ...req.body,
+//       images,
+//       contact,
+//       data: req.body.data ? new Date(req.body.data) : new Date(),
+//       userId: req.user.id, // Token-dan gələn istifadəçi ID
+//     });
+
+//     await newHouseHold.save();
+//     res.status(201).json(newHouseHold);
+//   } catch (err) {
+//     res.status(400).json({ error: err.message });
+//   }
+// });
+
+// app.put("/api/Household/:id", upload.array("images", 20), async (req, res) => {
+//   try {
+//     let images = [];
+//     if (req.files && req.files.length > 0) {
+//       images = req.files.map(
+//         (file) => `${BASE_URL}/uploads/${file.filename}`
+//       );
+//     }
+
+//     const contact = {
+//       name: req.body["contact.name"] || "",
+//       email: req.body["contact.email"] || "",
+//       phone: req.body["contact.phone"] || "",
+//     };
+
+//     const updated = await HouseHold.findByIdAndUpdate(
+//       req.params.id,
+//       {
+//         ...req.body,
+//         ...(images.length > 0 && { images }),
+//         contact: {
+//         name: req.body["contact.name"],
+//         email: req.body["contact.email"],
+//         phone: req.body["contact.phone"],
+//       },
+//         data: req.body.data ? new Date(req.body.data) : new Date(),
+//       },
+//       { new: true }
+//     );
+
+//     if (!updated) return res.status(404).json({ message: "Elan tapılmadı" });
+//     res.json(updated);
+//   } catch (err) {
+//     res.status(400).json({ error: err.message });
+//   }
+// });
 
 // POST - Yeni Household elan əlavə etmək
 app.post(
@@ -1599,7 +2376,68 @@ app.get("/api/Phone/:id", async (req, res) => {
   }
 });
 
+// app.post("/api/Phone", verifyToken, upload.array("images", 20), async (req, res) => {
+//   try {
+//     const newId = await idGenerator();
 
+//     const images = req.files.map(
+//       (file) => `${BASE_URL}/uploads/${file.filename}`
+//     );
+
+//     const newPhone = new Phone({
+//       id: newId,
+//       ...req.body,
+//       images,
+//       contact: {
+//         name: req.body["contact.name"] || "",
+//         email: req.body["contact.email"] || "",
+//         phone: req.body["contact.phone"] || "",
+//       },
+//       userId: req.user.id, // verifyToken middleware bu məlumatı əlavə etməlidir
+//       data: req.body.data ? new Date(req.body.data) : new Date(),
+//     });
+
+//     await newPhone.save();
+//     res.status(201).json(newPhone);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(400).json({ error: err.message });
+//   }
+// });
+
+// // Elanı yenilə
+// app.put("/api/Phone/:id", upload.array("images", 20), async (req, res) => {
+//   try {
+//     let images = [];
+//     if (req.files && req.files.length > 0) {
+//       images = req.files.map(
+//         (file) => `${BASE_URL}/uploads/${file.filename}`
+//       );
+//     }
+
+//     const contact = {
+//       name: req.body["contact.name"] || "",
+//       email: req.body["contact.email"] || "",
+//       phone: req.body["contact.phone"] || "",
+//     };
+
+//     const updated = await Phone.findByIdAndUpdate(
+//       req.params.id,
+//       {
+//         ...req.body,
+//         ...(images.length > 0 && { images }),
+//         contact,
+//         data: req.body.data ? new Date(req.body.data) : new Date(),
+//       },
+//       { new: true }
+//     );
+
+//     if (!updated) return res.status(404).json({ message: "Elan tapılmadı" });
+//     res.json(updated);
+//   } catch (err) {
+//     res.status(400).json({ error: err.message });
+//   }
+// });
 
 // POST - Yeni Phone elan əlavə etmək
 app.post(
@@ -1800,6 +2638,73 @@ app.get("/api/Clothing/:id", async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
+// // Yeni elan əlavə et
+// app.post("/api/Clothing", upload.array("images", 20), async (req, res) => {
+//   const newId = await idGenerator();
+//   try {
+//     const images = req.files.map(
+//       (file) => `${BASE_URL}/uploads/${file.filename}`
+//     );
+
+//     const contact = {
+//       name: req.body["contact.name"] || "",
+//       email: req.body["contact.email"] || "",
+//       phone: req.body["contact.phone"] || "",
+//     };
+
+//     if (!req.body.userId) {
+//       return res.status(400).json({ error: "userId tələb olunur" });
+//     }
+
+//     const newClothing = new Clothing({
+//       id: newId,
+//       ...req.body,
+//       images,
+//       contact,
+//       data: req.body.data ? new Date(req.body.data) : new Date(),
+//     });
+
+//     await newClothing.save();
+//     res.status(201).json(newClothing);
+//   } catch (err) {
+//     res.status(400).json({ error: err.message });
+//   }
+// });
+
+// // Elanı yenilə
+// app.put("/api/Clothing/:id", upload.array("images", 20), async (req, res) => {
+//   try {
+//     let images = [];
+//     if (req.files && req.files.length > 0) {
+//       images = req.files.map(
+//         (file) => `${BASE_URL}/uploads/${file.filename}`
+//       );
+//     }
+
+//     const contact = {
+//       name: req.body["contact.name"] || "",
+//       email: req.body["contact.email"] || "",
+//       phone: req.body["contact.phone"] || "",
+//     };
+
+//     const updated = await Clothing.findByIdAndUpdate(
+//       req.params.id,
+//       {
+//         ...req.body,
+//         ...(images.length > 0 && { images }),
+//         contact,
+//         data: req.body.data ? new Date(req.body.data) : new Date(),
+//       },
+//       { new: true }
+//     );
+
+//     if (!updated) return res.status(404).json({ message: "Elan tapılmadı" });
+//     res.json(updated);
+//   } catch (err) {
+//     res.status(400).json({ error: err.message });
+//   }
+// });
 
 // Yeni elan əlavə et
 app.post("/api/Clothing", upload.array("images", 20), async (req, res) => {
@@ -2059,7 +2964,7 @@ app.patch("/api/Jewelry/:id/like", async (req, res) => {
 // Favorite toggle
 app.patch("/api/Jewelry/:id/favorite", async (req, res) => {
   try {
-    const post = await Jewelry.findById(req.params.id);
+    const post = await Clothing.findById(req.params.id);
     if (!post) return res.status(404).json({ message: "Elan tapılmadı" });
 
     post.favorite = !post.favorite;
@@ -2076,7 +2981,7 @@ app.delete("/api/Jewelry/images/:imageName", async (req, res) => {
     const imageName = req.params.imageName;
 
     // 1. DB-də images massivindən URL-ə uyğun şəkili sil
-    await Jewelry.updateMany(
+    await Clothing.updateMany(
       { images: { $regex: imageName } },
       { $pull: { images: { $regex: imageName } } }
     );
@@ -2248,6 +3153,18 @@ app.get("/api/users/:id", verifyToken, async (req, res) => {
   }
 });
 
+// app.get(
+//   "/api/announcements/my-announcements",
+//   verifyToken,
+//   async (req, res) => {
+//     try {
+//       const myAnnouncements = await Announcement.find({ owner: req.userId });
+//       res.json(myAnnouncements);
+//     } catch (err) {
+//       res.status(500).json(err);
+//     }
+//   }
+// );
 
 app.delete("/api/my-announcements/:id", verifyToken, async (req, res) => {
   try {
@@ -2315,7 +3232,7 @@ app.get("/api/my-announcements", verifyToken, async (req, res) => {
 });
 
 const models = {
-  homeGarden: HomeAndGarden,
+  homGarden: HomeAndGarden,
   clothing: Clothing,
   phone: Phone,
   household: HouseHold,
@@ -2348,7 +3265,7 @@ app.delete("/api/:model/:id", verifyToken, async (req, res) => {
   const { model, id } = req.params;
 
   const models = {
-    homeGarden: HomeAndGarden,
+    homGarden: HomeAndGarden,
     clothing: Clothing,
     phone: Phone,
     household: HouseHold,
@@ -2378,11 +3295,28 @@ app.delete("/api/:model/:id", verifyToken, async (req, res) => {
   }
 });
 
+// app.delete("/api/my-announcements/:id", verifyToken, async (req, res) => {
+//   try {
+//     const item = await announcement.findById(req.params.id);
+//     if (!item) return res.status(404).json({ message: "Elan tapılmadı" });
+
+//     // Yalnız elan sahibi silə bilər
+//     if (item.userId.toString() !== req.user.id) {
+//       return res
+//         .status(403)
+//         .json({ message: "Bu elanı silmək icazəniz yoxdur" });
+//     }
+
+//     await item.deleteOne();
+//     res.json({ message: "Elan uğurla silindi" });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: err.message });
+//   }
+// });
 
 // Serve static files from the frontend build
 app.use(express.static(path.join(__dirname, "frontend/build")));
-
-
 
 // Catch-all route for React Router
 app.get(/.*/, (req, res) => {
