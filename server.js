@@ -56,15 +56,15 @@ const app = express();
 // const PORT = 5000;
 
 
-app.use(
-  "/api",
-  rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 dəqiqə
-    max: 100, // eyni IP üçün maksimum 100 sorğu
-    standardHeaders: true, // rate limit məlumatını `RateLimit-*` header-larda göstər
-    legacyHeaders: false, // `X-RateLimit-*` header-larını deaktiv et
-  })
-);
+// app.use(
+//   "/api",
+//   rateLimit({
+//     windowMs: 15 * 60 * 1000, // 15 dəqiqə
+//     max: 100, // eyni IP üçün maksimum 100 sorğu
+//     standardHeaders: true, // rate limit məlumatını `RateLimit-*` header-larda göstər
+//     legacyHeaders: false, // `X-RateLimit-*` header-larını deaktiv et
+//   })
+// );
 
 app.use(helmet());
 
