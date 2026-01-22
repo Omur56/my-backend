@@ -81,22 +81,29 @@ app.use(
 
 // app.use(helmet());
 
-
+// ✅ CSP (Helmet ilə)
 app.use(
   helmet.contentSecurityPolicy({
     directives: {
       defaultSrc: ["'self'"],
+
+      connectSrc: [
+        "'self'",
+        "http://localhost:10000",
+        "https://my-backend-wj5g.onrender.com",
+      ],
+
       imgSrc: [
         "'self'",
         "data:",
-        "https://res.cloudinary.com"
+        "https://res.cloudinary.com",
       ],
+
       scriptSrc: ["'self'", "'unsafe-inline'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
     },
   })
 );
-
 // Routes
 
 const PORT = process.env.PORT || 10000;
