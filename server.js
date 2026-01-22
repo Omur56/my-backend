@@ -35,6 +35,7 @@ import sharp from "sharp";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 
+
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.CLOUD_API_KEY,
@@ -146,6 +147,8 @@ dotenv.config({ path: path.resolve("../.env") });
 // app.use(express.json());
 
 app.use(express.json({ limit: "10mb" }));
+
+
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads", "build")));
 app.use("/api", authRoutes);
@@ -2833,7 +2836,7 @@ app.patch("/api/Clothing/:id/favorite", async (req, res) => {
 });
 
 // Şəkil silmək (hem DB-dən images massivindən, hem serverdən faylı silir)
-app.delete("/api/Clothing/images/:imageName", async (req, res) => {
+app.delete("/api/Clothing/images/:imageName", verifyToken, async (req, res) => {
   try {
     const imageName = req.params.imageName;
 
@@ -2964,7 +2967,7 @@ app.patch("/api/Jewelry/:id/like", async (req, res) => {
 // Favorite toggle
 app.patch("/api/Jewelry/:id/favorite", async (req, res) => {
   try {
-    const post = await Clothing.findById(req.params.id);
+    const post = await Jewelry.findById(req.params.id);
     if (!post) return res.status(404).json({ message: "Elan tapılmadı" });
 
     post.favorite = !post.favorite;
@@ -3232,7 +3235,7 @@ app.get("/api/my-announcements", verifyToken, async (req, res) => {
 });
 
 const models = {
-  homGarden: HomeAndGarden,
+  homeGarden: HomeAndGarden,
   clothing: Clothing,
   phone: Phone,
   household: HouseHold,
@@ -3265,7 +3268,7 @@ app.delete("/api/:model/:id", verifyToken, async (req, res) => {
   const { model, id } = req.params;
 
   const models = {
-    homGarden: HomeAndGarden,
+    homeGarden: HomeAndGarden,
     clothing: Clothing,
     phone: Phone,
     household: HouseHold,
