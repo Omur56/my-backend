@@ -79,8 +79,23 @@ app.use(
 );
 
 
-app.use(helmet());
+// app.use(helmet());
 
+
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      imgSrc: [
+        "'self'",
+        "data:",
+        "https://res.cloudinary.com"
+      ],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+    },
+  })
+);
 
 // Routes
 
