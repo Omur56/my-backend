@@ -3394,15 +3394,23 @@ app.delete("/api/:model/:id", verifyToken, async (req, res) => {
 //     res.status(500).json({ error: err.message });
 //   }
 // });
+console.log("React build path:", path.join(__dirname, "../frontend/build"));
+// // Serve static files from the frontend build
+// app.use(express.static(path.join(__dirname, "../frontend/build")));
 
-// Serve static files from the frontend build
+// // Catch-all route for React Router
+// app.get(/.*/, (req, res) => {
+  
+//   res.sendFile(path.join(__dirname, "cd/frontend/build", "index.html"));
+// });
+
+// Static fayllar üçün doğru path
 app.use(express.static(path.join(__dirname, "frontend/build")));
 
-// Catch-all route for React Router
+// React Router catch-all route
 app.get(/.*/, (req, res) => {
   res.sendFile(path.join(__dirname, "frontend/build", "index.html"));
 });
-
 
 
 
