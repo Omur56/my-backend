@@ -83,28 +83,46 @@ app.use(
 // app.use(helmet());
 
 // ✅ CSP (Helmet ilə)
+// app.use(
+//   helmet.contentSecurityPolicy({
+//     directives: {
+//       defaultSrc: ["'self'"],
+//       connectSrc: [
+//         "'self'",
+//         "http://localhost:10000",
+//         "http://localhost:3000",
+//         "https://my-backend-wj5g.onrender.com",
+//       ],
+//       imgSrc: [
+//         "'self'",
+//         "data:",
+//         "blob:", // buranı əlavə et
+//         "https://res.cloudinary.com",
+        
+//       ],
+//       scriptSrc: ["'self'", "'unsafe-inline'"],
+//       styleSrc: ["'self'", "'unsafe-inline'"],
+//     },
+//   })
+// );
+
 app.use(
-  helmet.contentSecurityPolicy({
-    directives: {
-      defaultSrc: ["'self'"],
-
-      connectSrc: [
-        "'self'",
-        "http://localhost:10000",
-        "https://my-backend-wj5g.onrender.com",
-      ],
-
-      imgSrc: [
-        "'self'",
-        "data:",
-        "https://res.cloudinary.com",
-      ],
-
-      scriptSrc: ["'self'", "'unsafe-inline'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        imgSrc: [
+          "'self'",
+          "data:",
+          "blob:",
+          "https://res.cloudinary.com",
+        ],
+      },
     },
   })
 );
+
+
 // Routes
 
 const PORT = process.env.PORT || 10000;
@@ -902,15 +920,50 @@ app.put(
 );
 
 // Elanı sil
-app.delete("/api/cars/:id", verifyToken, async (req, res) => {
-  try {
-    const ann = await Announcement.findById(req.params.id);
+// app.delete("/api/cars/:id", verifyToken, async (req, res) => {
+//   try {
+//     const ann = await Announcement.findById(req.params.id);
 
+//     if (!ann) {
+//       return res.status(404).json({ message: "Elan tapılmadı" });
+//     }
+
+//     if (ann.userId.toString() !== req.user.id.toString()) {
+//       return res
+//         .status(403)
+//         .json({ message: "Bu elanı silmək hüququn yoxdur" });
+//     }
+
+//     await ann.deleteOne();
+//     res.json({ message: "Elan uğurla silindi ✅" });
+//   } catch (err) {
+//     console.error("Delete error:", err);
+//     res.status(500).json({ error: "Server xətası" });
+//   }
+// });
+
+
+app.delete("/api/announcements/:id", verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Yanlış ID formatı" });
+    }
+
+    const ann = await Announcement.findById(id);
     if (!ann) {
       return res.status(404).json({ message: "Elan tapılmadı" });
     }
 
-    if (ann.userId.toString() !== req.user.id.toString()) {
+    // TOKEN-DƏN GƏLƏN USER ID
+    const userId = req.userId || req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Token user tapılmadı" });
+    }
+
+    if (ann.userId.toString() !== userId.toString()) {
       return res
         .status(403)
         .json({ message: "Bu elanı silmək hüququn yoxdur" });
@@ -919,10 +972,11 @@ app.delete("/api/cars/:id", verifyToken, async (req, res) => {
     await ann.deleteOne();
     res.json({ message: "Elan uğurla silindi ✅" });
   } catch (err) {
-    console.error("Delete error:", err);
+    console.error("DELETE ERROR FULL:", err);
     res.status(500).json({ error: "Server xətası" });
   }
 });
+
 
 // Like / Favorite toggle
 app.patch("/api/cars/:id/like", async (req, res) => {
@@ -3348,6 +3402,9 @@ app.use(express.static(path.join(__dirname, "frontend/build")));
 app.get(/.*/, (req, res) => {
   res.sendFile(path.join(__dirname, "frontend/build", "index.html"));
 });
+
+
+
 
 app.listen(PORT, () => {
   console.log(`🚀 Server işə düşdü: http://localhost:${PORT}`);
