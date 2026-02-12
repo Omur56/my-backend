@@ -868,6 +868,7 @@ app.post(
         mainImage, // ✅ əlavə etdik
         liked: false,
         favorite: false,
+        
       });
 
       await newAnn.save();
@@ -1152,6 +1153,7 @@ app.post(
         liked,
         favorite,
         data,
+        
       } = req.body;
 
       // Cloudinary-yə yükləmə
