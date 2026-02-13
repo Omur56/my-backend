@@ -118,6 +118,8 @@ app.use(
           "blob:",
           "https://res.cloudinary.com",
         ],
+         scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
       },
     },
   })
