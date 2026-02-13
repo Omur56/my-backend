@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/static/css/main.5b35a25e.css",
-    "main.js": "/static/js/main.a2ad6c01.js",
+    "main.css": "/static/css/main.51a08a4f.css",
+    "main.js": "/static/js/main.6caf020e.js",
     "static/media/cat_1.png": "/static/media/cat_1.799be79891d07d791f4e.png",
     "static/media/geyim.png": "/static/media/geyim.a306b4e7551d25d826ca.png",
     "static/media/dasinmaz.png": "/static/media/dasinmaz.4c638ae94b17604d7ebc.png",
@@ -12,11 +12,11 @@
     "static/media/elektronika.png": "/static/media/elektronika.919f010305c077c7ca61.png",
     "index.html": "/index.html",
     "static/media/fi-rr-grid.svg": "/static/media/fi-rr-grid.b36c6d1fa758b12345aad035ce578cf2.svg",
-    "main.5b35a25e.css.map": "/static/css/main.5b35a25e.css.map",
-    "main.a2ad6c01.js.map": "/static/js/main.a2ad6c01.js.map"
+    "main.51a08a4f.css.map": "/static/css/main.51a08a4f.css.map",
+    "main.6caf020e.js.map": "/static/js/main.6caf020e.js.map"
   },
   "entrypoints": [
-    "static/css/main.5b35a25e.css",
-    "static/js/main.a2ad6c01.js"
+    "static/css/main.51a08a4f.css",
+    "static/js/main.6caf020e.js"
   ]
 }
