@@ -1,0 +1,223 @@
+  
+  
+  <!doctype html>
+
+
+<html lang="en">
+  <head>
+     <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "ProElan.az",
+  "url": "https://proelan.az",
+  "founder": {
+    "@type": "Person",
+    "name": "Ömürxan Abdullayev"
+  }
+}
+</script>
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "ProElan.az",
+  "url": "https://proelan.az",
+  "creator": {
+    "@type": "Person",
+    "name": "Ömürxan Abdullayev"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Ömürxan Abdullayev",
+  "url": "https://proelan.az",
+  "jobTitle": "Founder & Developer",
+  "worksFor": {
+    "@type": "Organization",
+    "name": "ProElan.az"
+  }
+}
+</script>
+    <meta charset="utf-8" />
+    <link rel="icon" href="./assets/TitleLogoImg/prologo.png" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#449b5c" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <title>ProElan.az – Azərbaycanda Pulsuz Elanlar Platforması</title>
+    <Helmet>
+  <title>ProElan.az - Azərbaycanda Pulsuz Elanlar</title>
+  <meta name="description" content="ProElan.az - Avtomobil, əmlak və digər pulsuz elanlar platforması." />
+  <link rel="canonical" href="https://proelan.az/" />
+</Helmet>
+    <meta
+      name="description"
+      content="OmurCars.org – Nəqliyyat, ev, bağ, elektronika, telefonlar, geyim, məişət texnikaları və daşınmaz əmlak elanlarını pulsuz paylaşın və axtarın."
+    />
+    <meta property="og:url" content="https://omurcars.org/" />
+    <meta property="og:site_name" content="ProElan.az" />
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:title"
+      content="ProElan.az – Azərbaycanda Pulsuz Elanlar Platforması"
+    />
+    <meta
+      property="og:description"
+      content="ProElan.az - onlayn avtomobil bazarı. Avtomobili almaq və ya satmaq üçün ProElan.az-a daxil olun!  Yeni və işlənmiş avtomobillər, avtosalonlar, avtoxəbərlər."
+    />
+    <meta
+      content="ProElaz.az – pulsuz elanlar, geniş imkanlar! Avtomobillər, Daşınmaz əmlak, Telefonlar, Xidmətlər – almaq və satmaq heç vaxt bu qədər asan olmayıb! "
+      name="description"
+    />
+    <meta name="csrf-param" content="authenticity_token" />
+    <meta
+      name="csrf-token"
+      content="WLmRoG2b0WWMlMmYob6dALgYQT0XxiK5_Ervve-GdaZa3p9g8QsA3UAIDntLbryRtReLPKKfaapIZiq4g0WnBA"
+    />
+    <meta
+      http-equiv="origin-trial"
+      content="AlK2UR5SkAlj8jjdEc9p3F3xuFYlF6LYjAML3EOqw1g26eCwWPjdmecULvBH5MVPoqKYrOfPhYVL71xAXI1IBQoAAAB8eyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiV2ViVmlld1hSZXF1ZXN0ZWRXaXRoRGVwcmVjYXRpb24iLCJleHBpcnkiOjE3NTgwNjcxOTksImlzU3ViZG9tYWluIjp0cnVlfQ=="
+    />
+    <meta
+      http-equiv="origin-trial"
+      content="Amm8/NmvvQfhwCib6I7ZsmUxiSCfOxWxHayJwyU1r3gRIItzr7bNQid6O8ZYaE1GSQTa69WwhPC9flq/oYkRBwsAAACCeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiV2ViVmlld1hSZXF1ZXN0ZWRXaXRoRGVwcmVjYXRpb24iLCJleHBpcnkiOjE3NTgwNjcxOTksImlzU3ViZG9tYWluIjp0cnVlfQ=="
+    />
+    <meta
+      http-equiv="origin-trial"
+      content="A9nrunKdU5m96PSN1XsSGr3qOP0lvPFUB2AiAylCDlN5DTl17uDFkpQuHj1AFtgWLxpLaiBZuhrtb2WOu7ofHwEAAACKeyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiQUlQcm9tcHRBUElNdWx0aW1vZGFsSW5wdXQiLCJleHBpcnkiOjE3NzQzMTA0MDAsImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"
+    />
+    <meta
+      http-equiv="origin-trial"
+      content="A93bovR+QVXNx2/38qDbmeYYf1wdte9EO37K9eMq3r+541qo0byhYU899BhPB7Cv9QqD7wIbR1B6OAc9kEfYCA4AAACQeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiQUlQcm9tcHRBUElNdWx0aW1vZGFsSW5wdXQiLCJleHBpcnkiOjE3NzQzMTA0MDAsImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"
+    />
+    <meta property="og:url" content="https://omurcars.org/" />
+    <meta
+      http-equiv="origin-trial"
+      content="A1S5fojrAunSDrFbD8OfGmFHdRFZymSM/1ss3G+NEttCLfHkXvlcF6LGLH8Mo5PakLO1sCASXU1/gQf6XGuTBgwAAACQeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXRhZ3NlcnZpY2VzLmNvbTo0NDMiLCJmZWF0dXJlIjoiQUlQcm9tcHRBUElNdWx0aW1vZGFsSW5wdXQiLCJleHBpcnkiOjE3NzQzMTA0MDAsImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"
+    />
+    <meta
+      http-equiv="origin-trial"
+      content="AlK2UR5SkAlj8jjdEc9p3F3xuFYlF6LYjAML3EOqw1g26eCwWPjdmecULvBH5MVPoqKYrOfPhYVL71xAXI1IBQoAAAB8eyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiV2ViVmlld1hSZXF1ZXN0ZWRXaXRoRGVwcmVjYXRpb24iLCJleHBpcnkiOjE3NTgwNjcxOTksImlzU3ViZG9tYWluIjp0cnVlfQ=="
+    />
+    <meta
+      http-equiv="origin-trial"
+      content="Amm8/NmvvQfhwCib6I7ZsmUxiSCfOxWxHayJwyU1r3gRIItzr7bNQid6O8ZYaE1GSQTa69WwhPC9flq/oYkRBwsAAACCeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiV2ViVmlld1hSZXF1ZXN0ZWRXaXRoRGVwcmVjYXRpb24iLCJleHBpcnkiOjE3NTgwNjcxOTksImlzU3ViZG9tYWluIjp0cnVlfQ=="
+    />
+    <meta
+      http-equiv="origin-trial"
+      content="A9nrunKdU5m96PSN1XsSGr3qOP0lvPFUB2AiAylCDlN5DTl17uDFkpQuHj1AFtgWLxpLaiBZuhrtb2WOu7ofHwEAAACKeyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiQUlQcm9tcHRBUElNdWx0aW1vZGFsSW5wdXQiLCJleHBpcnkiOjE3NzQzMTA0MDAsImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"
+    />
+    <meta
+      http-equiv="origin-trial"
+      content="A93bovR+QVXNx2/38qDbmeYYf1wdte9EO37K9eMq3r+541qo0byhYU899BhPB7Cv9QqD7wIbR1B6OAc9kEfYCA4AAACQeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiQUlQcm9tcHRBUElNdWx0aW1vZGFsSW5wdXQiLCJleHBpcnkiOjE3NzQzMTA0MDAsImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"
+    />
+    <meta
+      http-equiv="origin-trial"
+      content="A1S5fojrAunSDrFbD8OfGmFHdRFZymSM/1ss3G+NEttCLfHkXvlcF6LGLH8Mo5PakLO1sCASXU1/gQf6XGuTBgwAAACQeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXRhZ3NlcnZpY2VzLmNvbTo0NDMiLCJmZWF0dXJlIjoiQUlQcm9tcHRBUElNdWx0aW1vZGFsSW5wdXQiLCJleHBpcnkiOjE3NzQzMTA0MDAsImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"
+    />
+    <meta
+      property="og:title"
+      content="ProElan.az — Pulsuz Elanlar Saytı — Maşın, Ev, Telefon, Geyim, Mebel — Bakı, Azərbaycan"
+    />
+    <meta
+      property="og:description"
+      content="ProElan.az – pulsuz elanlar, geniş imkanlar! Avtomobillər, Daşınmaz əmlak, Telefonlar, Xidmətlər – almaq və satmaq heç vaxt bu qədər asan olmayıb! "
+    />
+    <meta
+      property="description"
+      content="ProElan.az – pulsuz elanlar, geniş imkanlar! Avtomobillər, Daşınmaz əmlak, Telefonlar, Xidmətlər – almaq və satmaq heç vaxt bu qədər asan olmayıb! "
+    />
+    <meta
+      name="description"
+      content="ProElan.az  – Azərbaycanda Pulsuz Elanlar Platforması"
+    />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
+    default-src 'self';
+    connect-src 'self' http://localhost:10000;
+    img-src 'self' data: blob: https://res.cloudinary.com;
+    style-src 'self' 'unsafe-inline';
+    script-src 'self' 'unsafe-inline';
+  "
+    />
+
+    <!-- Saytın müəllifi və nəşriyyatı -->
+    <meta name="author" content="Ömürxan Abdullayev" />
+    <meta name="publisher" content="ProElan.az" />
+    <meta name="copyright" content="© 2026 ProElan.az" />
+
+    <!-- Saytın məqsədi və axtarış motorları üçün -->
+    <meta name="robots" content="index, follow" />
+    <meta
+      name="about"
+      content="ProElan.az – Azərbaycanda Pulsuz Elanlar Platforması"
+    />
+    <meta
+      name="keywords"
+      content="ProElan.az, pulsuz elanlar, avtomobillər, daşınmaz əmlak, telefonlar, xidmətlər, almaq, satmaq, Azərbaycan"
+    />
+    <meta name="language" content="Azerbaijani" />
+    <meta name="distribution" content="global" />
+    <meta name="rating" content="general" />
+
+    <!-- Xüsusi rollar və sayt rəhbəri -->
+    <meta name="role" content="Frontend Developer" />
+    <meta name="site-director" content="Ömürxan Abdullayev" />
+
+    <!-- Saytın başlığı və favicon -->
+    <title>ProElan.az – Azərbaycanda Pulsuz Elanlar</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+
+    <!-- Sosial media üçün Open Graph (optional, amma tövsiyə olunur) -->
+    <meta
+      property="og:title"
+      content="ProElan.az – Azərbaycanda Pulsuz Elanlar"
+    />
+    <meta
+      property="og:description"
+      content="ProElan.az ilə avtomobillər, daşınmaz əmlak, telefonlar və xidmətləri asanlıqla alıb-sata bilərsiniz."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://proelan.az" />
+    <meta
+      property="og:image"
+      content="https://proelan.az/assets/TitleLogoImg/prologo.png"
+    />
+
+    <meta name="author" content="Ömürxan Abdullayev" />
+    <meta name="publisher" content="ProElan.az" />
+    <meta name="copyright" content="© 2026 ProElan.az" />
+    <meta name="robots" content="index, follow" />
+    <meta
+      name="about"
+      content="ProElan.az – Azərbaycanda Pulsuz Elanlar Platforması"
+    />
+    <meta
+      name="keywords"
+      content="ProElan.az, pulsuz elanlar, avtomobillər, daşınmaz əmlak, telefonlar, xidmətlər, almaq, satmaq, Azərbaycan"
+    />
+    <meta name="language" content="Azerbaijani" />
+    <meta name="distribution" content="global" />
+    <meta name="rating" content="general" />
+    <meta name="Abdullayev Omurxan" content="Frontend Developer" />
+    <meta name="Rəhbər Ömürxan Abdullayev" content="ProElan.az" />
+
+    <link rel="apple-touch-icon" href="./assets/TitleLogoImg/proelan.svg" />
+    <link rel="manifest" href="/manifest.json" />
+    <title>ProElan.az</title>
+    <script defer="defer" src="/static/js/main.2ea868ad.js"></script>
+   
+    <link href="/static/css/main.ef72b2b6.css" rel="stylesheet" />
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+  </body>
+</html>
