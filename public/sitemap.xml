@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
+  <url>
+    <loc>https://proelan.az</loc>
+    <priority>1.0</priority>
+  </url>
+  
+    <url>
+      <loc>https://proelan.az/announcement/698f88a887a2352d4fc6b713</loc>
+      <priority>0.8</priority>
+    </url>
+    
+    <url>
+      <loc>https://proelan.az/announcement/698ef8005c194afcf246fda6</loc>
+      <priority>0.8</priority>
+    </url>
+    
+    <url>
+      <loc>https://proelan.az/announcement/698e77795328b6ad9630360f</loc>
+      <priority>0.8</priority>
+    </url>
+    
+    <url>
+      <loc>https://proelan.az/announcement/698e774d5328b6ad9630360b</loc>
+      <priority>0.8</priority>
+    </url>
+    
+  </urlset>

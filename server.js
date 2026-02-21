@@ -35,6 +35,9 @@ import sharp from "sharp";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 
+import generateSitemap from "./utils/sitemap.js";
+
+
 
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -52,6 +55,9 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 // const PORT = 5000;
+
+
+
 
 app.use(
   cors({
@@ -81,7 +87,6 @@ app.use(
 
 
 
-// app.use(helmet());
 
 // ✅ CSP (Helmet ilə)
 // app.use(
@@ -125,6 +130,12 @@ app.use(
   })
 );
 
+
+
+app.listen(5000, async () => {
+  console.log("Server started");
+  await generateSitemap(); // sitemap yaradılır
+});
 
 // Routes
 
@@ -195,6 +206,8 @@ app.use(express.json({ limit: "10mb" }));
 
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads", "build")));
+app.use("/sitemap.xml", express.static(__dirname + "/public/sitemap.xml"));
+app.use("/robots.txt", express.static(__dirname + "/public/robots.txt"));
 app.use("/api", authRoutes);
 app.use("/api/ads", adsRouter);
 app.use("/api/stats", statsRouter);
@@ -202,6 +215,8 @@ app.use("/api/announcements", announcementRoutes);
 app.use("/uploads", express.static("uploads"));
 app.use("/api", profileRoutes);
 app.use("/api/auth", authRoutes);
+
+
 // app.use(bodyParser.json());
 // app.use("/api", otpRoutes);
 
@@ -3414,7 +3429,7 @@ app.use(express.static(path.join(__dirname, "frontend/build")));
 
 // React Router catch-all route
 app.get(/.*/, (req, res) => {
-  res.sendFile(path.join(__dirname, "frontend/build", "index.html"));
+  res.sendFile(path.join(__dirname, "frontend/build/index.html"));
 });
 
 
