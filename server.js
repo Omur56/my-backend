@@ -36,7 +36,16 @@ import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 
 import generateSitemap from "./utils/sitemap.js";
+import listingRoutes from "./routes/listingRoutes.js";
+import "./utils/expireChecker.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
+import "./cron/expireListings.js";
+import "./utils/expireChecker.js";
 
+
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const twilioClient = twilio(accountSid, authToken);
 
 
 cloudinary.config({
@@ -216,6 +225,18 @@ app.use("/uploads", express.static("uploads"));
 app.use("/api", profileRoutes);
 app.use("/api/auth", authRoutes);
 
+app.use("/api/payments", paymentRoutes);
+app.use("/api/listings", listingRoutes);
+
+
+
+app.use((req, res, next) => {
+  res.setHeader(
+    "Content-Security-Policy",
+    "connect-src 'self' http://localhost:5000 http://localhost:10000 https://proelan.az"
+  );
+  next();
+});
 
 // app.use(bodyParser.json());
 // app.use("/api", otpRoutes);
@@ -332,6 +353,22 @@ const modelsMap = {
 // });
 
 // GET /api/my-{category} - istifadəçinin bütün elanları
+
+
+
+
+
+// const expires = new Date();
+// expires.setDate(expires.getDate() + 30);
+
+// listing.type = "premium"; // və ya vip
+// listing.expiresAt = expires;
+// listing.isActive = true;
+
+// await listing.save();
+
+
+
 app.get("/my-:category", authMiddleware, async (req, res) => {
   try {
     const category = req.params.category;
