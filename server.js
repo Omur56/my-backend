@@ -41,7 +41,7 @@ import "./utils/expireChecker.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import "./cron/expireListings.js";
 import "./utils/expireChecker.js";
-
+import stripeWebhookRoutes from "./routes/stripeWebhook.js";
 
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
@@ -76,6 +76,7 @@ app.use(
       "http://localhost:3000",
       "http://localhost:10000",
       "https://my-backend-wj5g.onrender.com",
+       "https://checkout.stripe.com",
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
@@ -94,6 +95,8 @@ app.use(
   })
 );
 
+
+app.use("/api/stripe", stripeWebhookRoutes);
 
 
 
@@ -883,6 +886,7 @@ app.get("/api/cars/:id", async (req, res) => {
 //     }
 //   }
 // );
+
 
 app.post(
   "/api/cars",
