@@ -43,6 +43,8 @@ import "./cron/expireListings.js";
 import "./utils/expireChecker.js";
 import stripeWebhookRoutes from "./routes/stripeWebhook.js";
 
+
+
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const twilioClient = twilio(accountSid, authToken);
@@ -172,6 +174,8 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+
+
 // Watermark əlavə edən funksiya
 const addWatermark = async (imagePath) => {
   const watermarkPath = "watermark.png"; // logo yolu
@@ -241,30 +245,75 @@ app.use((req, res, next) => {
   next();
 });
 
+
+
+
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_API_KEY,
+  api_secret: process.env.CLOUD_API_SECRET,
+});
+
 // app.use(bodyParser.json());
 // app.use("/api", otpRoutes);
 
 // test üçün hamıya açmaq istəyirsənsə
 // app.use(cors());
 
+// app.post("/upload", upload.array("images", 10), async (req, res) => {
+//   try {
+//     const files = req.files;
+
+//     for (let file of files) {
+//       await addWatermark(file.path);
+//     }
+
+//     res.status(200).json({
+//       message: "Şəkillər yükləndi və watermark əlavə olundu",
+//       files: files.map((f) => ({
+//         original: f.path,
+//         watermarked: f.path.replace(/(\.\w+)$/, "-wm$1"),
+//       })),
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: "Xəta baş verdi" });
+//   }
+// });
+
+
+
 app.post("/upload", upload.array("images", 10), async (req, res) => {
   try {
-    const files = req.files;
+    const uploadedFiles = [];
 
-    for (let file of files) {
-      await addWatermark(file.path);
+    for (const file of req.files) {
+      // Cloudinary-yə upload + watermark
+      const result = await cloudinary.uploader.upload(file.path, {
+        folder: "proelan",
+        transformation: [
+          {
+            overlay: "proelan_watermark", // Cloudinary-də yüklədiyin watermark
+            width: 0.6,
+            opacity: 30,
+            gravity: "center",
+          },
+        ],
+      });
+
+      uploadedFiles.push({
+        original: file.path,
+        watermarked: result.secure_url, // Frontend-də istifadə edəcəyin link
+      });
     }
 
     res.status(200).json({
       message: "Şəkillər yükləndi və watermark əlavə olundu",
-      files: files.map((f) => ({
-        original: f.path,
-        watermarked: f.path.replace(/(\.\w+)$/, "-wm$1"),
-      })),
+      files: uploadedFiles,
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Xəta baş verdi" });
+    res.status(500).json({ message: "Xəta baş verdi", error: err.message });
   }
 });
 
@@ -888,6 +937,60 @@ app.get("/api/cars/:id", async (req, res) => {
 // );
 
 
+// app.post(
+//   "/api/cars",
+//   verifyToken,
+//   upload.array("images", 20),
+//   async (req, res) => {
+//     try {
+//       const newId = await idGenerator();
+
+//       // 1️⃣ mainImageIndex dəyərini al (frontend-dən gəlir)
+//       const mainImageIndex = parseInt(req.body.mainImageIndex);
+
+//       // 2️⃣ Cloudinary-yə şəkilləri yüklə
+//       const uploadedImages = [];
+//       for (const file of req.files) {
+//         const result = await cloudinary.uploader.upload(file.path, {
+//           folder: "cars",
+//         });
+//         uploadedImages.push(result.secure_url);
+//         if (fs.existsSync(file.path)) fs.unlinkSync(file.path); // Lokal faylı sil
+//       }
+
+//       // 3️⃣ Əsas şəkili təyin et
+//       let mainImage = null;
+//       if (!isNaN(mainImageIndex) && uploadedImages[mainImageIndex]) {
+//         mainImage = uploadedImages[mainImageIndex];
+//       } else if (uploadedImages.length > 0) {
+//         mainImage = uploadedImages[0]; // fallback
+//       }
+
+//       // 4️⃣ Yeni elan yarat
+//       const newAnn = new Announcement({
+//         ...req.body,
+//         id: newId,
+//         userId: req.user.id,
+//         images: uploadedImages,
+//         mainImage, // ✅ əlavə etdik
+//         liked: false,
+//         favorite: false,
+        
+//       });
+
+//       await newAnn.save();
+//       res.status(201).json(newAnn);
+//     } catch (err) {
+//       console.error("❌ Cars əlavə olunarkən xəta:", err);
+//       res.status(500).json({ error: err.message });
+//     }
+//   }
+// );
+
+
+
+
+
 app.post(
   "/api/cars",
   verifyToken,
@@ -896,17 +999,27 @@ app.post(
     try {
       const newId = await idGenerator();
 
-      // 1️⃣ mainImageIndex dəyərini al (frontend-dən gəlir)
+      // 1️⃣ mainImageIndex dəyərini al
       const mainImageIndex = parseInt(req.body.mainImageIndex);
 
-      // 2️⃣ Cloudinary-yə şəkilləri yüklə
+      // 2️⃣ Cloudinary-yə şəkilləri yüklə + watermark
       const uploadedImages = [];
       for (const file of req.files) {
         const result = await cloudinary.uploader.upload(file.path, {
           folder: "cars",
+          transformation: [
+            {
+              overlay: "proelan_watermark",
+              width: 0.6,
+              opacity: 30,
+              gravity: "center",
+            },
+          ],
         });
         uploadedImages.push(result.secure_url);
-        if (fs.existsSync(file.path)) fs.unlinkSync(file.path); // Lokal faylı sil
+
+        // Lokal faylı sil
+        if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
       }
 
       // 3️⃣ Əsas şəkili təyin et
@@ -922,11 +1035,10 @@ app.post(
         ...req.body,
         id: newId,
         userId: req.user.id,
-        images: uploadedImages,
-        mainImage, // ✅ əlavə etdik
+        images: uploadedImages,  // ✅ watermarklı linklər
+        mainImage,               // ✅ watermarklı əsas şəkil
         liked: false,
         favorite: false,
-        
       });
 
       await newAnn.save();
@@ -937,7 +1049,6 @@ app.post(
     }
   }
 );
-
 // Elanı yenilə
 app.put(
   "/api/cars/:id",
@@ -1211,16 +1322,26 @@ app.post(
         liked,
         favorite,
         data,
-        
       } = req.body;
 
-      // Cloudinary-yə yükləmə
+      // Cloudinary-yə yükləmə + watermark
       const uploadedImages = [];
       for (const file of req.files) {
         const result = await cloudinary.uploader.upload(file.path, {
           folder: "home_and_garden",
+          transformation: [
+            {
+              overlay: "proelan_watermark", // Cloudinary-də yüklədiyin watermark public ID
+              width: 0.6,                   // ölçüsü şəkilin 60%-i
+              opacity: 80,                  // tündlük, bütün şəkillərdə görünür
+              gravity: "center",            // ortada yerləşir
+            },
+          ],
         });
+
         uploadedImages.push(result.secure_url);
+
+        // Lokal faylı sil
         if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
       }
 
@@ -1243,7 +1364,7 @@ app.post(
         liked: liked === "true",
         favorite: favorite === "true",
         data: data ? new Date(data) : new Date(),
-        images: uploadedImages,
+        images: uploadedImages, // ✅ watermarklı linklər
       });
 
       await newHome.save();
@@ -1579,6 +1700,14 @@ app.post(
       for (const file of req.files) {
         const result = await cloudinary.uploader.upload(file.path, {
           folder: "electronika",
+          transformation: [
+            {
+              overlay: "proelan_watermark", // Cloudinary-də yüklədiyin watermark
+              width: 0.6,                   // Şəkilin 60%-i ölçüdə
+              opacity: 80,                  // daha tünd, bütün şəkillərdə görünür
+              gravity: "center",            // ortada yerləşir
+            },
+          ],
         });
         uploadedImages.push(result.secure_url);
 
@@ -1601,7 +1730,7 @@ app.post(
         price: req.body.price,
         location: req.body.location,
         description: req.body.description,
-        images: uploadedImages,
+        images: uploadedImages, // ✅ watermarklı linklər
         contact,
         liked: false,
         favorite: false,
@@ -1808,7 +1937,6 @@ app.get("/api/accessories/:id", async (req, res) => {
 //     }
 //   }
 // );
-
 app.post(
   "/api/accessories",
   verifyToken,
@@ -1823,21 +1951,29 @@ app.post(
         const filePath = file.path.replace(/\\/g, "/"); // Windows üçün
         const result = await cloudinary.uploader.upload(filePath, {
           folder: "accessories",
+          transformation: [
+            {
+              overlay: "proelan_watermark", // Cloudinary-də yüklədiyin watermark
+              width: 0.6,                   // Şəkilin 60%-i ölçüdə
+              opacity: 80,                  // tünd, bütün şəkillərdə görünür
+              gravity: "center",            // ortada yerləşir
+            },
+          ],
         });
         uploadedImages.push(result.secure_url);
 
-        // local faylı silmək istəmirsənsə, bu sətri çıxart
+        // Lokal faylı sil
         if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
       }
 
       const accessory = new Accessory({
         ...req.body,
-        images: uploadedImages,
+        images: uploadedImages, // ✅ watermarklı şəkillər
         userId: req.user.id,
         contact: {
-          name: req.body["contact.name"],
-          email: req.body["contact.email"],
-          phone: req.body["contact.phone"],
+          name: req.body["contact.name"] || "",
+          email: req.body["contact.email"] || "",
+          phone: req.body["contact.phone"] || "",
         },
       });
 
@@ -2079,32 +2215,27 @@ app.post(
 
       const mainImageIndex = parseInt(req.body.mainImageIndex);
 
-      // const uploadedImages = [];
-
-      // for (const file of req.files) {
-      //   // Windows path-də backslash (\) problem yarada bilər
-      //   const filePath = file.path.replace(/\\/g, "/");
-
-      //   // Cloudinary-yə upload et
-      //   const result = await cloudinary.uploader.upload(filePath, {
-      //     folder: "realestate",
-      //   });
-      //   uploadedImages.push(result.secure_url);
-
-      //   // Local faylı sil
-      //   if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
-      // }
-
+      // Cloudinary-yə yükləmə + watermark
       const uploadedImages = [];
       for (const file of req.files) {
         const result = await cloudinary.uploader.upload(file.path, {
           folder: "realestate",
+          transformation: [
+            {
+              overlay: "proelan_watermark", // Cloudinary-də yüklədiyin watermark
+              width: 0.6,                   // Şəkilin 60%-i ölçüdə
+              opacity: 80,                  // tünd, bütün şəkillərdə görünür
+              gravity: "center",            // ortada yerləşir
+            },
+          ],
         });
         uploadedImages.push(result.secure_url);
-        if (fs.existsSync(file.path)) fs.unlinkSync(file.path); // Lokal faylı sil
+
+        // Lokal faylı sil
+        if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
       }
 
-      // 3️⃣ Əsas şəkili təyin et
+      // Əsas şəkili təyin et
       let mainImage = null;
       if (!isNaN(mainImageIndex) && uploadedImages[mainImageIndex]) {
         mainImage = uploadedImages[mainImageIndex];
@@ -2115,13 +2246,13 @@ app.post(
       const realEstatePost = new RealEstate({
         id: newId,
         ...req.body,
-        images: uploadedImages,
-        mainImage, // Əsas şəkili əlavə et
+        images: uploadedImages, // ✅ watermarklı şəkillər
+        mainImage,
         userId: req.user.id,
         contact: {
-          name: req.body["contact.name"],
-          email: req.body["contact.email"],
-          phone: req.body["contact.phone"],
+          name: req.body["contact.name"] || "",
+          email: req.body["contact.email"] || "",
+          phone: req.body["contact.phone"] || "",
         },
       });
 
@@ -2342,10 +2473,18 @@ app.post(
         const filePath = file.path.replace(/\\/g, "/"); // Windows path problemi üçün
         const result = await cloudinary.uploader.upload(filePath, {
           folder: "household",
+          transformation: [
+            {
+              overlay: "proelan_watermark", // Cloudinary-də yüklədiyin watermark
+              width:2.6,                   // Şəkilin 60%-i ölçüdə
+              opacity: 80,                  // tünd, bütün şəkillərdə görünür
+              gravity: "center",            // ortada yerləşir
+            },
+          ],
         });
         uploadedImages.push(result.secure_url);
 
-        // Local faylı sil
+        // Lokal faylı sil
         if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
       }
 
@@ -2358,7 +2497,7 @@ app.post(
       const newHouseHold = new HouseHold({
         id: newId,
         ...req.body,
-        images: uploadedImages,
+        images: uploadedImages, // ✅ watermarklı şəkillər
         contact,
         data: req.body.data ? new Date(req.body.data) : new Date(),
         userId: req.user.id,
@@ -2594,10 +2733,18 @@ app.post(
         const filePath = file.path.replace(/\\/g, "/"); // Windows path üçün
         const result = await cloudinary.uploader.upload(filePath, {
           folder: "phones",
+          transformation: [
+            {
+              overlay: "proelan_watermark", // Cloudinary-də yüklədiyin watermark
+              width: 1.4,                   // Şəkilin 60%-i ölçüdə
+              opacity: 80,                  // tünd, bütün şəkillərdə görünür
+              gravity: "center",            // ortada yerləşir
+            },
+          ],
         });
         uploadedImages.push(result.secure_url);
 
-        // Local faylı sil
+        // Lokal faylı sil
         if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
       }
 
@@ -2610,7 +2757,7 @@ app.post(
       const newPhone = new Phone({
         id: newId,
         ...req.body,
-        images: uploadedImages,
+        images: uploadedImages, // ✅ watermarklı şəkillər
         contact,
         userId: req.user.id,
         data: req.body.data ? new Date(req.body.data) : new Date(),
@@ -2624,6 +2771,7 @@ app.post(
     }
   }
 );
+
 
 // PUT - Phone elanını yeniləmək
 app.put("/api/Phone/:id", upload.array("images", 20), async (req, res) => {
@@ -2848,47 +2996,59 @@ app.get("/api/Clothing/:id", async (req, res) => {
 // });
 
 // Yeni elan əlavə et
-app.post("/api/Clothing", upload.array("images", 20), async (req, res) => {
-  try {
-    const newId = await idGenerator();
-    const uploadedImages = [];
+app.post(
+  "/api/Clothing",
+  upload.array("images", 20),
+  async (req, res) => {
+    try {
+      const newId = await idGenerator();
+      const uploadedImages = [];
 
-    for (const file of req.files) {
-      const filePath = file.path.replace(/\\/g, "/"); // Windows path üçün
-      const result = await cloudinary.uploader.upload(filePath, {
-        folder: "clothing",
+      for (const file of req.files) {
+        const filePath = file.path.replace(/\\/g, "/"); // Windows path üçün
+        const result = await cloudinary.uploader.upload(filePath, {
+          folder: "clothing",
+          transformation: [
+            {
+              overlay: "proelan_watermark", // Cloudinary-də yüklədiyin watermark
+              width: 0.8,                   // Şəkilin 60%-i ölçüdə
+              opacity: 80,                  // tünd, bütün şəkillərdə görünür
+              gravity: "center",            // ortada yerləşir
+            },
+          ],
+        });
+        uploadedImages.push(result.secure_url);
+
+        // Lokal faylı sil
+        if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+      }
+
+      const contact = {
+        name: req.body["contact.name"] || "",
+        email: req.body["contact.email"] || "",
+        phone: req.body["contact.phone"] || "",
+      };
+
+      if (!req.body.userId) {
+        return res.status(400).json({ error: "userId tələb olunur" });
+      }
+
+      const newClothing = new Clothing({
+        id: newId,
+        ...req.body,
+        images: uploadedImages, // ✅ watermarklı şəkillər
+        contact,
+        data: req.body.data ? new Date(req.body.data) : new Date(),
       });
-      uploadedImages.push(result.secure_url);
 
-      // Local faylı sil
-      if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+      await newClothing.save();
+      res.status(201).json(newClothing);
+    } catch (err) {
+      console.error("❌ Clothing əlavə olunarkən xəta:", err);
+      res.status(400).json({ error: err.message });
     }
-
-    const contact = {
-      name: req.body["contact.name"] || "",
-      email: req.body["contact.email"] || "",
-      phone: req.body["contact.phone"] || "",
-    };
-
-    if (!req.body.userId) {
-      return res.status(400).json({ error: "userId tələb olunur" });
-    }
-
-    const newClothing = new Clothing({
-      id: newId,
-      ...req.body,
-      images: uploadedImages,
-      contact,
-      data: req.body.data ? new Date(req.body.data) : new Date(),
-    });
-
-    await newClothing.save();
-    res.status(201).json(newClothing);
-  } catch (err) {
-    console.error("❌ Clothing əlavə olunarkən xəta:", err);
-    res.status(400).json({ error: err.message });
   }
-});
+);
 
 // Elanı yenilə
 app.put("/api/Clothing/:id", upload.array("images", 20), async (req, res) => {
