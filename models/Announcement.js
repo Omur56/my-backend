@@ -10,6 +10,7 @@ const announcementSchema = new mongoose.Schema(
     ban_type: String,
     year: String,
     price: String,
+    color: String,
     location: String,
     images: [String],
     mainImage: String,
