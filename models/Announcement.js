@@ -114,6 +114,7 @@ const announcementSchema = new mongoose.Schema(
     brand: String,
     model: String,
     ban_type: String,
+    isActive: { type: Boolean, default: true },
     year: String,
     priorityType: {
       type: String,

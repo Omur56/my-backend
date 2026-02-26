@@ -219,22 +219,21 @@ dotenv.config({ path: path.resolve("../.env") });
 
 app.use(express.json({ limit: "10mb" }));
 
-app.use("/api/payments", paymentRoutes);
-app.use("/api/listings", listingRoutes);
-app.use("/api", announcementRoutes);
-app.use("/api", stripeWebhookRoutes);
+// Static files
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/sitemap.xml", express.static(path.join(__dirname, "public/sitemap.xml")));
+app.use("/robots.txt", express.static(path.join(__dirname, "public/robots.txt")));
 
-app.use("/uploads", express.static(path.join(__dirname, "uploads", "build")));
-app.use("/sitemap.xml", express.static(__dirname + "/public/sitemap.xml"));
-app.use("/robots.txt", express.static(__dirname + "/public/robots.txt"));
-app.use("/api", authRoutes);
+// API Routes
+app.use("/api/payments", paymentRoutes);              // create-checkout
+app.use("/api/payments/webhook", stripeWebhookRoutes); // Stripe webhook
+app.use("/api/listings", listingRoutes);
+app.use("/api/announcements", announcementRoutes);
 app.use("/api/ads", adsRouter);
 app.use("/api/stats", statsRouter);
-app.use("/api/announcements", announcementRoutes);
-app.use("/uploads", express.static("uploads"));
-app.use("/api", profileRoutes);
+app.use("/api/profile", profileRoutes);
 app.use("/api/auth", authRoutes);
-
+// Stripe ödəniş və checkout
 
 
 
