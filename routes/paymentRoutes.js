@@ -73,8 +73,8 @@ router.post("/create-checkout/:listingId", authMiddleware, async (req, res) => {
     if (!listing) return res.status(404).json({ message: "Elan tapılmadı" });
 
     let amount = 50000; // free
-    if (type === "vip") amount = 150000;
-    if (type === "premium") amount = 300000;
+    if (type === "vip") amount = 150;
+    if (type === "premium") amount = 300;
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -89,7 +89,7 @@ router.post("/create-checkout/:listingId", authMiddleware, async (req, res) => {
         },
       ],
       mode: "payment",
-      success_url: `${process.env.BASE_URL}/success`,
+      success_url: `${process.env.BASE_URL}/?payment=success`,
       cancel_url: `${process.env.BASE_URL}/cancel`,
     });
 

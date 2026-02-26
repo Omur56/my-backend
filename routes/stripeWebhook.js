@@ -14,11 +14,7 @@ router.post(
     let event;
 
     try {
-      event = stripe.webhooks.constructEvent(
-        req.body,
-        sig,
-        process.env.STRIPE_WEBHOOK_SECRET
-      );
+      event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
     } catch (err) {
       console.error("Webhook signature failed:", err.message);
       return res.status(400).send(`Webhook Error: ${err.message}`);
@@ -28,16 +24,15 @@ router.post(
       const session = event.data.object;
 
       try {
-        // Payment-i tap və paid=true et
         const payment = await Payment.findOne({ stripeSessionId: session.id });
         if (payment) {
           payment.paid = true;
           await payment.save();
 
-          // İlgili elan statusunu yenilə (məs: VIP / Premium)
           const listing = await Announcement.findById(payment.listing);
           if (listing) {
-            listing.type = payment.type; // vip / premium
+            listing.priorityType = payment.type; // VIP / Premium
+            listing.priority = payment.type === "vip" ? 2 : 1;
             await listing.save();
           }
         }

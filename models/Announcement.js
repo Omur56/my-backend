@@ -1,31 +1,143 @@
+// // import mongoose from "mongoose";
+// // import { v4 as uuidv4 } from "uuid";
+// // const announcementSchema = new mongoose.Schema(
+// //   {
+// //     id: { type: Number, required: true, default: uuidv4 },
+
+// //     category: String,
+// //     brand: String,
+// //     model: String,
+// //     ban_type: String,
+// //     year: String,
+// //     type: {
+// //   type: String,
+// //   enum: ["sifarisle", "magaza", "resmi"],
+// //   default: ""
+// // },
+// //     price: String,
+// //     color: String,
+// //     location: String,
+// //     images: [String],
+// //     mainImage: String,
+// //     images1: [String],
+// //     km: String,
+// //     motor: String,
+// //     transmission: String,
+// //     salon: String,
+// //     sifarisle : String,
+// //     resmi: String,
+// //     magaza: String,
+// //     default: String,
+// //     barter: String,
+// //     kredit: String,
+// //     engine: String,
+// //     description: String,
+// //     data: { type: Date, default: Date.now },
+// //     userId: {
+// //       type: mongoose.Schema.Types.ObjectId,
+// //       ref: "User",
+// //       required: true,
+// //     },
+// //     contact: {
+// //       name: String,
+// //       email: String,
+// //       phone: String,
+// //     },
+// //     liked: { type: Boolean, default: false },
+// //     favorite: { type: Boolean, default: false },
+// //   },
+// //   { timestamps: true }
+// // );
+
+// // const Announcement = mongoose.model("Announcement", announcementSchema);
+// // export default Announcement;
+
+// import mongoose from "mongoose";
+// import { v4 as uuidv4 } from "uuid";
+
+// const announcementSchema = new mongoose.Schema(
+//   {
+//     id: { type: String, required: true, default: uuidv4 }, // uuidv4 String-dir
+
+//     category: String,
+//     brand: String,
+//     model: String,
+//     ban_type: String,
+//     year: String,
+
+//     // VIP / PREMIUM / FREE üçün priorityType
+//     priorityType: {
+//       type: String,
+//       enum: ["free", "vip", "premium"], // burda yalnız bu dəyərlər
+//       default: "free",
+//     },
+
+//     priority: { type: Number, default: 0 }, // lazım olsa sıralama üçün
+
+//     price: String,
+//     color: String,
+//     location: String,
+//     images: [String],
+//     mainImage: String,
+//     km: String,
+//     motor: String,
+//     transmission: String,
+//     salon: String,
+//     description: String,
+//     data: { type: Date, default: Date.now },
+//     userId: {
+//       type: mongoose.Schema.Types.ObjectId,
+//       ref: "User",
+//       required: true,
+//     },
+//     contact: {
+//       name: String,
+//       email: String,
+//       phone: String,
+//     },
+//     liked: { type: Boolean, default: false },
+//     favorite: { type: Boolean, default: false },
+//   },
+//   { timestamps: true }
+// );
+
+// const Announcement = mongoose.model("Announcement", announcementSchema);
+// export default Announcement;
+
 import mongoose from "mongoose";
 import { v4 as uuidv4 } from "uuid";
+
 const announcementSchema = new mongoose.Schema(
   {
-    id: { type: Number, required: true, default: uuidv4 },
-
+    id: { type: String, required: true, default: uuidv4 },
     category: String,
     brand: String,
     model: String,
     ban_type: String,
     year: String,
+    priorityType: {
+      type: String,
+      enum: ["free", "vip", "premium"],
+      default: "free",
+    },
+    type: {
+      type: String,
+      enum: ["sifarisle", "magaza", "resmi"],
+      default: "",
+    },
+    priority: { type: Number, default: 0 },
     price: String,
     color: String,
     location: String,
     images: [String],
     mainImage: String,
-    images1: [String],
     km: String,
     motor: String,
-    transmission: String,
-    salon: String,
-    sifarisle : String,
-    resmi: String,
-    magaza: String,
-    default: String,
     barter: String,
     kredit: String,
     engine: String,
+    transmission: String,
+    salon: String,
     description: String,
     data: { type: Date, default: Date.now },
     userId: {
@@ -41,63 +153,8 @@ const announcementSchema = new mongoose.Schema(
     liked: { type: Boolean, default: false },
     favorite: { type: Boolean, default: false },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const Announcement = mongoose.model("Announcement", announcementSchema);
 export default Announcement;
-
-// import mongoose from "mongoose";
-// import { v4 as uuidv4 } from "uuid";
-
-// const announcementSchema = new mongoose.Schema(
-//   {
-//     // id: { type: String, required: true, default: uuidv4 }, // ✅ düzəldildi
-//     id: { type: String, required: true, default: () => uuidv4() },
-//     modfikasiya: String,
-//     color: String,
-//     city: String,
-//     category: String,
-//     brand: String,
-//     model: String,
-//     ban_type: String,
-//     year: String,
-//     price: String,
-//     location: String,
-
-//     images: [String],
-//     mainImage: String,
-//     images1: [String],
-//     ic_salon: String,
-//     km: String,
-//     motor: String,
-//     transmission: String,
-//     salon: String,
-//     barter: String,
-//     kredit: String,
-//     engine: String,
-//     description: String,
-
-//     userId: {
-//       type: mongoose.Schema.Types.ObjectId,
-//       ref: "User",
-//       required: true,
-//     },
-
-//     contact: {
-//       name: String,
-//       email: String,
-//       phone: String,
-//     },
-
-//     liked: { type: Boolean, default: false },
-//     favorite: { type: Boolean, default: false },
-//     data: { type: Date, default: Date.now },
-
-//     createdAt: { type: Date, default: Date.now },
-//   },
-//   { timestamps: true },
-// );
-
-// const Announcement = mongoose.model("Announcement", announcementSchema);
-// export default Announcement;

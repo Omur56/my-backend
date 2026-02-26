@@ -1,7 +1,9 @@
-import jwt from "jsonwebtoken";
-import User from "../models/user.js";
+// import jwt from "jsonwebtoken";
+// import User from "../models/user.js";
 
-// const authMiddleware = async (req, res, next) => {
+
+
+// const authMiddleware = (req, res, next) => {
 //   const token = req.header("Authorization")?.replace("Bearer ", "");
 
 //   if (!token) {
@@ -10,15 +12,20 @@ import User from "../models/user.js";
 
 //   try {
 //     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-//     req.user = await User.findById(decoded.id).select("-password");
+//     req.user = decoded; // və ya await User.findById(decoded.id)
 //     next();
 //   } catch (error) {
-//     res.status(401).json({ message: "Token etibarsızdır" });
+//     return res.status(401).json({ message: "Token etibarsızdır" });
 //   }
 // };
 
+// export default authMiddleware;
 
-const authMiddleware = (req, res, next) => {
+
+import jwt from "jsonwebtoken";
+import User from "../models/user.js";
+
+const authMiddleware = async (req, res, next) => {
   const token = req.header("Authorization")?.replace("Bearer ", "");
 
   if (!token) {
@@ -27,7 +34,7 @@ const authMiddleware = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // və ya await User.findById(decoded.id)
+    req.user = { id: decoded.id }; // user id əlavə olunur
     next();
   } catch (error) {
     return res.status(401).json({ message: "Token etibarsızdır" });

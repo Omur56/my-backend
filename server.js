@@ -67,6 +67,7 @@ const app = express();
 
 // const PORT = 5000;
 
+app.use("/api/stripe", stripeWebhookRoutes);
 
 
 
@@ -98,7 +99,6 @@ app.use(
 );
 
 
-app.use("/api/stripe", stripeWebhookRoutes);
 
 
 
@@ -219,7 +219,10 @@ dotenv.config({ path: path.resolve("../.env") });
 
 app.use(express.json({ limit: "10mb" }));
 
-
+app.use("/api/payments", paymentRoutes);
+app.use("/api/listings", listingRoutes);
+app.use("/api", announcementRoutes);
+app.use("/api", stripeWebhookRoutes);
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads", "build")));
 app.use("/sitemap.xml", express.static(__dirname + "/public/sitemap.xml"));
@@ -232,8 +235,6 @@ app.use("/uploads", express.static("uploads"));
 app.use("/api", profileRoutes);
 app.use("/api/auth", authRoutes);
 
-app.use("/api/payments", paymentRoutes);
-app.use("/api/listings", listingRoutes);
 
 
 
