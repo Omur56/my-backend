@@ -3706,7 +3706,7 @@ app.delete("/api/:model/:id", verifyToken, async (req, res) => {
 //     res.status(500).json({ error: err.message });
 //   }
 // });
-console.log("React build path:", path.join(__dirname, "../frontend/build"));
+// console.log("React build path:", path.join(__dirname, "../frontend/build"));
 // // Serve static files from the frontend build
 // app.use(express.static(path.join(__dirname, "../frontend/build")));
 
@@ -3718,10 +3718,15 @@ console.log("React build path:", path.join(__dirname, "../frontend/build"));
 
 
 // React build path
-const buildPath = path.join(__dirname, "../frontend/build");
-console.log("React build path:", buildPath);
+// const buildPath = path.join(__dirname, "../frontend/build");
+// console.log("React build path:", buildPath);
 
-// Static fayllar
+// // Static fayllar
+// app.use(express.static(buildPath));
+
+
+
+const buildPath = path.join(__dirname, 'frontend/build'); // əgər frontend build backend ilə eyni səviyyədədirsə
 app.use(express.static(buildPath));
 
 // React Router catch-all (ESM uyğun)
