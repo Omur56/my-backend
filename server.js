@@ -42,6 +42,7 @@ import paymentRoutes from "./routes/paymentRoutes.js";
 import "./cron/expireListings.js";
 import "./utils/expireChecker.js";
 import stripeWebhookRoutes from "./routes/stripeWebhook.js";
+import announcements from "./routes/announcements.js";
 
 
 
@@ -85,6 +86,109 @@ app.use(
     credentials: true,
   })
 );
+
+
+
+// app.use(
+//   helmet({
+//     contentSecurityPolicy: {
+//       directives: {
+//         defaultSrc: ["'self'"],
+//         imgSrc: [
+//           "'self'",
+//           "data:",
+//           "blob:",
+//           "https://res.cloudinary.com",
+//         ],
+//          scriptSrc: ["'self'", "'unsafe-inline'"],
+//         styleSrc: ["'self'", "'unsafe-inline'"],
+//       },
+//     },
+//   })
+// );
+
+
+
+
+
+// app.use(
+//   helmet({
+//     contentSecurityPolicy: {
+//       directives: {
+//         defaultSrc: ["'self'"],
+//         connectSrc: [
+//           "'self'",
+//           "http://localhost:10000",
+//           "http://localhost:3000",
+//           "localhost:5000",
+//           "https://proelan.az",
+//           "https://geminally-stealthless-mimi.ngrok-free.dev",
+//           "https://my-backend-wj5g.onrender.com",
+//           "https://ep1.adtrafficquality.google"
+//         ],
+//         imgSrc: ["'self'", "data:", "blob:", "https://res.cloudinary.com"],
+//         scriptSrc: [
+//           "'self'",
+//           "'unsafe-inline'",
+//           "https://checkout.stripe.com",
+//           "https://pagead2.googlesyndication.com",
+//           "https://googleads.g.doubleclick.net",
+//         ],
+//         styleSrc: ["'self'", "'unsafe-inline'"],
+//         frameSrc: ["'self'", "https://pagead2.googlesyndication.com", "https://googleads.g.doubleclick.net"]
+//       },
+//     },
+//   })
+// );
+
+
+
+
+
+
+
+// Helmet ilə təhlükəsizlik (CSP düzgün tırnaqla)
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        connectSrc: [
+          "'self'",
+          "http://localhost:10000",
+          "http://localhost:3000",
+          "http://localhost:5000",
+          "https://proelan.az",
+          "https://geminally-stealthless-mimi.ngrok-free.dev",
+          "https://my-backend-wj5g.onrender.com",
+          "https://api.cloudinary.com",
+          "https://res.cloudinary.com",
+          "https://pagead2.googlesyndication.com",
+          "https://fonts.googleapis.com",
+          "https://fonts.gstatic.com",
+          "https://www.google-analytics.com",
+          "https://www.googletagmanager.com",
+          "https://ep1.adtrafficquality.google"
+        ],
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "https://pagead2.googlesyndication.com",
+          "https://www.googletagmanager.com",
+          "https://www.google-analytics.com"
+        ],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        imgSrc: ["'self'", "data:", "blob:", "https://res.cloudinary.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        frameSrc: ["https://pagead2.googlesyndication.com"]
+      }
+    }
+  })
+);
+
+
+
+
 app.use(bodyParser.json());
 
 app.use(
@@ -102,47 +206,6 @@ app.use(
 
 
 
-// ✅ CSP (Helmet ilə)
-// app.use(
-//   helmet.contentSecurityPolicy({
-//     directives: {
-//       defaultSrc: ["'self'"],
-//       connectSrc: [
-//         "'self'",
-//         "http://localhost:10000",
-//         "http://localhost:3000",
-//         "https://my-backend-wj5g.onrender.com",
-//       ],
-//       imgSrc: [
-//         "'self'",
-//         "data:",
-//         "blob:", // buranı əlavə et
-//         "https://res.cloudinary.com",
-        
-//       ],
-//       scriptSrc: ["'self'", "'unsafe-inline'"],
-//       styleSrc: ["'self'", "'unsafe-inline'"],
-//     },
-//   })
-// );
-
-app.use(
-  helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        imgSrc: [
-          "'self'",
-          "data:",
-          "blob:",
-          "https://res.cloudinary.com",
-        ],
-         scriptSrc: ["'self'", "'unsafe-inline'"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
-      },
-    },
-  })
-);
 
 
 
@@ -233,6 +296,11 @@ app.use("/api/ads", adsRouter);
 app.use("/api/stats", statsRouter);
 app.use("/api/profile", profileRoutes);
 app.use("/api/auth", authRoutes);
+
+
+
+
+
 // Stripe ödəniş və checkout
 
 
@@ -240,7 +308,7 @@ app.use("/api/auth", authRoutes);
 app.use((req, res, next) => {
   res.setHeader(
     "Content-Security-Policy",
-    "connect-src 'self' http://localhost:5000 http://localhost:10000 https://proelan.az"
+    "connect-src 'self' http://localhost:5000 http://localhost:10000 http://localhost:3000 https://proelan.az https://geminally-stealthless-mimi.ngrok-free.dev https://my-backend-wj5g.onrender.com https://ep1.adtrafficquality.google https://checkout.stripe.com; img-src 'self' data: blob: https://res.cloudinary.com; script-src 'self' 'unsafe-inline' https://checkout.stripe.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net; style-src 'self' 'unsafe-inline'; frame-src 'self' https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net"
   );
   next();
 });
@@ -987,8 +1055,31 @@ app.get("/api/cars/:id", async (req, res) => {
 //   }
 // );
 
+// Bütün elanları gətir, VIP/Premium başda
+app.get("/api/announcements", verifyToken, async (req, res) => {
+  try {
+    const announcements = await Announcement.find().sort({ priority: -1, createdAt: -1 });
+    res.json(announcements);
+  } catch (err) {
+    console.error("Fetch Announcements Error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+// Bütün elanları gətir, VIP/Premium başda olsun
 
-
+// Yalnız öz elanlarını gətir
+app.get("/api/my-cars", verifyToken, async (req, res) => {
+  try {
+    const cars = await Announcement.find({ userId: req.user.id }).sort({
+      priority: -1,
+      createdAt: -1,
+    });
+    res.json(cars);
+  } catch (err) {
+    console.error("Fetch My Cars Error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 
 app.post(
@@ -3625,14 +3716,18 @@ console.log("React build path:", path.join(__dirname, "../frontend/build"));
 //   res.sendFile(path.join(__dirname, "cd/frontend/build", "index.html"));
 // });
 
-// Static fayllar üçün doğru path
-app.use(express.static(path.join(__dirname, "frontend/build")));
 
-// React Router catch-all route
+// React build path
+const buildPath = path.join(__dirname, "../frontend/build");
+console.log("React build path:", buildPath);
+
+// Static fayllar
+app.use(express.static(buildPath));
+
+// React Router catch-all (ESM uyğun)
 app.get(/.*/, (req, res) => {
-  res.sendFile(path.join(__dirname, "frontend/build/index.html"));
+  res.sendFile(path.join(buildPath, "index.html"));
 });
-
 
 
 app.listen(PORT, () => {

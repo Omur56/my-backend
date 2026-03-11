@@ -1,57 +1,94 @@
+// import express from "express";
+// import Announcement from "../models/Announcement.js";
+// import Stripe from "stripe";
+// import dotenv from "dotenv";
+
+// dotenv.config();
+
+// const router = express.Router();
+// const stripe = new Stripe(process.env.STRIPE_SECRET, { apiVersion: "2022-11-15" });
+
+// // Stripe Webhook
+// router.post(
+//   "/webhook",
+//   express.raw({ type: "application/json" }),
+//   async (req, res) => {
+//     const sig = req.headers["stripe-signature"];
+//     let event;
+
+//     try {
+//       event = stripe.webhooks.constructEvent(
+//         req.body,
+//         sig,
+//         process.env.STRIPE_WEBHOOK_SECRET
+//       );
+//     } catch (err) {
+//       console.log("Webhook signature error:", err.message);
+//       return res.status(400).send(`Webhook Error: ${err.message}`);
+//     }
+
+//     if (event.type === "checkout.session.completed") {
+//       const session = event.data.object;
+//       const { listingId, type } = session.metadata;
+
+//       const listing = await Announcement.findById(listingId);
+//       if (!listing) {
+//         console.log(`Listing ${listingId} tapılmadı`);
+//         return res.status(404).json({ message: "Elan tapılmadı" });
+//       }
+
+//       listing.priorityType = type; // vip / premium
+//       listing.priority = type === "vip" ? 1 : 2;
+//       listing.isActive = true;
+//       await listing.save();
+
+//       console.log(`Elan ${listingId} yeniləndi: ${type}`);
+//     }
+
+//     res.json({ received: true });
+//   }
+// );
+// export default router;
+
 import express from "express";
-import stripePackage from "stripe";
-import Payment from "../models/Payment.js";
 import Announcement from "../models/Announcement.js";
+import Stripe from "stripe";
 
 const router = express.Router();
-const stripe = stripePackage(process.env.STRIPE_SECRET);
+const stripe = new Stripe(process.env.STRIPE_SECRET);
 
+// **express.json() əvəzinə express.raw({type: "application/json"}) istifadə et**
 router.post(
   "/webhook",
-  express.raw({ type: "application/json" }),
+  express.raw({ type: "application/json" }), 
   async (req, res) => {
     const sig = req.headers["stripe-signature"];
     let event;
 
     try {
       event = stripe.webhooks.constructEvent(
-        req.body,
+        req.body,                 // RAW body
         sig,
         process.env.STRIPE_WEBHOOK_SECRET
       );
     } catch (err) {
-      console.error("Webhook signature failed:", err.message);
+      console.log("Webhook signature error:", err.message);
       return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
+      const { listingId, type } = session.metadata;
 
-      try {
-        // Ödəniş bazasında tap
-        const payment = await Payment.findOne({
-          stripeSessionId: session.id,
-        });
+      const listing = await Announcement.findById(listingId);
+      if (!listing) return res.status(404).json({ message: "Elan tapılmadı" });
 
-        if (payment) {
-          payment.paid = true;
-          await payment.save();
+      listing.priorityType = type; // "vip" / "premium"
+      listing.priority = type === "vip" ? 1 : 2;
+      listing.isActive = true;
+      await listing.save();
 
-          // Elanı tap
-          const listing = await Announcement.findById(payment.listing);
-          if (listing) {
-            listing.priorityType = payment.type; // vip / premium
-            listing.priority = payment.type === "vip" ? 2 : 1;
-            await listing.save();
-
-            console.log(
-              `Listing ${listing._id} updated to ${listing.priorityType}`
-            );
-          }
-        }
-      } catch (err) {
-        console.error("Payment update error:", err.message);
-      }
+      console.log(`Elan ${listingId} yeniləndi: ${type}`);
     }
 
     res.json({ received: true });

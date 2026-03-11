@@ -1,19 +1,13 @@
-import cron from "node-cron";
 import Listing from "../models/Listing.js";
 
-// Hər gün saat 00:00-da çalışacaq
-cron.schedule("0 0 * * *", async () => {
-  try {
-    const now = new Date();
+export const checkExpiredListings = async () => {
+  const now = new Date();
+  const expired = await Listing.updateMany(
+    { priorityExpires: { $lt: now }, type: { $ne: "free" } },
+    { type: "free", isActive: true, priorityExpires: null }
+  );
+  console.log("Expired listings updated:", expired.modifiedCount);
+};
 
-    // Bitmiş elanları deaktiv et
-    const result = await Listing.updateMany(
-      { expiresAt: { $lt: now }, isActive: true },
-      { isActive: false }
-    );
-
-    console.log(`Cron işlədi: ${result.modifiedCount} elan deaktiv edildi.`);
-  } catch (err) {
-    console.error("Cron job xətası:", err);
-  }
-});
+// Server.js-də 1 saatlıq interval
+setInterval(checkExpiredListings, 60 * 60 * 1000);

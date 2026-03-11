@@ -75,7 +75,7 @@ router.post("/create-checkout/:listingId", authMiddleware, async (req, res) => {
       return res.status(404).json({ message: "Elan tapılmadı" });
     }
 
-    const amount = type === "vip" ? 15000 : 30000;
+    const amount = type === "vip" ? 150 : 300;
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
