@@ -65,6 +65,8 @@ const announcementSchema = new mongoose.Schema(
     model: String,
     ban_type: String,
     isActive: { type: Boolean, default: true },
+    vipExpireAt: Date,
+
     year: String,
    priorityType: {
   type: String,
@@ -74,14 +76,19 @@ const announcementSchema = new mongoose.Schema(
 priority: {
   type: Number,
   enum: [0, 1, 2], // 0 = free, 1 = vip, 2 = premium
-  default: 0,
+  default: 3,
 },
     type: {
       type: String,
       enum: ["sifarisle", "magaza", "resmi"],
       default: "",
     },
-    priority: { type: Number, default: 0 },
+    priority: { type: Number, default: 3 },
+
+    vipExpireAt: {
+  type: Date,
+  default: null
+},
     price: String,
     color: String,
     location: String,

@@ -43,7 +43,8 @@ import "./cron/expireListings.js";
 import "./utils/expireChecker.js";
 import stripeWebhookRoutes from "./routes/stripeWebhook.js";
 import announcements from "./routes/announcements.js";
-
+import cron from "node-cron";
+import { expireVip } from "./utils/expireVip.js";
 
 
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -87,7 +88,9 @@ app.use(
   })
 );
 
-
+cron.schedule("*/10 * * * *", () => {
+  expireVip();
+});
 
 // app.use(
 //   helmet({

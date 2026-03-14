@@ -1,79 +1,68 @@
 import express from "express";
-import Listing from "../models/Listing.js";
+import Stripe from "stripe";
+import Payment from "../models/Payment.js";
 import authMiddleware from "../middleware/authMiddleware.js";
+import Announcement from "../models/Announcement.js";
+import Accessory from "../models/Acsesuar.js";
+import Electronika from "../models/Electronika.js";
+import Clothing from "../models/Clothing.js";
+import HomeAndGarden from "../models/HomeAndGarden.js";
+import Phone from "../models/Phone.js";
+import HouseHold from "../models/Household.js";
+import RealEstate from "../models/RealEstate.js";
 
 const router = express.Router();
+const stripe = new Stripe(process.env.STRIPE_SECRET);
+const models = [Accessory, Electronika, Clothing, HomeAndGarden, Phone, RealEstate, Announcement, HouseHold];
 
-/* ================= CREATE LISTING ================= */
-router.post("/create", authMiddleware, async (req, res) => {
+router.post("/create-checkout/:listingId", authMiddleware, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const { listingId } = req.params;
+    const { type } = req.body;
 
-    const totalCount = await Listing.countDocuments({
-      userId,
-      isActive: true
-    });
-
-    if (totalCount >= 3) {
-      return res.status(400).json({
-        message: "3 pulsuz elandan sonra ödəniş etməlisiniz"
-      });
+    // bütün modellərdə axtarış
+    let listing = null;
+    for (const Model of models) {
+      listing = await Model.findById(listingId);
+      if (listing) break;
     }
 
-    const expires = new Date();
-    expires.setDate(expires.getDate() + 10);
+    if (!listing) return res.status(404).json({ message: "Elan tapılmadı" });
 
-    const listing = await Listing.create({
-      ...req.body,
-      userId,
-      type: "free",
-      priority: 0,
-      expiresAt: expires,
-      isActive: true
+    const price = type === "vip" ? 200 : 100;
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price_data: {
+            currency: "azn",
+            product_data: { name: type.toUpperCase() + " Elan" },
+            unit_amount: price * 100,
+          },
+          quantity: 1,
+        },
+      ],
+      mode: "payment",
+      metadata: { listingId, type, userId: req.user.id },
+      success_url: "http://localhost:3000/success",
+      cancel_url: "http://localhost:3000/cancel",
     });
 
-    res.status(201).json(listing);
+    // Payment məlumatını bazada saxla
+    await Payment.create({
+      user: req.user.id,
+      listing: listing._id,
+      amount: price,
+      type,
+      stripeSessionId: session.id,
+      paid: false,
+    });
+
+    res.json({ url: session.url });
   } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-/* ================= UPGRADE LISTING ================= */
-router.post("/upgrade/:id", authMiddleware, async (req, res) => {
-  try {
-    const { type } = req.body; // vip / premium
-    const listing = await Listing.findById(req.params.id);
-
-    if (!listing)
-      return res.status(404).json({ message: "Elan tapılmadı" });
-
-    // Yalnız vip / premium qəbul et
-    if (!["vip", "premium"].includes(type))
-      return res.status(400).json({ message: "Yanlış upgrade tipi" });
-
-    listing.type = type; // vip / premium
-    listing.expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 gün
-    listing.isActive = true;
-
-    await listing.save();
-
-    res.json({ message: `Elan ${type.toUpperCase()} oldu`, listing });
-  } catch (err) {
-    console.error("Elan upgrade xətası:", err);
-    res.status(500).json({ message: err.message });
-  }
-});
-
-/* ================= GET ALL LISTINGS ================= */
-router.get("/all", async (req, res) => {
-  try {
-    const listings = await Listing.find({ isActive: true })
-      .sort({ priority: -1, data: -1 }); // VIP yuxarı, Premium ortada, Free aşağı
-
-    res.json(listings);
-  } catch (err) {
-    console.error("Elanları gətirmək xətası:", err.message);
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Stripe error" });
   }
 });
 

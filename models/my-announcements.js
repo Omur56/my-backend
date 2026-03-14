@@ -9,6 +9,18 @@ const MyAnnouncementSchema = new mongoose.Schema(
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // elan kimə aiddir
       modelName: String, // hansı modeldə yerləşdirilib (clothing, phone, household, homeGarden)
       id: { type: String, required: true, default: () => uuidv4() },
+       priorityType: {
+  type: String,
+  enum: ["free", "vip", "premium"],
+  default: "free",
+},
+priority: {
+  type: Number,
+  enum: [0, 1, 2], // 0 = free, 1 = vip, 2 = premium
+  default: 3,
+},
+ isActive: { type: Boolean, default: true },
+  images: [String],
       category: String,
           brand: String,
           model: String,

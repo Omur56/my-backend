@@ -20,7 +20,7 @@ router.get("/my-ads", verifyToken, async (req, res) => {
   try {
     const userId = req.user.id; // verifyToken middleware token-dən user id-ni alır
 
-    const homGarden = await HomeAndGarden.find({ user: userId });
+    const homeGarden = await HomeAndGarden.find({ user: userId });
     const realEstates = await RealEstate.find({ user: userId });
     const phones = await Phone.find({ user: userId });
     const acsesuars = await Acsesuar.find({ user: userId });
@@ -31,14 +31,14 @@ router.get("/my-ads", verifyToken, async (req, res) => {
 
     // hər elan arrayinə category əlavə edirik
     const allAds = [
-      ...homGarden.map(ad => ({ ...ad._doc, category: "homeAndGarden" })),
+      ...homeGarden.map(ad => ({ ...ad._doc, category: "homeGarden" })),
       ...realEstates.map(ad => ({ ...ad._doc, category: "realEstate" })),
       ...phones.map(ad => ({ ...ad._doc, category: "phone" })),
-      ...acsesuars.map(ad => ({ ...ad._doc, category: "acsesuar" })),
+      ...acsesuars.map(ad => ({ ...ad._doc, category: "accessories" })),
       ...clothings.map(ad => ({ ...ad._doc, category: "clothing" })),
       ...houseHolds.map(ad => ({ ...ad._doc, category: "household" })),
       ...electronikas.map(ad => ({ ...ad._doc, category: "electronika" })),
-      ...announcements.map(ad => ({ ...ad._doc, category: "announcement" })),
+      ...announcements.map(ad => ({ ...ad._doc, category: "cars" })),
     ];
 
     // tarixə görə sort
