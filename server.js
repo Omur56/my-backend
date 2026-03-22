@@ -45,7 +45,7 @@ import stripeWebhookRoutes from "./routes/stripeWebhook.js";
 import announcements from "./routes/announcements.js";
 import cron from "node-cron";
 import { expireVip } from "./utils/expireVip.js";
-
+import { checkExpiredListings } from "./utils/checkExpiredListings.js";
 
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
@@ -70,6 +70,24 @@ const app = express();
 // const PORT = 5000;
 
 app.use("/api/stripe", stripeWebhookRoutes);
+
+// MongoDB-ə qoşul
+mongoose.connect(
+  process.env.MONGO_URI,
+)
+.then(() => console.log("MongoDB connected ✅"))
+.catch(err => console.error("MongoDB connection error:", err));
+
+// Hər saat (real layihə) yoxlama
+cron.schedule("0 * * * *", async () => {
+  console.log("Running expired listings check...");
+  await checkExpiredListings();
+});
+
+
+// Test: hər 5 saniyədən bir yoxla
+setInterval(checkExpiredListings, 5000);
+
 
 
 
@@ -300,8 +318,8 @@ app.use("/api/stats", statsRouter);
 app.use("/api/profile", profileRoutes);
 app.use("/api/auth", authRoutes);
 
-
-
+// Hər 20 saniyədən bir (test üçün)
+setInterval(checkExpiredListings, 20 * 1000);
 
 
 // Stripe ödəniş və checkout
