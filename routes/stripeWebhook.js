@@ -1,6 +1,6 @@
-
 import express from "express";
 import Stripe from "stripe";
+import moment from "moment-timezone"; // 🔹 import moment-timezone
 import Announcement from "../models/Announcement.js";
 import Accessory from "../models/Acsesuar.js";
 import Electronika from "../models/Electronika.js";
@@ -41,17 +41,26 @@ router.post(
       let listing = null;
       for (const Model of models) {
         listing = await Model.findById(listingId);
-        if (listing) break; // tapıldısa dayandır
+        if (listing) break;
       }
 
       if (!listing) return res.status(404).json({ message: "Elan tapılmadı" });
 
-      listing.priorityType = type; // "vip" / "premium"
-      listing.priority = type === "vip" ? 1 : 2;
-      listing.isActive = true;
-      await listing.save();
+      // 🔹 VIP/Premium müddətini Bakı vaxtına görə set et
+  
 
-      console.log(`Elan ${listingId} yeniləndi: ${type}`);
+let expires = null;
+if (type === "vip") expires = moment.tz("Asia/Baku").add(20, "seconds").toDate(); // test üçün 20 saniyə
+else if (type === "premium") expires = moment.tz("Asia/Baku").add(3, "days").toDate();
+
+listing.priorityType = type;
+listing.priority = type === "vip" ? 1 : 2;
+listing.priorityExpires = expires; // 🔹 bu sahəyə Bakı vaxtı ilə tarix set olunur
+listing.isActive = true;
+
+await listing.save();
+
+      console.log(`Elan ${listingId} yeniləndi: ${type}, expires: ${expires}`);
     }
 
     res.json({ received: true });
