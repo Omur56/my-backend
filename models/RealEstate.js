@@ -46,7 +46,6 @@
 // const RealEstate = mongoose.model("RealEstate", RealEstateSchema);
 // export default RealEstate;
 
-
 import mongoose from "mongoose";
 import { v4 as uuidv4 } from "uuid";
 
