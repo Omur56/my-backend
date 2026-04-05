@@ -37,4 +37,4 @@ const checkExpiredListings = async () => {
 };
 
 // hər 5 saniyədə bir yoxla
-setInterval(checkExpiredListings, 5000);
+setInterval(checkExpiredListings, 500000);
