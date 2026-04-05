@@ -49,9 +49,18 @@ router.post(
       // 🔹 VIP/Premium müddətini Bakı vaxtına görə set et
   
 
+// let expires = null;
+// if (type === "vip") expires = moment.tz("Asia/Baku").add(20, "seconds").toDate(); // test üçün 20 saniyə
+// else if (type === "premium") expires = moment.tz("Asia/Baku").add(3, "days").toDate();
+
+
 let expires = null;
-if (type === "vip") expires = moment.tz("Asia/Baku").add(20, "seconds").toDate(); // test üçün 20 saniyə
-else if (type === "premium") expires = moment.tz("Asia/Baku").add(3, "days").toDate();
+
+if (type === "vip") {
+  expires = moment.tz("Asia/Baku").add(3, "days").toDate(); // ✅ 3 gün
+} else if (type === "premium") {
+  expires = moment.tz("Asia/Baku").add(7, "days").toDate(); // ✅ 7 gün
+}
 
 listing.priorityType = type;
 listing.priority = type === "vip" ? 1 : 2;

@@ -239,8 +239,7 @@ app.use("/api/stats", statsRouter);
 app.use("/api/profile", profileRoutes);
 app.use("/api/auth", authRoutes);
 
-// Hər 20 saniyədən bir (test üçün)
-setInterval(checkExpiredListings, 20 * 1000);
+
 
 
 // Stripe ödəniş və checkout
