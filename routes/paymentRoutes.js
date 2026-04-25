@@ -176,30 +176,6 @@
 
 // export default router;
 
-
-
-
-
-// routes/listings.js
-import express from "express";
-import Stripe from "stripe";
-import Payment from "../models/Payment.js";
-import authMiddleware from "../middleware/authMiddleware.js";
-// import Announcement from "../models/Announcement.js";
-import Ad from "../models/Ad.js";
-import Accessory from "../models/Acsesuar.js";
-import Electronika from "../models/Electronika.js";
-import Clothing from "../models/Clothing.js";
-import HomeAndGarden from "../models/HomeAndGarden.js";
-import Phone from "../models/Phone.js";
-import HouseHold from "../models/Household.js";
-import RealEstate from "../models/RealEstate.js";
-import Listing from "../models/Listing.js";
-import moment from "moment-timezone";
-
-const router = express.Router();
-const stripe = new Stripe(process.env.STRIPE_SECRET);
-
 // Bütün modellər
 // const models = [
 //   Accessory,
@@ -280,6 +256,30 @@ const stripe = new Stripe(process.env.STRIPE_SECRET);
 
 
 
+
+// routes/listings.js
+import express from "express";
+import Stripe from "stripe";
+import Payment from "../models/Payment.js";
+import authMiddleware from "../middleware/authMiddleware.js";
+// import Announcement from "../models/Announcement.js";
+import Ad from "../models/Ad.js";
+import Accessory from "../models/Acsesuar.js";
+import Electronika from "../models/Electronika.js";
+import Clothing from "../models/Clothing.js";
+import HomeAndGarden from "../models/HomeAndGarden.js";
+import Phone from "../models/Phone.js";
+import HouseHold from "../models/Household.js";
+import RealEstate from "../models/RealEstate.js";
+import Listing from "../models/Listing.js";
+import moment from "moment-timezone";
+
+const router = express.Router();
+const stripe = new Stripe(process.env.STRIPE_SECRET);
+
+
+
+
 // =====================
 // CREATE CHECKOUT
 // =====================
@@ -298,7 +298,9 @@ router.post(
       }
 
       const listing = await Ad.findById(listingId);
-
+if (listing.userId.toString() !== req.user.id) {
+  return res.status(403).json({ message: "Bu elana access yoxdur" });
+}
       if (!listing) {
         return res.status(404).json({ message: "Elan tapılmadı" });
       }
@@ -383,6 +385,11 @@ router.post(
       );
 
       const listing = await Ad.findById(listingId);
+      // 🔥 EXTRA SECURITY CHECK
+if (listing.userId.toString() !== session.metadata.userId) {
+  console.log("Unauthorized webhook attempt");
+  return res.json({ received: true });
+}
 
       if (!listing) {
         return res.json({ received: true });

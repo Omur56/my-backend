@@ -227,7 +227,7 @@ app.use("/api/ads", adsRouter);
 app.use("/api/stats", statsRouter);
 app.use("/api/profile", profileRoutes);
 app.use("/api/auth", authRoutes);
-app.use("/api/ads", adsRoutes);
+
 app.use("/api/countSay", statsRoutes);
 app.use("/api/sticky-ads", stickyAdsRoutes);
 
@@ -317,6 +317,21 @@ app.post("/api/ads", upload.array("images", 20), authMiddleware, async (req, res
     res.status(500).json({ error: err.message });
   }
 });
+
+
+app.get("/api/my-ads", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const ads = await Ad.find({ userId });
+
+    res.json(ads);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 // kateqoriya-mapping
 // const modelsMap = {
@@ -5086,22 +5101,40 @@ app.get("/api/accessories/count", async (req, res) => {
 // // server.js və ya app.js
 app.post("/api/reqister", async (req, res) => {
   try {
-    // password hash-lə
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    const { username, phone, email, password } = req.body;
 
+    // 1. check user exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    // 2. hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // 3. create user
     const newUser = new User({
-      username: req.body.username,
-      phone: req.body.phone,
-      email: req.body.email,
+      username,
+      phone,
+      email,
       password: hashedPassword,
-
-      // hash-lənmiş password saxlanır
     });
 
+    // 4. save user
     await newUser.save();
-    res.status(201).json("User created successfully!");
+
+    res.status(201).json({
+      message: "User created successfully",
+      user: {
+        id: newUser._id,
+        username: newUser.username,
+        email: newUser.email,
+      },
+    });
+
   } catch (err) {
-    res.status(500).json(err);
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
