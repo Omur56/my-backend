@@ -1,12 +1,12 @@
 import express from "express";
-import Announcement from "../models/Announcement.js";
+import Ad from "../models/Ad.js";
 import User from "../models/user.js";
 
 const router = express.Router();
 
 router.get("/", async (req, res) => {
   try {
-    const postsCount = await Announcement.countDocuments();
+    const postsCount = await Ad.countDocuments();
     const usersCount = await User.countDocuments();
     res.json({ posts: postsCount, users: usersCount });
   } catch (err) {
@@ -15,3 +15,7 @@ router.get("/", async (req, res) => {
 });
 
 export default router;
+
+
+
+

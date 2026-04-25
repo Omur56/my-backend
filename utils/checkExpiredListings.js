@@ -34,12 +34,13 @@
 
 // import Listing from "../models/Listing.js";
 
-import Announcement from "../models/Announcement.js";
+// import Announcement from "../models/Announcement.js";
+import Ad from "../models/Ad.js";
 
 export const checkExpiredListings = async () => {
   const now = new Date();
 
-  const expired = await Announcement.find({
+  const expired = await Ad.find({
     priorityExpires: { $ne: null, $lt: now },
   });
 

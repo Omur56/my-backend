@@ -362,19 +362,22 @@
 import express from "express";
 import Stripe from "stripe";
 import moment from "moment-timezone"; // 🔹 import moment-timezone
-import Announcement from "../models/Announcement.js";
-import Accessory from "../models/Acsesuar.js";
-import Electronika from "../models/Electronika.js";
-import Clothing from "../models/Clothing.js";
-import HomeAndGarden from "../models/HomeAndGarden.js";
-import Phone from "../models/Phone.js";
-import HouseHold from "../models/Household.js";
-import RealEstate from "../models/RealEstate.js";
+// import Announcement from "../models/Announcement.js";
+import Ad from "../models/Ad.js";
+// import Accessory from "../models/Acsesuar.js";
+// import Electronika from "../models/Electronika.js";
+// import Clothing from "../models/Clothing.js";
+// import HomeAndGarden from "../models/HomeAndGarden.js";
+// import Phone from "../models/Phone.js";
+// import HouseHold from "../models/Household.js";
+// import RealEstate from "../models/RealEstate.js";
 
 const router = express.Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET);
 
-const models = [Accessory, Electronika, Clothing, HomeAndGarden, Phone, RealEstate, Announcement, HouseHold];
+// const models = [Accessory, Electronika, Clothing, HomeAndGarden, Phone, RealEstate, Announcement, HouseHold];
+
+const models = Ad;
 
 router.post(
   "/webhook",

@@ -46,7 +46,7 @@
 
 
 import express from "express";
-import Announcement from "../models/Announcement.js";
+import Ad from "../models/Ad.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -62,7 +62,7 @@ router.post("/upgrade/:id", authMiddleware, async (req, res) => {
     if (!userId) return res.status(401).json({ message: "User ID tapılmadı" });
 
     // Elanı tap
-    const ad = await Announcement.findById(listingId);
+    const ad = await Ad.findById(listingId);
     if (!ad) return res.status(404).json({ message: "Elan tapılmadı" });
 
     // Yalnız sahib elanını dəyişə bilər

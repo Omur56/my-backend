@@ -28,6 +28,11 @@ const userSchema = new mongoose.Schema(
       required: true, 
       unique: true 
     },
+    userId: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "User",
+  required: true,
+},
 
     email: { 
       type: String, 

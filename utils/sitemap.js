@@ -1,37 +1,42 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import Announcement from "../models/Announcement.js";
+import Ad from "../models/Ad.js"; // 🔥 düzəldildi
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 async function generateSitemap() {
-  const announcements = await Announcement.find().sort({ createdAt: -1 });
+  try {
+    const ads = await Ad.find().sort({ createdAt: -1 }); // 🔥 düzgün istifadə
 
-  let urls = `
-  <url>
-    <loc>https://proelan.az</loc>
-    <priority>1.0</priority>
-  </url>
-  `;
-
-  announcements.forEach((ann) => {
-    urls += `
+    let urls = `
     <url>
-      <loc>https://proelan.az/announcement/${ann._id}</loc>
-      <priority>0.8</priority>
+      <loc>https://proelan.az</loc>
+      <priority>1.0</priority>
     </url>
     `;
-  });
 
-  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-  <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  ${urls}
-  </urlset>`;
+    ads.forEach((ann) => { // 🔥 düzəldildi
+      urls += `
+      <url>
+        <loc>https://proelan.az/ad/${ann._id}</loc>
+        <priority>0.8</priority>
+      </url>
+      `;
+    });
 
-  fs.writeFileSync(path.join(__dirname, "../public/sitemap.xml"), sitemap);
-  console.log("Sayt xəritəsi yaradıldı ✅");
+    const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    ${urls}
+    </urlset>`;
+
+    fs.writeFileSync(path.join(__dirname, "../public/sitemap.xml"), sitemap);
+
+    console.log("Sayt xəritəsi yaradıldı ✅");
+  } catch (err) {
+    console.error("Sitemap xətası:", err);
+  }
 }
 
 export default generateSitemap;

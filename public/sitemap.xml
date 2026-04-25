@@ -1,14 +1,69 @@
 <?xml version="1.0" encoding="UTF-8"?>
-  <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  
-  <url>
-    <loc>https://proelan.az</loc>
-    <priority>1.0</priority>
-  </url>
-  
+    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    
     <url>
-      <loc>https://proelan.az/announcement/69d2a202a786123a729373c0</loc>
-      <priority>0.8</priority>
+      <loc>https://proelan.az</loc>
+      <priority>1.0</priority>
     </url>
     
-  </urlset>
+      <url>
+        <loc>https://proelan.az/ad/69ed2491983494d5de49ff32</loc>
+        <priority>0.8</priority>
+      </url>
+      
+      <url>
+        <loc>https://proelan.az/ad/69ec085478d80c25134f3471</loc>
+        <priority>0.8</priority>
+      </url>
+      
+      <url>
+        <loc>https://proelan.az/ad/69ec06e5790cd861696c364f</loc>
+        <priority>0.8</priority>
+      </url>
+      
+      <url>
+        <loc>https://proelan.az/ad/69ec062116ee9c5dc621aba4</loc>
+        <priority>0.8</priority>
+      </url>
+      
+      <url>
+        <loc>https://proelan.az/ad/69ec048c9ec1748f095bd55e</loc>
+        <priority>0.8</priority>
+      </url>
+      
+      <url>
+        <loc>https://proelan.az/ad/69ec04669ec1748f095bd525</loc>
+        <priority>0.8</priority>
+      </url>
+      
+      <url>
+        <loc>https://proelan.az/ad/69ec04189ec1748f095bd4e8</loc>
+        <priority>0.8</priority>
+      </url>
+      
+      <url>
+        <loc>https://proelan.az/ad/69ec03fd9ec1748f095bd4ae</loc>
+        <priority>0.8</priority>
+      </url>
+      
+      <url>
+        <loc>https://proelan.az/ad/69ec03d29ec1748f095bd477</loc>
+        <priority>0.8</priority>
+      </url>
+      
+      <url>
+        <loc>https://proelan.az/ad/69ec03af9ec1748f095bd46e</loc>
+        <priority>0.8</priority>
+      </url>
+      
+      <url>
+        <loc>https://proelan.az/ad/69ec039c9ec1748f095bd43b</loc>
+        <priority>0.8</priority>
+      </url>
+      
+      <url>
+        <loc>https://proelan.az/ad/69ec02dd9ec1748f095bd3be</loc>
+        <priority>0.8</priority>
+      </url>
+      
+    </urlset>

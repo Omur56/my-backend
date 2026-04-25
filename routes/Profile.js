@@ -6,7 +6,8 @@ import { verifyToken } from "../middleware/verifyToken.js";
 import HomeAndGarden from "../models/HomeAndGarden.js";
 import RealEstate from "../models/RealEstate.js";
 import Phone from "../models/Phone.js";
-import Announcement from "../models/Announcement.js";
+// import Announcement from "../models/Announcement.js";
+import Ad from "../models/Ad.js";
 import Acsesuar from "../models/Acsesuar.js";
 import Clothing from "../models/Clothing.js";
 import HouseHold from "../models/Household.js";
@@ -27,7 +28,8 @@ router.get("/my-ads", verifyToken, async (req, res) => {
     const clothings = await Clothing.find({ user: userId });
     const houseHolds = await HouseHold.find({ user: userId });
     const electronikas = await Electronika.find({ user: userId });
-    const announcements = await Announcement.find({ user: userId });
+    // const announcements = await Announcement.find({ user: userId });
+    const Ad = await Ad.find({ user: userId });
 
     // hər elan arrayinə category əlavə edirik
     const allAds = [
@@ -38,7 +40,7 @@ router.get("/my-ads", verifyToken, async (req, res) => {
       ...clothings.map(ad => ({ ...ad._doc, category: "clothing" })),
       ...houseHolds.map(ad => ({ ...ad._doc, category: "household" })),
       ...electronikas.map(ad => ({ ...ad._doc, category: "electronika" })),
-      ...announcements.map(ad => ({ ...ad._doc, category: "cars" })),
+      ...Ad.map(ad => ({ ...ad._doc, category: "car" })),
     ];
 
     // tarixə görə sort

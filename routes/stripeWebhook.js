@@ -1,19 +1,95 @@
+// import express from "express";
+// import Stripe from "stripe";
+// import moment from "moment-timezone"; // 🔹 import moment-timezone
+// // import Announcement from "../models/Announcement.js";
+// // import Accessory from "../models/Acsesuar.js";
+// // import Electronika from "../models/Electronika.js";
+// // import Clothing from "../models/Clothing.js";
+// // import HomeAndGarden from "../models/HomeAndGarden.js";
+// // import Phone from "../models/Phone.js";
+// // import HouseHold from "../models/Household.js";
+// // import RealEstate from "../models/RealEstate.js";
+// import Ad from "../models/Ad.js";
+
+// const router = express.Router();
+// const stripe = new Stripe(process.env.STRIPE_SECRET);
+
+// // const models = [Accessory, Electronika, Clothing, HomeAndGarden, Phone, RealEstate, Announcement, HouseHold];
+// const models = Ad;
+
+// router.post(
+//   "/webhook",
+//   express.raw({ type: "application/json" }),
+//   async (req, res) => {
+//     const sig = req.headers["stripe-signature"];
+//     let event;
+
+//     try {
+//       event = stripe.webhooks.constructEvent(
+//         req.body,
+//         sig,
+//         process.env.STRIPE_WEBHOOK_SECRET
+//       );
+//     } catch (err) {
+//       console.log("Webhook signature error:", err.message);
+//       return res.status(400).send(`Webhook Error: ${err.message}`);
+//     }
+
+//     if (event.type === "checkout.session.completed") {
+//       const session = event.data.object;
+//       const { listingId, type } = session.metadata;
+
+//       // bütün modellərdə axtarış
+//       let listing = null;
+//       for (const Model of models) {
+//         listing = await Model.findById(listingId);
+//         if (listing) break;
+//       }
+
+//       if (!listing) return res.status(404).json({ message: "Elan tapılmadı" });
+
+//       // 🔹 VIP/Premium müddətini Bakı vaxtına görə set et
+  
+
+// // let expires = null;
+// // if (type === "vip") expires = moment.tz("Asia/Baku").add(20, "seconds").toDate(); // test üçün 20 saniyə
+// // else if (type === "premium") expires = moment.tz("Asia/Baku").add(3, "days").toDate();
+
+
+// let expires = null;
+
+// if (type === "vip") {
+//   expires = moment.tz("Asia/Baku").add(3, "days").toDate(); // ✅ 3 gün
+// } else if (type === "premium") {
+//   expires = moment.tz("Asia/Baku").add(7, "days").toDate(); // ✅ 7 gün
+// }
+
+// listing.priorityType = type;
+// listing.priority = type === "vip" ? 1 : 2;
+// listing.priorityExpires = expires; // 🔹 bu sahəyə Bakı vaxtı ilə tarix set olunur
+// listing.isActive = true;
+
+// await listing.save();
+
+//       console.log(`Elan ${listingId} yeniləndi: ${type}, expires: ${expires}`);
+//     }
+
+//     res.json({ received: true });
+//   }
+// );
+
+// export default router;
+
+
+
+
 import express from "express";
 import Stripe from "stripe";
-import moment from "moment-timezone"; // 🔹 import moment-timezone
-import Announcement from "../models/Announcement.js";
-import Accessory from "../models/Acsesuar.js";
-import Electronika from "../models/Electronika.js";
-import Clothing from "../models/Clothing.js";
-import HomeAndGarden from "../models/HomeAndGarden.js";
-import Phone from "../models/Phone.js";
-import HouseHold from "../models/Household.js";
-import RealEstate from "../models/RealEstate.js";
+import moment from "moment-timezone";
+import Ad from "../models/Ad.js";
 
 const router = express.Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET);
-
-const models = [Accessory, Electronika, Clothing, HomeAndGarden, Phone, RealEstate, Announcement, HouseHold];
 
 router.post(
   "/webhook",
@@ -37,39 +113,30 @@ router.post(
       const session = event.data.object;
       const { listingId, type } = session.metadata;
 
-      // bütün modellərdə axtarış
-      let listing = null;
-      for (const Model of models) {
-        listing = await Model.findById(listingId);
-        if (listing) break;
+      // 🔥 SADƏ və DÜZGÜN
+      const listing = await Ad.findById(listingId);
+
+      if (!listing) {
+        console.log("Elan tapılmadı:", listingId);
+        return res.json({ received: true }); // ⚠️ webhook-da 404 qaytarma
       }
 
-      if (!listing) return res.status(404).json({ message: "Elan tapılmadı" });
+      let expires = null;
 
-      // 🔹 VIP/Premium müddətini Bakı vaxtına görə set et
-  
+      if (type === "vip") {
+        expires = moment.tz("Asia/Baku").add(3, "days").toDate();
+      } else if (type === "premium") {
+        expires = moment.tz("Asia/Baku").add(7, "days").toDate();
+      }
 
-// let expires = null;
-// if (type === "vip") expires = moment.tz("Asia/Baku").add(20, "seconds").toDate(); // test üçün 20 saniyə
-// else if (type === "premium") expires = moment.tz("Asia/Baku").add(3, "days").toDate();
+      listing.priorityType = type;
+      listing.priority = type === "vip" ? 1 : 2;
+      listing.priorityExpires = expires;
+      listing.isActive = true;
 
+      await listing.save();
 
-let expires = null;
-
-if (type === "vip") {
-  expires = moment.tz("Asia/Baku").add(3, "days").toDate(); // ✅ 3 gün
-} else if (type === "premium") {
-  expires = moment.tz("Asia/Baku").add(7, "days").toDate(); // ✅ 7 gün
-}
-
-listing.priorityType = type;
-listing.priority = type === "vip" ? 1 : 2;
-listing.priorityExpires = expires; // 🔹 bu sahəyə Bakı vaxtı ilə tarix set olunur
-listing.isActive = true;
-
-await listing.save();
-
-      console.log(`Elan ${listingId} yeniləndi: ${type}, expires: ${expires}`);
+      console.log(`Elan ${listingId} yeniləndi: ${type}`);
     }
 
     res.json({ received: true });
