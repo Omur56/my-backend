@@ -278,13 +278,6 @@ cloudinary.config({
 });
 
 
-const uploadedImages = [];
-
-for (const file of req.files) {
-  const result = await uploadToCloudinary(file.buffer);
-  uploadedImages.push(result.secure_url);
-}
-
 
 app.post("/upload", upload.array("images", 10), async (req, res) => {
   try {
