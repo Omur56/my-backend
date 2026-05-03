@@ -5478,6 +5478,16 @@ app.get("/api/users/:id", async (req, res) => {
 //   res.sendFile(path.join(buildPath, "index.html"));
 // });
 
+// STATIC
+app.use(express.static(path.join(__dirname, "build")));
+
+// SPA fallback (IMPORTANT)
+app.use((req, res) => {
+  if (req.path.startsWith("/api")) return;
+
+  res.sendFile(path.join(__dirname, "build", "index.html"));
+});
+
 app.listen(PORT, () => {
   console.log(`🚀 Server işə düşdü: http://localhost:${PORT}`);
   // npx nodemon src/backend/cateqory.js serveri ise salmaq ucun
