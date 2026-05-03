@@ -5485,7 +5485,7 @@ app.use(express.static(path.join(__dirname, "build")));
 app.use((req, res) => {
   if (req.path.startsWith("/api")) return;
 
-  res.sendFile(path.join(__dirname, "../frontend/build", "index.html"));
+  res.sendFile(path.join(__dirname, "build", "index.html"));
 });
 
 app.listen(PORT, () => {
