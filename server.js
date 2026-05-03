@@ -198,7 +198,29 @@ const BASE_URL = process.env.BASE_URL || "http://localhost:10000";
 // const upload = multer({ storage });
 
 
+const uploadToCloudinary = (buffer, folder = "uploads") => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder,
+        transformation: [
+          {
+            overlay: "proelan_watermark",
+            width: 0.6,
+            opacity: 30,
+            gravity: "center",
+          },
+        ],
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      }
+    );
 
+    stream.end(buffer);
+  });
+};
 
 
 // Watermark əlavə edən funksiya
@@ -675,13 +697,13 @@ app.get("/api/car/:id", async (req, res) => {
     res.status(500).json({ message: "Server xətası" });
   }
 });
+
 app.post(
   "/api/car",
   verifyToken,
   upload.array("images", 20),
   async (req, res) => {
     try {
-
       const contact = {
         name: req.body["contact.name"],
         email: req.body["contact.email"],
@@ -692,9 +714,11 @@ app.post(
 
       const uploadedImages = [];
 
-      // 🔥 FIX BURADA
-      for (const file of req.files) {
-        const result = await uploadToCloudinary(file.buffer);
+      // 🔥 SAFETY FIX
+      const files = req.files || [];
+
+      for (const file of files) {
+        const result = await uploadToCloudinary(file.buffer, "car");
         uploadedImages.push(result.secure_url);
       }
 
@@ -704,7 +728,7 @@ app.post(
         mainImage = uploadedImages[mainImageIndex];
       }
 
-      const newAd = new Ad({
+      const newAd = await Ad.create({
         title: req.body.title,
         description: req.body.description,
         price: Number(req.body.price),
@@ -741,8 +765,6 @@ app.post(
         liked: false,
         favorite: false,
       });
-
-      await newAd.save();
 
       res.status(201).json(newAd);
 
@@ -857,22 +879,18 @@ app.post(
 
       const uploadedImages = [];
 
-      // 🔥 FIX: file.path yox, file.buffer
+      // 🔥 SAFE UPLOAD
       for (const file of files) {
-        const result = await uploadToCloudinary(file.buffer); // 👈 FIX
-
+        const result = await uploadToCloudinary(file.buffer, "phone");
         uploadedImages.push(result.secure_url);
       }
 
       const mainImageIndex = parseInt(req.body.mainImageIndex);
 
-      let mainImage = uploadedImages[0] || null;
+      const mainImage =
+        uploadedImages[mainImageIndex] || uploadedImages[0] || null;
 
-      if (!isNaN(mainImageIndex) && uploadedImages[mainImageIndex]) {
-        mainImage = uploadedImages[mainImageIndex];
-      }
-
-      const newAd = new Ad({
+      const newAd = await Ad.create({
         title: req.body.title,
         description: req.body.description,
         price: req.body.price ? Number(req.body.price) : 0,
@@ -903,8 +921,6 @@ app.post(
         favorite: false,
       });
 
-      await newAd.save();
-
       res.status(201).json(newAd);
 
     } catch (err) {
@@ -913,6 +929,8 @@ app.post(
     }
   }
 );
+
+
 
 app.get("/api/phone", async (req, res) => {
   try {
@@ -1066,10 +1084,13 @@ app.post(
   upload.array("images", 20),
   async (req, res) => {
     try {
+      const files = req.files || [];
+
       const uploadedImages = [];
 
-      for (const file of req.files) {
-        const result = await uploadToCloudinary(file.buffer);
+      // 🔥 SAFE UPLOAD
+      for (const file of files) {
+        const result = await uploadToCloudinary(file.buffer, "electronics");
         uploadedImages.push(result.secure_url);
       }
 
@@ -1087,7 +1108,7 @@ app.post(
       const newAd = await Ad.create({
         title: req.body.title,
         description: req.body.description,
-        price: Number(req.body.price),
+        price: req.body.price ? Number(req.body.price) : 0,
 
         location: req.body.location,
         category: "electronics",
@@ -1106,10 +1127,12 @@ app.post(
 
       res.status(201).json(newAd);
     } catch (err) {
+      console.error("❌ ELECTRONICS ERROR:", err);
       res.status(500).json({ error: err.message });
     }
   }
 );
+
 
 app.put(
   "/api/electronika/:id",
@@ -1206,17 +1229,20 @@ app.get("/api/ads/search", async (req, res) => {
 });
 
 // -------------------------------------------
+
 app.post(
   "/api/Phone",
   verifyToken,
   upload.array("images", 20),
   async (req, res) => {
     try {
+      const files = req.files || [];
+
       const uploadedImages = [];
 
-      // 🔥 Cloudinary upload (buffer ilə)
-      for (const file of req.files) {
-        const result = await uploadToCloudinary(file.buffer);
+      // 🔥 SAFE UPLOAD
+      for (const file of files) {
+        const result = await uploadToCloudinary(file.buffer, "phone");
         uploadedImages.push(result.secure_url);
       }
 
@@ -1228,7 +1254,7 @@ app.post(
       const newAd = await Ad.create({
         title: req.body.title,
         description: req.body.description,
-        price: Number(req.body.price),
+        price: req.body.price ? Number(req.body.price) : 0,
         location: req.body.location,
 
         category: "phone",
@@ -1258,13 +1284,13 @@ app.post(
       });
 
       res.status(201).json(newAd);
+
     } catch (err) {
       console.error("PHONE ERROR:", err);
       res.status(500).json({ error: err.message });
     }
   }
 );
-
 
 app.get("/api/Phone", async (req, res) => {
   try {
@@ -1435,19 +1461,22 @@ app.get("/api/clothing/:id", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+
+
 app.post(
   "/api/clothing",
   verifyToken,
   upload.array("images", 20),
   async (req, res) => {
     try {
-      const uploadedImages = [];
-
       const files = req.files || [];
 
-      // 🔥 Cloudinary upload (buffer)
+      const uploadedImages = [];
+
+      // 🔥 SAFE CLOUDINARY UPLOAD
       for (const file of files) {
-        const result = await uploadToCloudinary(file.buffer);
+        const result = await uploadToCloudinary(file.buffer, "clothing");
         uploadedImages.push(result.secure_url);
       }
 
@@ -1484,6 +1513,7 @@ app.post(
       });
 
       res.status(201).json(newAd);
+
     } catch (err) {
       console.error("❌ Clothing error:", err);
       res.status(500).json({ error: err.message });
@@ -1648,18 +1678,20 @@ app.get("/api/clothing/search", async (req, res) => {
 //     }
 //   }
 // );
+
 app.post(
   "/api/realEstate",
   verifyToken,
   upload.array("images", 20),
   async (req, res) => {
     try {
-      const uploadedImages = [];
       const files = req.files || [];
 
-      // 🔥 Cloudinary upload (buffer)
+      const uploadedImages = [];
+
+      // 🔥 SAFE CLOUDINARY UPLOAD
       for (const file of files) {
-        const result = await uploadToCloudinary(file.buffer);
+        const result = await uploadToCloudinary(file.buffer, "realEstate");
         uploadedImages.push(result.secure_url);
       }
 
@@ -1704,12 +1736,14 @@ app.post(
       });
 
       res.status(201).json(newAd);
+
     } catch (err) {
       console.error("❌ RealEstate error:", err);
       res.status(500).json({ error: err.message });
     }
   }
 );
+
 
 
 app.get("/api/realEstate", async (req, res) => {
@@ -2061,18 +2095,21 @@ app.get("/api/homeGarden/:id", async (req, res) => {
     res.status(500).json({ message: "Server xətası" });
   }
 });
+
+
 app.post(
   "/api/homeGarden",
   verifyToken,
   upload.array("images", 20),
   async (req, res) => {
     try {
-      const uploadedImages = [];
       const files = req.files || [];
 
-      // 🔥 Cloudinary (buffer upload)
+      const uploadedImages = [];
+
+      // 🔥 SAFE CLOUDINARY UPLOAD
       for (const file of files) {
-        const result = await uploadToCloudinary(file.buffer);
+        const result = await uploadToCloudinary(file.buffer, "homeGarden");
         uploadedImages.push(result.secure_url);
       }
 
@@ -2084,7 +2121,7 @@ app.post(
       const newAd = await Ad.create({
         title: req.body.title,
         description: req.body.description,
-        price: Number(req.body.price),
+        price: req.body.price ? Number(req.body.price) : 0,
         location: req.body.location,
 
         category: "homeGarden",
@@ -2108,12 +2145,15 @@ app.post(
       });
 
       res.status(201).json(newAd);
+
     } catch (err) {
       console.error("❌ HomeGarden error:", err);
       res.status(500).json({ error: err.message });
     }
   }
 );
+
+
 
 app.put(
   "/api/homeGarden/:id",
@@ -2208,18 +2248,20 @@ app.patch("/api/homeGarden/:id/favorite", async (req, res) => {
 });
 
 // ---------------------household
+
 app.post(
   "/api/household",
   verifyToken,
   upload.array("images", 20),
   async (req, res) => {
     try {
-      const uploadedImages = [];
       const files = req.files || [];
 
-      // 🔥 Cloudinary buffer upload
+      const uploadedImages = [];
+
+      // 🔥 SAFE CLOUDINARY UPLOAD
       for (const file of files) {
-        const result = await uploadToCloudinary(file.buffer);
+        const result = await uploadToCloudinary(file.buffer, "household");
         uploadedImages.push(result.secure_url);
       }
 
@@ -2255,6 +2297,7 @@ app.post(
       });
 
       res.status(201).json(newAd);
+
     } catch (err) {
       console.error("❌ Household error:", err);
       res.status(500).json({ error: err.message });
@@ -2433,18 +2476,21 @@ app.get("/api/ads", async (req, res) => {
 });
 
 // ----acsesuarr
+
+
 app.post(
   "/api/accessories",
   verifyToken,
   upload.array("images", 20),
   async (req, res) => {
     try {
-      const uploadedImages = [];
       const files = req.files || [];
 
-      // 🔥 Cloudinary buffer upload
+      const uploadedImages = [];
+
+      // 🔥 SAFE CLOUDINARY UPLOAD
       for (const file of files) {
-        const result = await uploadToCloudinary(file.buffer);
+        const result = await uploadToCloudinary(file.buffer, "accessories");
         uploadedImages.push(result.secure_url);
       }
 
@@ -2456,7 +2502,7 @@ app.post(
       const newAd = await Ad.create({
         title: req.body.title,
         description: req.body.description,
-        price: Number(req.body.price),
+        price: req.body.price ? Number(req.body.price) : 0,
         location: req.body.location,
 
         category: "accessory",
@@ -2468,18 +2514,24 @@ app.post(
         mainImage,
 
         userId: req.user.id,
+
         liked: false,
         favorite: false,
+
         priorityType: req.body.priorityType || "free",
       });
 
       res.status(201).json(newAd);
+
     } catch (err) {
       console.error("❌ Accessories error:", err);
       res.status(500).json({ error: err.message });
     }
   }
 );
+
+
+
 app.get("/api/accessories", async (req, res) => {
   try {
     const data = await Ad.find({ category: "accessory", isActive: true }).sort({
@@ -2519,18 +2571,21 @@ app.get("/api/accessories/:id", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+
 app.post(
   "/api/accessories",
   verifyToken,
   upload.array("images", 20),
   async (req, res) => {
     try {
-      const uploadedImages = [];
       const files = req.files || [];
 
-      // 🔥 Cloudinary buffer upload
+      const uploadedImages = [];
+
+      // 🔥 SAFE CLOUDINARY UPLOAD
       for (const file of files) {
-        const result = await uploadToCloudinary(file.buffer);
+        const result = await uploadToCloudinary(file.buffer, "accessories");
         uploadedImages.push(result.secure_url);
       }
 
@@ -2567,12 +2622,14 @@ app.post(
       });
 
       res.status(201).json(newAd);
+
     } catch (err) {
       console.error("❌ Accessories error:", err);
       res.status(500).json({ error: err.message });
     }
   }
 );
+
 
 app.put(
   "/api/accessories/:id",
