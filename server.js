@@ -122,7 +122,8 @@ app.use(
           "https://ep1.adtrafficquality.google",
           "https://ep2.adtrafficquality.google",
           "https://www.google-analytics.com",
-          "https://www.googletagmanager.com"
+          "https://www.googletagmanager.com",
+          "https://my-backend-wj5g.onrender.com",
         ],
 
         scriptSrc: [
@@ -5479,15 +5480,15 @@ app.get("/api/users/:id", async (req, res) => {
 // });
 
 // STATIC
+
+// frontend build
 app.use(express.static(path.join(__dirname, "build")));
 
-// SPA fallback (IMPORTANT)
-app.use((req, res) => {
-  if (req.path.startsWith("/api")) return;
-
+// SPA fallback (SAFE VERSION)
+app.use((req, res, next) => {
+  if (req.path.startsWith("/api")) return next();
   res.sendFile(path.join(__dirname, "build", "index.html"));
 });
-
 app.listen(PORT, () => {
   console.log(`🚀 Server işə düşdü: http://localhost:${PORT}`);
   // npx nodemon src/backend/cateqory.js serveri ise salmaq ucun
