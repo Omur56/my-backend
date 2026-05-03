@@ -5,7 +5,7 @@ import path from "path";
 import dotenv from "dotenv";
 import connectDB from "./db.js";
 // import Announcement from "./models/Announcement.js";
-
+import adRoutes from "./routes/adRoutes.js";
 import HomeAndGarden from "./models/HomeAndGarden.js";
 import Electronika from "./models/Electronika.js";
 import Accessory from "./models/Acsesuar.js";
@@ -112,40 +112,56 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
+
         connectSrc: [
           "'self'",
-          "http://localhost:10000",
-          "http://localhost:3000",
-          "http://localhost:5000",
-          "https://proelan.az",
-          "https://geminally-stealthless-mimi.ngrok-free.dev",
           "https://my-backend-wj5g.onrender.com",
           "https://api.cloudinary.com",
           "https://res.cloudinary.com",
           "https://pagead2.googlesyndication.com",
-          "https://fonts.googleapis.com",
-          "https://fonts.gstatic.com",
-          "https://www.google-analytics.com",
-          "https://www.googletagmanager.com",
           "https://ep1.adtrafficquality.google",
-           "https://ep1.adtrafficquality.google",
-        
+          "https://ep2.adtrafficquality.google",
+          "https://www.google-analytics.com",
+          "https://www.googletagmanager.com"
         ],
+
         scriptSrc: [
           "'self'",
           "'unsafe-inline'",
           "https://pagead2.googlesyndication.com",
           "https://www.googletagmanager.com",
-          "https://www.google-analytics.com",
+          "https://www.google-analytics.com"
         ],
+
         workerSrc: ["'self'", "blob:"],
-        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-        imgSrc: ["'self'", "data:", "blob:", "https://res.cloudinary.com"],
-        fontSrc: ["'self'", "https://fonts.gstatic.com"],
-        frameSrc: ["https://pagead2.googlesyndication.com"],
-      },
-    },
-  }),
+
+        styleSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "https://fonts.googleapis.com"
+        ],
+
+        imgSrc: [
+          "'self'",
+          "data:",
+          "blob:",
+          "https://res.cloudinary.com"
+        ],
+
+        fontSrc: [
+          "'self'",
+          "https://fonts.gstatic.com"
+        ],
+
+        frameSrc: [
+          "'self'",
+          "https://googleads.g.doubleclick.net",
+          "https://pagead2.googlesyndication.com",
+          "https://www.google.com"
+        ]
+      }
+    }
+  })
 );
 
 app.use(bodyParser.json());
@@ -173,11 +189,15 @@ const PORT = process.env.PORT || 10000;
 const BASE_URL = process.env.BASE_URL || "http://localhost:10000";
 
 // Multer config
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/"),
-  filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
-});
-const upload = multer({ storage });
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => cb(null, "uploads/"),
+//   filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
+// });
+// const upload = multer({ storage });
+
+
+
+
 
 // Watermark əlavə edən funksiya
 const addWatermark = async (imagePath) => {
@@ -206,9 +226,9 @@ const addWatermark = async (imagePath) => {
 dotenv.config({ path: path.resolve("../.env") });
 
 app.use(express.json({ limit: "10mb" }));
-
+app.use(express.urlencoded({ extended: true }));
 // Static files
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(
   "/sitemap.xml",
   express.static(path.join(__dirname, "public/sitemap.xml")),
@@ -230,6 +250,7 @@ app.use("/api/auth", authRoutes);
 
 app.use("/api/countSay", statsRoutes);
 app.use("/api/sticky-ads", stickyAdsRoutes);
+app.use("/api/ad", adRoutes);
 
 // Stripe ödəniş və checkout
 
@@ -241,6 +262,13 @@ app.use((req, res, next) => {
   next();
 });
 
+
+// const upload = multer({
+//   storage: multer.memoryStorage(),
+//   limits: { fileSize: 10 * 1024 * 1024 } // 10MB
+// });
+
+const upload = multer(); // memory storage default (BUFFER üçün lazımdır)
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.CLOUD_API_KEY,
@@ -597,6 +625,10 @@ app.get("/counts", async (req, res) => {
     console.error(err);
     res.status(500).json({ message: "error" });
   }
+});
+
+app.get("/api/ads/sticky", (req, res) => {
+  res.json({ message: "sticky ads here" });
 });
 // ------------------------------
 
@@ -5438,13 +5470,13 @@ app.get("/api/users/:id", async (req, res) => {
 // // Static fayllar
 // app.use(express.static(buildPath));
 
-const buildPath = path.join(__dirname, "frontend/build"); // əgər frontend build backend ilə eyni səviyyədədirsə
-app.use(express.static(buildPath));
+// const buildPath = path.join(__dirname, "frontend/build"); // əgər frontend build backend ilə eyni səviyyədədirsə
+// app.use(express.static(buildPath));
 
-// React Router catch-all (ESM uyğun)
-app.get(/.*/, (req, res) => {
-  res.sendFile(path.join(buildPath, "index.html"));
-});
+// // React Router catch-all (ESM uyğun)
+// app.get(/.*/, (req, res) => {
+//   res.sendFile(path.join(buildPath, "index.html"));
+// });
 
 app.listen(PORT, () => {
   console.log(`🚀 Server işə düşdü: http://localhost:${PORT}`);
