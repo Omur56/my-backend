@@ -124,6 +124,7 @@ app.use(
           "https://www.google-analytics.com",
           "https://www.googletagmanager.com",
           "https://my-backend-wj5g.onrender.com",
+           
         ],
 
         scriptSrc: [
@@ -275,6 +276,15 @@ cloudinary.config({
   api_key: process.env.CLOUD_API_KEY,
   api_secret: process.env.CLOUD_API_SECRET,
 });
+
+
+const uploadedImages = [];
+
+for (const file of req.files) {
+  const result = await uploadToCloudinary(file.buffer);
+  uploadedImages.push(result.secure_url);
+}
+
 
 app.post("/upload", upload.array("images", 10), async (req, res) => {
   try {
@@ -672,45 +682,33 @@ app.get("/api/car/:id", async (req, res) => {
     res.status(500).json({ message: "Server xətası" });
   }
 });
-
 app.post(
   "/api/car",
   verifyToken,
   upload.array("images", 20),
   async (req, res) => {
     try {
+
       const contact = {
         name: req.body["contact.name"],
         email: req.body["contact.email"],
         phone: req.body["contact.phone"],
       };
+
       const mainImageIndex = parseInt(req.body.mainImageIndex);
 
       const uploadedImages = [];
 
+      // 🔥 FIX BURADA
       for (const file of req.files) {
-        const result = await cloudinary.uploader.upload(file.path, {
-          folder: "car",
-          transformation: [
-            {
-              overlay: "proelan_watermark",
-              width: 0.6,
-              opacity: 30,
-              gravity: "center",
-            },
-          ],
-        });
-
+        const result = await uploadToCloudinary(file.buffer);
         uploadedImages.push(result.secure_url);
-
-        if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
       }
 
-      let mainImage = null;
+      let mainImage = uploadedImages[0] || null;
+
       if (!isNaN(mainImageIndex) && uploadedImages[mainImageIndex]) {
         mainImage = uploadedImages[mainImageIndex];
-      } else if (uploadedImages.length > 0) {
-        mainImage = uploadedImages[0];
       }
 
       const newAd = new Ad({
@@ -719,7 +717,6 @@ app.post(
         price: Number(req.body.price),
         location: req.body.location,
         city: req.body.city,
-        // data: data ? new Date(data) : new Date(),
         category: "car",
 
         brand: req.body.brand,
@@ -737,15 +734,9 @@ app.post(
           barter: req.body.barter,
           credit: req.body.credit,
           salon: req.body.salon,
-          type_magasine: ["sifarisle", "magaza", "resmi"].includes(
-            req.body.type_magasine,
-          )
-            ? req.body.type_magasine
-            : undefined,
         },
 
-        contact, // 🔥 BURADA ƏSAS FIX
-
+        contact,
         userId: req.user.id,
 
         images: uploadedImages,
@@ -757,14 +748,16 @@ app.post(
         liked: false,
         favorite: false,
       });
+
       await newAd.save();
 
       res.status(201).json(newAd);
+
     } catch (err) {
       console.error("❌ Car əlavə olunarkən xəta:", err);
       res.status(500).json({ error: err.message });
     }
-  },
+  }
 );
 
 app.put(
@@ -861,7 +854,6 @@ app.get("/api/ads/search", async (req, res) => {
 // --------------------------------------------
 
 // ----phones-------
-
 app.post(
   "/api/phone",
   verifyToken,
@@ -872,22 +864,11 @@ app.post(
 
       const uploadedImages = [];
 
+      // 🔥 FIX: file.path yox, file.buffer
       for (const file of files) {
-        const result = await cloudinary.uploader.upload(file.path, {
-          folder: "phone",
-          transformation: [
-            {
-              overlay: "proelan_watermark",
-              width: 0.6,
-              opacity: 30,
-              gravity: "center",
-            },
-          ],
-        });
+        const result = await uploadToCloudinary(file.buffer); // 👈 FIX
 
         uploadedImages.push(result.secure_url);
-
-        if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
       }
 
       const mainImageIndex = parseInt(req.body.mainImageIndex);
@@ -932,11 +913,12 @@ app.post(
       await newAd.save();
 
       res.status(201).json(newAd);
+
     } catch (err) {
       console.error("PHONE ERROR:", err);
       res.status(500).json({ error: err.message });
     }
-  },
+  }
 );
 
 app.get("/api/phone", async (req, res) => {
@@ -1091,77 +1073,49 @@ app.post(
   upload.array("images", 20),
   async (req, res) => {
     try {
-      const mainImageIndex = parseInt(req.body.mainImageIndex);
-
       const uploadedImages = [];
 
       for (const file of req.files) {
-        const result = await cloudinary.uploader.upload(file.path, {
-          folder: "electronics",
-          transformation: [
-            {
-              overlay: "proelan_watermark",
-              width: 0.6,
-              opacity: 30,
-              gravity: "center",
-            },
-          ],
-        });
-
+        const result = await uploadToCloudinary(file.buffer);
         uploadedImages.push(result.secure_url);
-
-        if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
       }
 
-      // MAIN IMAGE
-      let mainImage = uploadedImages[0] || null;
+      const mainImageIndex = parseInt(req.body.mainImageIndex);
 
-      if (!isNaN(mainImageIndex) && uploadedImages[mainImageIndex]) {
-        mainImage = uploadedImages[mainImageIndex];
-      }
+      const mainImage =
+        uploadedImages[mainImageIndex] || uploadedImages[0] || null;
 
-      // ✅ CONTACT FIX (DOĞRU YER)
-      let contact = { name: "", email: "", phone: "" };
+      const contact = {
+        name: req.body["contact.name"],
+        email: req.body["contact.email"],
+        phone: req.body["contact.phone"],
+      };
 
-      if (req.body.contact) {
-        try {
-          contact = JSON.parse(req.body.contact);
-        } catch (e) {
-          contact = { name: "", email: "", phone: "" };
-        }
-      }
-
-      const newAd = new Ad({
+      const newAd = await Ad.create({
         title: req.body.title,
         description: req.body.description,
         price: Number(req.body.price),
-        location: req.body.location,
 
+        location: req.body.location,
         category: "electronics",
 
         brand: req.body.brand,
         model: req.body.model,
 
-        contact, // ✅ OK
-
+        contact,
         userId: req.user.id,
+
         images: uploadedImages,
         mainImage,
 
         priorityType: req.body.priorityType || "free",
-        isActive: true,
-        liked: false,
-        favorite: false,
       });
-
-      await newAd.save();
 
       res.status(201).json(newAd);
     } catch (err) {
-      console.error("❌ Elektronika əlavə xətası:", err);
       res.status(500).json({ error: err.message });
     }
-  },
+  }
 );
 
 app.put(
@@ -1259,34 +1213,26 @@ app.get("/api/ads/search", async (req, res) => {
 });
 
 // -------------------------------------------
-
 app.post(
   "/api/Phone",
   verifyToken,
   upload.array("images", 20),
   async (req, res) => {
     try {
-      const mainImageIndex = parseInt(req.body.mainImageIndex);
-
       const uploadedImages = [];
 
+      // 🔥 Cloudinary upload (buffer ilə)
       for (const file of req.files) {
-        const result = await cloudinary.uploader.upload(file.path, {
-          folder: "Phone",
-        });
-
+        const result = await uploadToCloudinary(file.buffer);
         uploadedImages.push(result.secure_url);
-
-        if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
       }
 
-      let mainImage = uploadedImages[0] || null;
+      const mainImageIndex = parseInt(req.body.mainImageIndex);
 
-      if (!isNaN(mainImageIndex) && uploadedImages[mainImageIndex]) {
-        mainImage = uploadedImages[mainImageIndex];
-      }
+      const mainImage =
+        uploadedImages[mainImageIndex] || uploadedImages[0] || null;
 
-      const newAd = new Ad({
+      const newAd = await Ad.create({
         title: req.body.title,
         description: req.body.description,
         price: Number(req.body.price),
@@ -1302,22 +1248,30 @@ app.post(
           color: req.body.color,
         },
 
+        contact: {
+          name: req.body["contact.name"],
+          email: req.body["contact.email"],
+          phone: req.body["contact.phone"],
+        },
+
         userId: req.user.id,
+
         images: uploadedImages,
         mainImage,
+
         priorityType: req.body.priorityType || "free",
         liked: false,
         favorite: false,
       });
 
-      await newAd.save();
-
       res.status(201).json(newAd);
     } catch (err) {
+      console.error("PHONE ERROR:", err);
       res.status(500).json({ error: err.message });
     }
-  },
+  }
 );
+
 
 app.get("/api/Phone", async (req, res) => {
   try {
@@ -1488,43 +1442,28 @@ app.get("/api/clothing/:id", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 app.post(
   "/api/clothing",
   verifyToken,
   upload.array("images", 20),
   async (req, res) => {
     try {
-      const mainImageIndex = parseInt(req.body.mainImageIndex);
-
       const uploadedImages = [];
+
       const files = req.files || [];
 
+      // 🔥 Cloudinary upload (buffer)
       for (const file of files) {
-        const result = await cloudinary.uploader.upload(file.path, {
-          folder: "clothing",
-          transformation: [
-            {
-              overlay: "proelan_watermark",
-              width: 0.6,
-              opacity: 30,
-              gravity: "center",
-            },
-          ],
-        });
-
+        const result = await uploadToCloudinary(file.buffer);
         uploadedImages.push(result.secure_url);
-
-        if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
       }
 
-      let mainImage = uploadedImages[0] || null;
+      const mainImageIndex = parseInt(req.body.mainImageIndex);
 
-      if (!isNaN(mainImageIndex) && uploadedImages[mainImageIndex]) {
-        mainImage = uploadedImages[mainImageIndex];
-      }
+      const mainImage =
+        uploadedImages[mainImageIndex] || uploadedImages[0] || null;
 
-      const newAd = new Ad({
+      const newAd = await Ad.create({
         title: req.body.title,
         description: req.body.description,
         price: req.body.price ? Number(req.body.price) : 0,
@@ -1533,7 +1472,6 @@ app.post(
         category: "clothing",
 
         type: req.body.type || "magaza",
-
         brand: req.body.brand,
 
         contact: {
@@ -1548,20 +1486,18 @@ app.post(
         userId: req.user.id,
 
         priorityType: req.body.priorityType || "free",
-
         liked: false,
         favorite: false,
       });
-
-      await newAd.save();
 
       res.status(201).json(newAd);
     } catch (err) {
       console.error("❌ Clothing error:", err);
       res.status(500).json({ error: err.message });
     }
-  },
+  }
 );
+
 
 app.put(
   "/api/clothing/:id",
@@ -1719,53 +1655,35 @@ app.get("/api/clothing/search", async (req, res) => {
 //     }
 //   }
 // );
-
 app.post(
   "/api/realEstate",
   verifyToken,
   upload.array("images", 20),
   async (req, res) => {
     try {
+      const uploadedImages = [];
+      const files = req.files || [];
+
+      // 🔥 Cloudinary upload (buffer)
+      for (const file of files) {
+        const result = await uploadToCloudinary(file.buffer);
+        uploadedImages.push(result.secure_url);
+      }
+
       const mainImageIndex = parseInt(req.body.mainImageIndex);
 
-      const uploadedImages = [];
-      const files = req.files || []; // 🔥 crash olmasın
+      const mainImage =
+        uploadedImages[mainImageIndex] || uploadedImages[0] || null;
 
-      for (const file of files) {
-        const result = await cloudinary.uploader.upload(file.path, {
-          folder: "realEstate",
-          transformation: [
-            {
-              overlay: "proelan_watermark",
-              width: 0.6,
-              opacity: 30,
-              gravity: "center",
-            },
-          ],
-        });
-
-        uploadedImages.push(result.secure_url);
-
-        if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
-      }
-
-      // 🔥 main image seçimi
-      let mainImage = null;
-      if (!isNaN(mainImageIndex) && uploadedImages[mainImageIndex]) {
-        mainImage = uploadedImages[mainImageIndex];
-      } else if (uploadedImages.length > 0) {
-        mainImage = uploadedImages[0];
-      }
-
-      const newAd = new Ad({
+      const newAd = await Ad.create({
         title: req.body.title,
         description: req.body.description,
         price: req.body.price ? Number(req.body.price) : 0,
         location: req.body.location,
 
-        category: "realEstate", // 🔥 düzəldildi
+        category: "realEstate",
 
-        type: req.body.type || "resmi", // 🔥 schema ilə uyğun
+        type: req.body.type || "resmi",
 
         realEstate: {
           rooms: req.body.rooms,
@@ -1776,7 +1694,6 @@ app.post(
           number_of_rooms: req.body.number_of_rooms,
         },
 
-        // 🔥 contact fix
         contact: {
           name: req.body["contact.name"],
           email: req.body["contact.email"],
@@ -1789,20 +1706,18 @@ app.post(
         mainImage,
 
         priorityType: req.body.priorityType || "free",
-
         liked: false,
         favorite: false,
       });
 
-      await newAd.save();
-
       res.status(201).json(newAd);
     } catch (err) {
-      console.error("❌ RealEstate əlavə olunarkən xəta:", err);
+      console.error("❌ RealEstate error:", err);
       res.status(500).json({ error: err.message });
     }
-  },
+  }
 );
+
 
 app.get("/api/realEstate", async (req, res) => {
   try {
@@ -2153,42 +2068,27 @@ app.get("/api/homeGarden/:id", async (req, res) => {
     res.status(500).json({ message: "Server xətası" });
   }
 });
-
 app.post(
   "/api/homeGarden",
   verifyToken,
   upload.array("images", 20),
   async (req, res) => {
     try {
-      const mainImageIndex = parseInt(req.body.mainImageIndex);
-
       const uploadedImages = [];
       const files = req.files || [];
 
+      // 🔥 Cloudinary (buffer upload)
       for (const file of files) {
-        const result = await cloudinary.uploader.upload(file.path, {
-          folder: "homeGarden",
-          transformation: [
-            {
-              overlay: "proelan_watermark",
-              width: 0.6,
-              opacity: 30,
-              gravity: "center",
-            },
-          ],
-        });
-
+        const result = await uploadToCloudinary(file.buffer);
         uploadedImages.push(result.secure_url);
-        if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
       }
 
-      let mainImage = uploadedImages[0] || null;
+      const mainImageIndex = parseInt(req.body.mainImageIndex);
 
-      if (!isNaN(mainImageIndex) && uploadedImages[mainImageIndex]) {
-        mainImage = uploadedImages[mainImageIndex];
-      }
+      const mainImage =
+        uploadedImages[mainImageIndex] || uploadedImages[0] || null;
 
-      const newAd = new Ad({
+      const newAd = await Ad.create({
         title: req.body.title,
         description: req.body.description,
         price: Number(req.body.price),
@@ -2210,18 +2110,16 @@ app.post(
         userId: req.user.id,
 
         priorityType: req.body.priorityType || "free",
-
         liked: false,
         favorite: false,
       });
 
-      await newAd.save();
-
       res.status(201).json(newAd);
     } catch (err) {
+      console.error("❌ HomeGarden error:", err);
       res.status(500).json({ error: err.message });
     }
-  },
+  }
 );
 
 app.put(
@@ -2323,72 +2221,55 @@ app.post(
   upload.array("images", 20),
   async (req, res) => {
     try {
-      const mainImageIndex = parseInt(req.body.mainImageIndex);
-
       const uploadedImages = [];
       const files = req.files || [];
 
-      // for (const file of files) {
-      //   const result = await cloudinary.uploader.upload(file.path, {
-      //     folder: "household",
-      //   });
-
-      //   uploadedImages.push(result.secure_url);
-
-      //   if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
-      // }
-
+      // 🔥 Cloudinary buffer upload
       for (const file of files) {
-        const result = await cloudinary.uploader.upload(file.path, {
-          folder: "household",
-          transformation: [
-            {
-              overlay: "proelan_watermark",
-              width: 0.6,
-              opacity: 30,
-              gravity: "center",
-            },
-          ],
-        });
-
+        const result = await uploadToCloudinary(file.buffer);
         uploadedImages.push(result.secure_url);
-        if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
       }
 
-      let mainImage = uploadedImages[0] || null;
+      const mainImageIndex = parseInt(req.body.mainImageIndex);
 
-      if (!isNaN(mainImageIndex) && uploadedImages[mainImageIndex]) {
-        mainImage = uploadedImages[mainImageIndex];
-      }
+      const mainImage =
+        uploadedImages[mainImageIndex] || uploadedImages[0] || null;
 
-      const newAd = new Ad({
+      const newAd = await Ad.create({
         title: req.body.title,
         description: req.body.description,
         price: req.body.price ? Number(req.body.price) : 0,
         location: req.body.location,
+
         category: "household",
+
         brand: req.body.brand || "",
+
         contact: {
           name: req.body["contact.name"],
           email: req.body["contact.email"],
           phone: req.body["contact.phone"],
         },
+
         images: uploadedImages,
         mainImage,
+
         userId: req.user.id,
+
         priorityType: req.body.priorityType || "free",
         liked: false,
         favorite: false,
       });
 
-      await newAd.save();
-
       res.status(201).json(newAd);
     } catch (err) {
+      console.error("❌ Household error:", err);
       res.status(500).json({ error: err.message });
     }
-  },
+  }
 );
+
+
 
 app.get("/api/household", async (req, res) => {
   try {
@@ -2565,62 +2446,47 @@ app.post(
   upload.array("images", 20),
   async (req, res) => {
     try {
-      const mainImageIndex = parseInt(req.body.mainImageIndex);
-
       const uploadedImages = [];
       const files = req.files || [];
 
-      // for (const file of req.files) {
-      //   const result = await cloudinary.uploader.upload(file.path, {
-      //     folder: "accessories",
-      //   });
-
-      //   uploadedImages.push(result.secure_url);
-
-      //   if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
-      // }
-
+      // 🔥 Cloudinary buffer upload
       for (const file of files) {
-        const result = await cloudinary.uploader.upload(file.path, {
-          folder: "accessory",
-          transformation: [
-            {
-              overlay: "proelan_watermark",
-              width: 0.6,
-              opacity: 30,
-              gravity: "center",
-            },
-          ],
-        });
-
+        const result = await uploadToCloudinary(file.buffer);
         uploadedImages.push(result.secure_url);
-        if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
       }
 
-      const newAd = new Ad({
+      const mainImageIndex = parseInt(req.body.mainImageIndex);
+
+      const mainImage =
+        uploadedImages[mainImageIndex] || uploadedImages[0] || null;
+
+      const newAd = await Ad.create({
         title: req.body.title,
         description: req.body.description,
         price: Number(req.body.price),
         location: req.body.location,
 
-        category: "accessory", // 🔥 VACİB
+        category: "accessory",
 
         brand: req.body.brand,
         model: req.body.model,
 
         images: uploadedImages,
+        mainImage,
+
         userId: req.user.id,
+        liked: false,
+        favorite: false,
+        priorityType: req.body.priorityType || "free",
       });
 
-      await newAd.save();
-
-      res.json(newAd);
+      res.status(201).json(newAd);
     } catch (err) {
+      console.error("❌ Accessories error:", err);
       res.status(500).json({ error: err.message });
     }
-  },
+  }
 );
-
 app.get("/api/accessories", async (req, res) => {
   try {
     const data = await Ad.find({ category: "accessory", isActive: true }).sort({
@@ -2660,43 +2526,27 @@ app.get("/api/accessories/:id", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 app.post(
   "/api/accessories",
   verifyToken,
   upload.array("images", 20),
   async (req, res) => {
     try {
-      const mainImageIndex = parseInt(req.body.mainImageIndex);
-
       const uploadedImages = [];
       const files = req.files || [];
 
+      // 🔥 Cloudinary buffer upload
       for (const file of files) {
-        const result = await cloudinary.uploader.upload(file.path, {
-          folder: "accessories",
-          transformation: [
-            {
-              overlay: "proelan_watermark",
-              width: 0.6,
-              opacity: 30,
-              gravity: "center",
-            },
-          ],
-        });
-
+        const result = await uploadToCloudinary(file.buffer);
         uploadedImages.push(result.secure_url);
-
-        if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
       }
 
-      let mainImage = uploadedImages[0] || null;
+      const mainImageIndex = parseInt(req.body.mainImageIndex);
 
-      if (!isNaN(mainImageIndex) && uploadedImages[mainImageIndex]) {
-        mainImage = uploadedImages[mainImageIndex];
-      }
+      const mainImage =
+        uploadedImages[mainImageIndex] || uploadedImages[0] || null;
 
-      const newAd = new Ad({
+      const newAd = await Ad.create({
         title: req.body.title,
         description: req.body.description,
         price: req.body.price ? Number(req.body.price) : 0,
@@ -2719,18 +2569,16 @@ app.post(
         userId: req.user.id,
 
         priorityType: req.body.priorityType || "free",
-
         liked: false,
         favorite: false,
       });
 
-      await newAd.save();
-
       res.status(201).json(newAd);
     } catch (err) {
+      console.error("❌ Accessories error:", err);
       res.status(500).json({ error: err.message });
     }
-  },
+  }
 );
 
 app.put(
