@@ -491,27 +491,52 @@ app.get("/my-:category", authMiddleware, async (req, res) => {
   }
 });
 
-// DELETE /api/{category}/{id} - istifadəçi öz elanını silir
+
 app.delete("/:category/:id", authMiddleware, async (req, res) => {
   try {
     const { category, id } = req.params;
+
     const Model = modelsMap[category];
     if (!Model) return res.status(400).json({ message: "Invalid category" });
 
     const ad = await Model.findById(id);
     if (!ad) return res.status(404).json({ message: "Ad not found" });
 
-    // Yalnız sahibi silə bilər
-    if (ad.user.toString() !== req.user.id)
+    // FIXED
+    if (ad.userId.toString() !== req.user.id) {
       return res.status(403).json({ message: "Not authorized" });
+    }
 
     await Model.findByIdAndDelete(id);
+
     res.json({ message: "Ad deleted" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
+
+// // DELETE /api/{category}/{id} - istifadəçi öz elanını silir
+// app.delete("/:category/:id", authMiddleware, async (req, res) => {
+//   try {
+//     const { category, id } = req.params;
+//     const Model = modelsMap[category];
+//     if (!Model) return res.status(400).json({ message: "Invalid category" });
+
+//     const ad = await Model.findById(id);
+//     if (!ad) return res.status(404).json({ message: "Ad not found" });
+
+//     // Yalnız sahibi silə bilər
+//     if (ad.user.toString() !== req.user.id)
+//       return res.status(403).json({ message: "Not authorized" });
+
+//     await Model.findByIdAndDelete(id);
+//     res.json({ message: "Ad deleted" });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// });
 async function idGenerator() {
   let unique = false;
   let newId;
@@ -5375,20 +5400,20 @@ app.get("/api/users/:id", async (req, res) => {
 // app.use(express.static(buildPath));
 
 // // React Router catch-all (ESM uyğun)
-// app.get(/.*/, (req, res) => {
-//   res.sendFile(path.join(buildPath, "index.html"));
-// });
+app.get(/.*/, (req, res) => {
+  res.sendFile(path.join(buildPath, "index.html"));
+});
 
 // STATIC
 
 // frontend build
-// app.use(express.static(path.join(__dirname, "build")));
+app.use(express.static(path.join(__dirname, "build")));
 
 // SPA fallback (SAFE VERSION)
-// app.use((req, res, next) => {
-//   if (req.path.startsWith("/api")) return next();
-//   res.sendFile(path.join(__dirname, "build", "index.html"));
-// });
+app.use((req, res, next) => {
+  if (req.path.startsWith("/api")) return next();
+  res.sendFile(path.join(__dirname, "build", "index.html"));
+});
 app.listen(PORT, () => {
   console.log(`🚀 Server işə düşdü: http://localhost:${PORT}`);
   // npx nodemon src/backend/cateqory.js serveri ise salmaq ucun
