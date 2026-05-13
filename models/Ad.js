@@ -57,7 +57,7 @@ const adSchema = new mongoose.Schema(
       enum: [
         "car",
         "phone",
-        "electronics",
+        "electronika",
         "clothing", // 🔥 düzəldildi
         "realEstate",
         "homeGarden",

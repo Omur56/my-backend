@@ -333,8 +333,8 @@ const session = await stripe.checkout.sessions.create({
     type,
     userId: req.user.id,
   },
-  success_url: "http://localhost:3000/success",
-  cancel_url: "http://localhost:3000/cancel",
+  success_url: "https://axtartapaz-frontend.onrender.com/success",
+  cancel_url: "https://axtartapaz-frontend.onrender.com//cancel",
 });
       await Payment.create({
         user: req.user.id, // 🔥 FIXED (ƏN VACİB)

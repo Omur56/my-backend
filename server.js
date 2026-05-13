@@ -439,7 +439,7 @@ app.get("/count/homeGarden", async (req, res) => {
   }
 });
 
-app.get("/count/phone", async (req, res) => {
+app.get("/count/Phone", async (req, res) => {
   try {
     const count = await Phone.countDocuments();
     res.json({ count });
@@ -593,22 +593,22 @@ const client = twilio(
 );
 
 // OTP saxlanması üçün sadə yaddaş (real app-da DB istifadə et)
-const otpStore = {}; // { phoneNumber: { otp: 1234, expires: Date } }
+const otpStore = {}; // { PhoneNumber: { otp: 1234, expires: Date } }
 
 // OTP göndərmək
 app.post("/api/send-otp", async (req, res) => {
-  const { phone } = req.body;
-  if (!phone)
+  const { Phone } = req.body;
+  if (!Phone)
     return res.status(400).json({ message: "Telefon nömrəsi tələb olunur" });
 
   const otp = Math.floor(100000 + Math.random() * 900000); // 6 rəqəmli kod
-  otpStore[phone] = { otp, expires: Date.now() + 5 * 60 * 1000 }; // 5 dəqiqəlik OTP
+  otpStore[Phone] = { otp, expires: Date.now() + 5 * 60 * 1000 }; // 5 dəqiqəlik OTP
 
   try {
     await client.messages.create({
       body: `Sizin OTP kodunuz: ${otp}`,
-      from: process.env.TWILIO_PHONE_NUMBER,
-      to: phone,
+      from: process.env.TWILIO_Phone_NUMBER,
+      to: Phone,
     });
     res.json({ message: "OTP göndərildi" });
   } catch (err) {
@@ -619,18 +619,18 @@ app.post("/api/send-otp", async (req, res) => {
 
 // OTP təsdiqləmək
 app.post("/api/verify-otp", (req, res) => {
-  const { phone, otp } = req.body;
-  if (!phone || !otp)
+  const { Phone, otp } = req.body;
+  if (!Phone || !otp)
     return res.status(400).json({ message: "Telefon və OTP tələb olunur" });
 
-  const record = otpStore[phone];
+  const record = otpStore[Phone];
   if (!record) return res.status(400).json({ message: "OTP tapılmadı" });
   if (Date.now() > record.expires)
     return res.status(400).json({ message: "OTP vaxtı bitib" });
   if (Number(otp) !== record.otp)
     return res.status(400).json({ message: "OTP səhvdir" });
 
-  delete otpStore[phone]; // OTP istifadə olundu
+  delete otpStore[Phone]; // OTP istifadə olundu
   res.json({ message: "Telefon təsdiqləndi" });
 });
 
@@ -707,7 +707,7 @@ app.post(
       const contact = {
         name: req.body["contact.name"],
         email: req.body["contact.email"],
-        phone: req.body["contact.phone"],
+        Phone: req.body["contact.Phone"],
       };
 
       const mainImageIndex = parseInt(req.body.mainImageIndex);
@@ -868,10 +868,12 @@ app.get("/api/ads/search", async (req, res) => {
 
 // --------------------------------------------
 
-// ----phones-------
+// ----Phones-------
+
+
 app.post(
-  "/api/phone",
-  verifyToken,
+  "/api/Phone",
+  
   upload.array("images", 20),
   async (req, res) => {
     try {
@@ -881,7 +883,7 @@ app.post(
 
       // 🔥 SAFE UPLOAD
       for (const file of files) {
-        const result = await uploadToCloudinary(file.buffer, "phone");
+        const result = await uploadToCloudinary(file.buffer, "Phone");
         uploadedImages.push(result.secure_url);
       }
 
@@ -896,9 +898,9 @@ app.post(
         price: req.body.price ? Number(req.body.price) : 0,
         location: req.body.location,
 
-        category: "phone",
+        category: "Phone",
 
-        phone: {
+        Phone: {
           storage: req.body.storage,
           color: req.body.color,
           ram: req.body.ram,
@@ -908,7 +910,7 @@ app.post(
         contact: {
           name: req.body["contact.name"],
           email: req.body["contact.email"],
-          phone: req.body["contact.phone"],
+          Phone: req.body["contact.Phone"],
         },
 
         userId: req.user.id,
@@ -924,7 +926,7 @@ app.post(
       res.status(201).json(newAd);
 
     } catch (err) {
-      console.error("PHONE ERROR:", err);
+      console.error("Phone ERROR:", err);
       res.status(500).json({ error: err.message });
     }
   }
@@ -932,10 +934,10 @@ app.post(
 
 
 
-app.get("/api/phone", async (req, res) => {
+app.get("/api/Phone", async (req, res) => {
   try {
     const data = await Ad.find({
-      category: "phone",
+      category: "Phone",
       isActive: true,
     }).sort({ createdAt: -1 });
 
@@ -945,7 +947,7 @@ app.get("/api/phone", async (req, res) => {
   }
 });
 
-app.get("/api/phone/:id", verifyToken, async (req, res) => {
+app.get("/api/Phone/:id",  async (req, res) => {
   try {
     const item = await Ad.findById(req.params.id);
 
@@ -960,7 +962,7 @@ app.get("/api/phone/:id", verifyToken, async (req, res) => {
 });
 
 app.put(
-  "/api/phone/:id",
+  "/api/Phone/:id",
   verifyToken,
   upload.array("images", 20),
   async (req, res) => {
@@ -980,7 +982,7 @@ app.put(
 
         for (const file of files) {
           const result = await cloudinary.uploader.upload(file.path, {
-            folder: "phone",
+            folder: "Phone",
           });
 
           uploadedImages.push(result.secure_url);
@@ -1004,7 +1006,7 @@ app.put(
   },
 );
 
-app.delete("/api/phone/:id", verifyToken, async (req, res) => {
+app.delete("/api/Phone/:id", verifyToken, async (req, res) => {
   try {
     const item = await Ad.findById(req.params.id);
 
@@ -1022,7 +1024,7 @@ app.delete("/api/phone/:id", verifyToken, async (req, res) => {
   }
 });
 
-app.patch("/api/phone/:id/like", async (req, res) => {
+app.patch("/api/Phone/:id/like", async (req, res) => {
   try {
     const item = await Ad.findById(req.params.id);
 
@@ -1035,7 +1037,7 @@ app.patch("/api/phone/:id/like", async (req, res) => {
   }
 });
 
-app.patch("/api/phone/:id/favorite", async (req, res) => {
+app.patch("/api/Phone/:id/favorite", async (req, res) => {
   try {
     const item = await Ad.findById(req.params.id);
 
@@ -1056,7 +1058,7 @@ app.get("/api/my-electronika", verifyToken, async (req, res) => {
   try {
     const electronika = await Ad.find({
       userId: req.user.id,
-      category: "electronics",
+      category: "electronika",
     }).sort({ priorityType: -1, createdAt: -1 });
 
     res.json(electronika);
@@ -1069,7 +1071,7 @@ app.get("/api/my-electronika", verifyToken, async (req, res) => {
 app.get("/api/electronika", async (req, res) => {
   try {
     const electronika = await Ad.find({
-      category: "electronics",
+      category: "electronika",
     }).sort({ createdAt: -1 });
 
     res.json(electronika);
@@ -1090,7 +1092,7 @@ app.post(
 
       // 🔥 SAFE UPLOAD
       for (const file of files) {
-        const result = await uploadToCloudinary(file.buffer, "electronics");
+        const result = await uploadToCloudinary(file.buffer, "electronika");
         uploadedImages.push(result.secure_url);
       }
 
@@ -1102,7 +1104,7 @@ app.post(
       const contact = {
         name: req.body["contact.name"],
         email: req.body["contact.email"],
-        phone: req.body["contact.phone"],
+        Phone: req.body["contact.Phone"],
       };
 
       const newAd = await Ad.create({
@@ -1111,7 +1113,7 @@ app.post(
         price: req.body.price ? Number(req.body.price) : 0,
 
         location: req.body.location,
-        category: "electronics",
+        category: "electronika",
 
         brand: req.body.brand,
         model: req.body.model,
@@ -1154,7 +1156,7 @@ app.put(
 
         for (const file of req.files) {
           const result = await cloudinary.uploader.upload(file.path, {
-            folder: "electronics",
+            folder: "electronika",
           });
 
           uploadedImages.push(result.secure_url);
@@ -1217,7 +1219,7 @@ app.get("/api/ads/search", async (req, res) => {
   const { brand, model } = req.query;
 
   const ads = await Ad.find({
-    category: "electronics",
+    category: "electronika",
     ...(brand && { brand }),
     ...(model && { model: new RegExp(model, "i") }),
   });
@@ -1230,195 +1232,195 @@ app.get("/api/ads/search", async (req, res) => {
 
 // -------------------------------------------
 
-app.post(
-  "/api/Phone",
-  verifyToken,
-  upload.array("images", 20),
-  async (req, res) => {
-    try {
-      const files = req.files || [];
+// app.post(
+//   "/api/Phone",
+//   verifyToken,
+//   upload.array("images", 20),
+//   async (req, res) => {
+//     try {
+//       const files = req.files || [];
 
-      const uploadedImages = [];
+//       const uploadedImages = [];
 
-      // 🔥 SAFE UPLOAD
-      for (const file of files) {
-        const result = await uploadToCloudinary(file.buffer, "phone");
-        uploadedImages.push(result.secure_url);
-      }
+//       // 🔥 SAFE UPLOAD
+//       for (const file of files) {
+//         const result = await uploadToCloudinary(file.buffer, "Phone");
+//         uploadedImages.push(result.secure_url);
+//       }
 
-      const mainImageIndex = parseInt(req.body.mainImageIndex);
+//       const mainImageIndex = parseInt(req.body.mainImageIndex);
 
-      const mainImage =
-        uploadedImages[mainImageIndex] || uploadedImages[0] || null;
+//       const mainImage =
+//         uploadedImages[mainImageIndex] || uploadedImages[0] || null;
 
-      const newAd = await Ad.create({
-        title: req.body.title,
-        description: req.body.description,
-        price: req.body.price ? Number(req.body.price) : 0,
-        location: req.body.location,
+//       const newAd = await Ad.create({
+//         title: req.body.title,
+//         description: req.body.description,
+//         price: req.body.price ? Number(req.body.price) : 0,
+//         location: req.body.location,
 
-        category: "phone",
+//         category: "Phone",
 
-        brand: req.body.brand,
-        model: req.body.model,
+//         brand: req.body.brand,
+//         model: req.body.model,
 
-        phone: {
-          storage: req.body.storage,
-          color: req.body.color,
-        },
+//         Phone: {
+//           storage: req.body.storage,
+//           color: req.body.color,
+//         },
 
-        contact: {
-          name: req.body["contact.name"],
-          email: req.body["contact.email"],
-          phone: req.body["contact.phone"],
-        },
+//         contact: {
+//           name: req.body["contact.name"],
+//           email: req.body["contact.email"],
+//           Phone: req.body["contact.Phone"],
+//         },
 
-        userId: req.user.id,
+//         userId: req.user.id,
 
-        images: uploadedImages,
-        mainImage,
+//         images: uploadedImages,
+//         mainImage,
 
-        priorityType: req.body.priorityType || "free",
-        liked: false,
-        favorite: false,
-      });
+//         priorityType: req.body.priorityType || "free",
+//         liked: false,
+//         favorite: false,
+//       });
 
-      res.status(201).json(newAd);
+//       res.status(201).json(newAd);
 
-    } catch (err) {
-      console.error("PHONE ERROR:", err);
-      res.status(500).json({ error: err.message });
-    }
-  }
-);
+//     } catch (err) {
+//       console.error("Phone ERROR:", err);
+//       res.status(500).json({ error: err.message });
+//     }
+//   }
+// );
 
-app.get("/api/Phone", async (req, res) => {
-  try {
-    const phones = await Ad.find({ category: "phone", isActive: true }).sort({
-      priorityType: -1,
-      createdAt: -1,
-    });
+// app.get("/api/Phone", async (req, res) => {
+//   try {
+//     const Phones = await Ad.find({ category: "Phone", isActive: true }).sort({
+//       priorityType: -1,
+//       createdAt: -1,
+//     });
 
-    res.json(phones);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+//     res.json(Phones);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// });
 
-app.get("/api/my-Phone", verifyToken, async (req, res) => {
-  try {
-    const phones = await Ad.find({
-      userId: req.user.id,
-      category: "Phone",
-    }).sort({ priorityType: -1, createdAt: -1 });
+// app.get("/api/my-Phone", verifyToken, async (req, res) => {
+//   try {
+//     const Phones = await Ad.find({
+//       userId: req.user.id,
+//       category: "Phone",
+//     }).sort({ priorityType: -1, createdAt: -1 });
 
-    res.json(phones);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+//     res.json(Phones);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// });
 
-app.get("/api/Phone/:id", async (req, res) => {
-  try {
-    const phone = await Ad.findById(req.params.id);
+// app.get("/api/Phone/:id", async (req, res) => {
+//   try {
+//     const Phone = await Ad.findById(req.params.id);
 
-    if (!phone) return res.status(404).json({ message: "Tapılmadı" });
+//     if (!Phone) return res.status(404).json({ message: "Tapılmadı" });
 
-    res.json(phone);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+//     res.json(Phone);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// });
 
-app.put(
-  "/api/Phone/:id",
-  verifyToken,
-  upload.array("images", 20),
-  async (req, res) => {
-    try {
-      const phone = await Ad.findById(req.params.id);
+// app.put(
+//   "/api/Phone/:id",
+//   verifyToken,
+//   upload.array("images", 20),
+//   async (req, res) => {
+//     try {
+//       const Phone = await Ad.findById(req.params.id);
 
-      if (!phone) return res.status(404).json({ message: "Tapılmadı" });
+//       if (!Phone) return res.status(404).json({ message: "Tapılmadı" });
 
-      if (phone.userId.toString() !== req.user.id) {
-        return res.status(403).json({ message: "İcazə yoxdur" });
-      }
+//       if (Phone.userId.toString() !== req.user.id) {
+//         return res.status(403).json({ message: "İcazə yoxdur" });
+//       }
 
-      if (req.files && req.files.length > 0) {
-        const uploadedImages = [];
+//       if (req.files && req.files.length > 0) {
+//         const uploadedImages = [];
 
-        for (const file of req.files) {
-          const result = await cloudinary.uploader.upload(file.path, {
-            folder: "Phone",
-          });
+//         for (const file of req.files) {
+//           const result = await cloudinary.uploader.upload(file.path, {
+//             folder: "Phone",
+//           });
 
-          uploadedImages.push(result.secure_url);
+//           uploadedImages.push(result.secure_url);
 
-          if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
-        }
+//           if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+//         }
 
-        phone.images = uploadedImages;
-      }
+//         Phone.images = uploadedImages;
+//       }
 
-      phone.title = req.body.title || phone.title;
-      phone.description = req.body.description || phone.description;
-      phone.price = req.body.price ? Number(req.body.price) : phone.price;
+//       Phone.title = req.body.title || Phone.title;
+//       Phone.description = req.body.description || Phone.description;
+//       Phone.price = req.body.price ? Number(req.body.price) : Phone.price;
 
-      await phone.save();
+//       await Phone.save();
 
-      res.json(phone);
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
-  },
-);
+//       res.json(Phone);
+//     } catch (err) {
+//       res.status(500).json({ error: err.message });
+//     }
+//   },
+// );
 
-app.delete("/api/Phone/:id", verifyToken, async (req, res) => {
-  try {
-    const phone = await Ad.findById(req.params.id);
+// app.delete("/api/Phone/:id", verifyToken, async (req, res) => {
+//   try {
+//     const Phone = await Ad.findById(req.params.id);
 
-    if (!phone) return res.status(404).json({ message: "Tapılmadı" });
+//     if (!Phone) return res.status(404).json({ message: "Tapılmadı" });
 
-    if (phone.userId.toString() !== req.user.id) {
-      return res.status(403).json({ message: "İcazə yoxdur" });
-    }
+//     if (Phone.userId.toString() !== req.user.id) {
+//       return res.status(403).json({ message: "İcazə yoxdur" });
+//     }
 
-    await phone.deleteOne();
+//     await Phone.deleteOne();
 
-    res.json({ message: "Silindi ✅" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+//     res.json({ message: "Silindi ✅" });
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// });
 
-app.patch("/api/Phone/:id/like", async (req, res) => {
-  const phone = await Ad.findById(req.params.id);
-  phone.liked = !phone.liked;
-  await phone.save();
-  res.json(phone);
-});
+// app.patch("/api/Phone/:id/like", async (req, res) => {
+//   const Phone = await Ad.findById(req.params.id);
+//   Phone.liked = !Phone.liked;
+//   await Phone.save();
+//   res.json(Phone);
+// });
 
-app.patch("/api/Phone/:id/favorite", async (req, res) => {
-  const phone = await Ad.findById(req.params.id);
-  phone.favorite = !phone.favorite;
-  await phone.save();
-  res.json(phone);
-});
+// app.patch("/api/Phone/:id/favorite", async (req, res) => {
+//   const Phone = await Ad.findById(req.params.id);
+//   Phone.favorite = !Phone.favorite;
+//   await Phone.save();
+//   res.json(Phone);
+// });
 
-app.get("/api/Phone/search", async (req, res) => {
-  const { brand, model } = req.query;
+// app.get("/api/Phone/search", async (req, res) => {
+//   const { brand, model } = req.query;
 
-  const ads = await Ad.find({
-    category: "phone",
-    ...(brand && { brand }),
-    ...(model && { model: new RegExp(model, "i") }),
-  });
+//   const ads = await Ad.find({
+//     category: "Phone",
+//     ...(brand && { brand }),
+//     ...(model && { model: new RegExp(model, "i") }),
+//   });
 
-  res.json({
-    count: ads.length,
-    ads,
-  });
-});
+//   res.json({
+//     count: ads.length,
+//     ads,
+//   });
+// });
 // ----------------------------------
 
 // -----------geyimler-----------
@@ -1499,7 +1501,7 @@ app.post(
         contact: {
           name: req.body["contact.name"],
           email: req.body["contact.email"],
-          phone: req.body["contact.phone"],
+          Phone: req.body["contact.Phone"],
         },
 
         images: uploadedImages,
@@ -1722,7 +1724,7 @@ app.post(
         contact: {
           name: req.body["contact.name"],
           email: req.body["contact.email"],
-          phone: req.body["contact.phone"],
+          Phone: req.body["contact.Phone"],
         },
 
         userId: req.user.id,
@@ -1843,7 +1845,7 @@ app.post(
         contact: {
           name: req.body["contact.name"],
           email: req.body["contact.email"],
-          phone: req.body["contact.phone"],
+          Phone: req.body["contact.Phone"],
         },
 
         userId: req.user.id,
@@ -2030,7 +2032,7 @@ app.patch("/api/realEstate/:id/favorite", async (req, res) => {
 //         contact: {
 //           name: req.body["contact.name"],
 //           email: req.body["contact.email"],
-//           phone: req.body["contact.phone"],
+//           Phone: req.body["contact.Phone"],
 //         },
 
 //         images: uploadedImages,
@@ -2131,7 +2133,7 @@ app.post(
         contact: {
           name: req.body["contact.name"],
           email: req.body["contact.email"],
-          phone: req.body["contact.phone"],
+          Phone: req.body["contact.Phone"],
         },
 
         images: uploadedImages,
@@ -2283,7 +2285,7 @@ app.post(
         contact: {
           name: req.body["contact.name"],
           email: req.body["contact.email"],
-          phone: req.body["contact.phone"],
+          Phone: req.body["contact.Phone"],
         },
 
         images: uploadedImages,
@@ -2608,7 +2610,7 @@ app.post(
         contact: {
           name: req.body["contact.name"],
           email: req.body["contact.email"],
-          phone: req.body["contact.phone"],
+          Phone: req.body["contact.Phone"],
         },
 
         images: uploadedImages,
@@ -3068,7 +3070,7 @@ app.get("/api/accessories/count", async (req, res) => {
 //       const contact = {
 //         name: req.body["contact.name"] || "",
 //         email: req.body["contact.email"] || "",
-//         phone: req.body["contact.phone"] || "",
+//         Phone: req.body["contact.Phone"] || "",
 //       };
 
 //       const newHome = new HomeAndGarden({
@@ -3137,7 +3139,7 @@ app.get("/api/accessories/count", async (req, res) => {
 //       const contact = {
 //         name: req.body["contact.name"] || item.contact.name,
 //         email: req.body["contact.email"] || item.contact.email,
-//         phone: req.body["contact.phone"] || item.contact.phone,
+//         Phone: req.body["contact.Phone"] || item.contact.Phone,
 //       };
 
 //       Object.assign(item, {
@@ -3343,7 +3345,7 @@ app.get("/api/accessories/count", async (req, res) => {
 // //     const contact = {
 // //       name: req.body["contact.name"] || "",
 // //       email: req.body["contact.email"] || "",
-// //       phone: req.body["contact.phone"] || "",
+// //       Phone: req.body["contact.Phone"] || "",
 // //     };
 
 // //     const newPost = new Electronika({
@@ -3395,7 +3397,7 @@ app.get("/api/accessories/count", async (req, res) => {
 // //     post.contact = {
 // //       name: req.body["contact.name"] || post.contact.name,
 // //       email: req.body["contact.email"] || post.contact.email,
-// //       phone: req.body["contact.phone"] || post.contact.phone,
+// //       Phone: req.body["contact.Phone"] || post.contact.Phone,
 // //     };
 
 // //     post.data = req.body.data ? new Date(req.body.data) : post.data;
@@ -3438,7 +3440,7 @@ app.get("/api/accessories/count", async (req, res) => {
 //       const contact = {
 //         name: req.body["contact.name"] || "",
 //         email: req.body["contact.email"] || "",
-//         phone: req.body["contact.phone"] || "",
+//         Phone: req.body["contact.Phone"] || "",
 //       };
 
 //       const newPost = new Electronika({
@@ -3503,7 +3505,7 @@ app.get("/api/accessories/count", async (req, res) => {
 //       post.contact = {
 //         name: req.body["contact.name"] || post.contact.name,
 //         email: req.body["contact.email"] || post.contact.email,
-//         phone: req.body["contact.phone"] || post.contact.phone,
+//         Phone: req.body["contact.Phone"] || post.contact.Phone,
 //       };
 
 //       post.data = req.body.data ? new Date(req.body.data) : post.data;
@@ -3614,7 +3616,7 @@ app.get("/api/accessories/count", async (req, res) => {
 // //       contact: {
 // //         name: req.body["contact.name"],
 // //         email: req.body["contact.email"],
-// //         phone: req.body["contact.phone"],
+// //         Phone: req.body["contact.Phone"],
 // //       },
 // //     });
 
@@ -3646,7 +3648,7 @@ app.get("/api/accessories/count", async (req, res) => {
 // //           contact: {
 // //             name: req.body["contact.name"],
 // //             email: req.body["contact.email"],
-// //             phone: req.body["contact.phone"],
+// //             Phone: req.body["contact.Phone"],
 // //           },
 // //         },
 // //         { new: true }
@@ -3693,7 +3695,7 @@ app.get("/api/accessories/count", async (req, res) => {
 //         contact: {
 //           name: req.body["contact.name"] || "",
 //           email: req.body["contact.email"] || "",
-//           phone: req.body["contact.phone"] || "",
+//           Phone: req.body["contact.Phone"] || "",
 //         },
 //       });
 
@@ -3733,7 +3735,7 @@ app.get("/api/accessories/count", async (req, res) => {
 //           contact: {
 //             name: req.body["contact.name"],
 //             email: req.body["contact.email"],
-//             phone: req.body["contact.phone"],
+//             Phone: req.body["contact.Phone"],
 //           },
 //         },
 //         { new: true }
@@ -3882,7 +3884,7 @@ app.get("/api/accessories/count", async (req, res) => {
 // //       contact: {
 // //         name: req.body["contact.name"],
 // //         email: req.body["contact.email"],
-// //         phone: req.body["contact.phone"],
+// //         Phone: req.body["contact.Phone"],
 // //       },
 // //     });
 
@@ -3913,7 +3915,7 @@ app.get("/api/accessories/count", async (req, res) => {
 // //           contact: {
 // //             name: req.body["contact.name"],
 // //             email: req.body["contact.email"],
-// //             phone: req.body["contact.phone"],
+// //             Phone: req.body["contact.Phone"],
 // //           },
 // //         },
 // //         { new: true }
@@ -3972,7 +3974,7 @@ app.get("/api/accessories/count", async (req, res) => {
 //         contact: {
 //           name: req.body["contact.name"] || "",
 //           email: req.body["contact.email"] || "",
-//           phone: req.body["contact.phone"] || "",
+//           Phone: req.body["contact.Phone"] || "",
 //         },
 //       });
 
@@ -4009,7 +4011,7 @@ app.get("/api/accessories/count", async (req, res) => {
 //         contact: {
 //           name: req.body["contact.name"],
 //           email: req.body["contact.email"],
-//           phone: req.body["contact.phone"],
+//           Phone: req.body["contact.Phone"],
 //         },
 //       },
 //       { new: true }
@@ -4123,7 +4125,7 @@ app.get("/api/accessories/count", async (req, res) => {
 // //     const contact = {
 // //       name: req.body["contact.name"] || "",
 // //       email: req.body["contact.email"] || "",
-// //       phone: req.body["contact.phone"] || "",
+// //       Phone: req.body["contact.Phone"] || "",
 // //     };
 
 // //     const newHouseHold = new HouseHold({
@@ -4154,7 +4156,7 @@ app.get("/api/accessories/count", async (req, res) => {
 // //     const contact = {
 // //       name: req.body["contact.name"] || "",
 // //       email: req.body["contact.email"] || "",
-// //       phone: req.body["contact.phone"] || "",
+// //       Phone: req.body["contact.Phone"] || "",
 // //     };
 
 // //     const updated = await HouseHold.findByIdAndUpdate(
@@ -4165,7 +4167,7 @@ app.get("/api/accessories/count", async (req, res) => {
 // //         contact: {
 // //         name: req.body["contact.name"],
 // //         email: req.body["contact.email"],
-// //         phone: req.body["contact.phone"],
+// //         Phone: req.body["contact.Phone"],
 // //       },
 // //         data: req.body.data ? new Date(req.body.data) : new Date(),
 // //       },
@@ -4211,7 +4213,7 @@ app.get("/api/accessories/count", async (req, res) => {
 //       const contact = {
 //         name: req.body["contact.name"] || "",
 //         email: req.body["contact.email"] || "",
-//         phone: req.body["contact.phone"] || "",
+//         Phone: req.body["contact.Phone"] || "",
 //       };
 
 //       const newHouseHold = new HouseHold({
@@ -4251,7 +4253,7 @@ app.get("/api/accessories/count", async (req, res) => {
 //     const contact = {
 //       name: req.body["contact.name"] || "",
 //       email: req.body["contact.email"] || "",
-//       phone: req.body["contact.phone"] || "",
+//       Phone: req.body["contact.Phone"] || "",
 //     };
 
 //     const updated = await HouseHold.findByIdAndUpdate(
@@ -4391,7 +4393,7 @@ app.get("/api/accessories/count", async (req, res) => {
 // //       contact: {
 // //         name: req.body["contact.name"] || "",
 // //         email: req.body["contact.email"] || "",
-// //         phone: req.body["contact.phone"] || "",
+// //         Phone: req.body["contact.Phone"] || "",
 // //       },
 // //       userId: req.user.id, // verifyToken middleware bu məlumatı əlavə etməlidir
 // //       data: req.body.data ? new Date(req.body.data) : new Date(),
@@ -4418,7 +4420,7 @@ app.get("/api/accessories/count", async (req, res) => {
 // //     const contact = {
 // //       name: req.body["contact.name"] || "",
 // //       email: req.body["contact.email"] || "",
-// //       phone: req.body["contact.phone"] || "",
+// //       Phone: req.body["contact.Phone"] || "",
 // //     };
 
 // //     const updated = await Phone.findByIdAndUpdate(
@@ -4452,7 +4454,7 @@ app.get("/api/accessories/count", async (req, res) => {
 //       for (const file of req.files) {
 //         const filePath = file.path.replace(/\\/g, "/"); // Windows path üçün
 //         const result = await cloudinary.uploader.upload(filePath, {
-//           folder: "phones",
+//           folder: "Phones",
 //           transformation: [
 //             {
 //               overlay: "proelan_watermark", // Cloudinary-də yüklədiyin watermark
@@ -4471,7 +4473,7 @@ app.get("/api/accessories/count", async (req, res) => {
 //       const contact = {
 //         name: req.body["contact.name"] || "",
 //         email: req.body["contact.email"] || "",
-//         phone: req.body["contact.phone"] || "",
+//         Phone: req.body["contact.Phone"] || "",
 //       };
 
 //       const newPhone = new Phone({
@@ -4501,7 +4503,7 @@ app.get("/api/accessories/count", async (req, res) => {
 //       for (const file of req.files) {
 //         const filePath = file.path.replace(/\\/g, "/");
 //         const result = await cloudinary.uploader.upload(filePath, {
-//           folder: "phones",
+//           folder: "Phones",
 //         });
 //         uploadedImages.push(result.secure_url);
 //         if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
@@ -4511,7 +4513,7 @@ app.get("/api/accessories/count", async (req, res) => {
 //     const contact = {
 //       name: req.body["contact.name"] || "",
 //       email: req.body["contact.email"] || "",
-//       phone: req.body["contact.phone"] || "",
+//       Phone: req.body["contact.Phone"] || "",
 //     };
 
 //     const updated = await Phone.findByIdAndUpdate(
@@ -4658,7 +4660,7 @@ app.get("/api/accessories/count", async (req, res) => {
 // //     const contact = {
 // //       name: req.body["contact.name"] || "",
 // //       email: req.body["contact.email"] || "",
-// //       phone: req.body["contact.phone"] || "",
+// //       Phone: req.body["contact.Phone"] || "",
 // //     };
 
 // //     if (!req.body.userId) {
@@ -4693,7 +4695,7 @@ app.get("/api/accessories/count", async (req, res) => {
 // //     const contact = {
 // //       name: req.body["contact.name"] || "",
 // //       email: req.body["contact.email"] || "",
-// //       phone: req.body["contact.phone"] || "",
+// //       Phone: req.body["contact.Phone"] || "",
 // //     };
 
 // //     const updated = await Clothing.findByIdAndUpdate(
@@ -4745,7 +4747,7 @@ app.get("/api/accessories/count", async (req, res) => {
 //       const contact = {
 //         name: req.body["contact.name"] || "",
 //         email: req.body["contact.email"] || "",
-//         phone: req.body["contact.phone"] || "",
+//         Phone: req.body["contact.Phone"] || "",
 //       };
 
 //       if (!req.body.userId) {
@@ -4788,7 +4790,7 @@ app.get("/api/accessories/count", async (req, res) => {
 //     const contact = {
 //       name: req.body["contact.name"] || "",
 //       email: req.body["contact.email"] || "",
-//       phone: req.body["contact.phone"] || "",
+//       Phone: req.body["contact.Phone"] || "",
 //     };
 
 //     const updated = await Clothing.findByIdAndUpdate(
@@ -4903,7 +4905,7 @@ app.get("/api/accessories/count", async (req, res) => {
 //     const contact = {
 //       name: req.body["contact.name"] || "",
 //       email: req.body["contact.email"] || "",
-//       phone: req.body["contact.phone"] || "",
+//       Phone: req.body["contact.Phone"] || "",
 //     };
 
 //     const newJewelry = new Jewelry({
@@ -4932,7 +4934,7 @@ app.get("/api/accessories/count", async (req, res) => {
 //     const contact = {
 //       name: req.body["contact.name"] || "",
 //       email: req.body["contact.email"] || "",
-//       phone: req.body["contact.phone"] || "",
+//       Phone: req.body["contact.Phone"] || "",
 //     };
 
 //     const updated = await Jewelry.findByIdAndUpdate(
@@ -5032,7 +5034,7 @@ app.get("/api/accessories/count", async (req, res) => {
 // // server.js və ya app.js
 app.post("/api/reqister", async (req, res) => {
   try {
-    const { username, phone, email, password } = req.body;
+    const { username, Phone, email, password } = req.body;
 
     // 1. check user exists
     const existingUser = await User.findOne({ email });
@@ -5046,7 +5048,7 @@ app.post("/api/reqister", async (req, res) => {
     // 3. create user
     const newUser = new User({
       username,
-      phone,
+      Phone,
       email,
       password: hashedPassword,
     });
@@ -5225,8 +5227,8 @@ app.get("/api/users/:id", async (req, res) => {
 //     const clothingAds = await Clothing.find({ userId: req.user._id }).lean();
 //     clothingAds.forEach((ad) => (ad.modelName = "Clothing"));
 
-//     const phoneAds = await Phone.find({ userId: req.user._id }).lean();
-//     phoneAds.forEach((ad) => (ad.modelName = "Phone"));
+//     const PhoneAds = await Phone.find({ userId: req.user._id }).lean();
+//     PhoneAds.forEach((ad) => (ad.modelName = "Phone"));
 
 //     const householdAds = await HouseHold.find({ userId: req.user._id }).lean();
 //     householdAds.forEach((ad) => (ad.modelName = "Household"));
@@ -5252,7 +5254,7 @@ app.get("/api/users/:id", async (req, res) => {
 //     const allAds = [
 //       ...homeAds,
 //       ...clothingAds,
-//       ...phoneAds,
+//       ...PhoneAds,
 //       ...householdAds,
 //       ...realEstateAds,
 //       ...accessoryAds,
@@ -5272,7 +5274,7 @@ app.get("/api/users/:id", async (req, res) => {
 // const models = {
 //   homeGarden: HomeAndGarden,
 //   clothing: Clothing,
-//   phone: Phone,
+//   Phone: Phone,
 //   household: HouseHold,
 //   realEstate: RealEstate,
 //   accessories: Accessory,
@@ -5305,7 +5307,7 @@ app.get("/api/users/:id", async (req, res) => {
 //   const models = {
 //     homeGarden: HomeAndGarden,
 //     clothing: Clothing,
-//     phone: Phone,
+//     Phone: Phone,
 //     household: HouseHold,
 //     realestate: RealEstate,
 //     accessory: Accessory,
@@ -5380,13 +5382,13 @@ app.get("/api/users/:id", async (req, res) => {
 // STATIC
 
 // frontend build
-app.use(express.static(path.join(__dirname, "build")));
+// app.use(express.static(path.join(__dirname, "build")));
 
 // SPA fallback (SAFE VERSION)
-app.use((req, res, next) => {
-  if (req.path.startsWith("/api")) return next();
-  res.sendFile(path.join(__dirname, "build", "index.html"));
-});
+// app.use((req, res, next) => {
+//   if (req.path.startsWith("/api")) return next();
+//   res.sendFile(path.join(__dirname, "build", "index.html"));
+// });
 app.listen(PORT, () => {
   console.log(`🚀 Server işə düşdü: http://localhost:${PORT}`);
   // npx nodemon src/backend/cateqory.js serveri ise salmaq ucun

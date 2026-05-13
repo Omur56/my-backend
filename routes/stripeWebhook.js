@@ -105,38 +105,47 @@ router.post(
         process.env.STRIPE_WEBHOOK_SECRET
       );
     } catch (err) {
-      console.log("Webhook signature error:", err.message);
+      console.log("❌ Webhook signature error:", err.message);
       return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
+    console.log("🔥 WEBHOOK HIT:", event.type);
+
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
-      const { listingId, type } = session.metadata;
 
-      // 🔥 SADƏ və DÜZGÜN
+      console.log("SESSION:", session);
+
+      const listingId = session.metadata?.listingId;
+      const type = session.metadata?.type;
+
+      if (!listingId || !type) {
+        console.log("❌ metadata yoxdur");
+        return res.json({ received: true });
+      }
+
       const listing = await Ad.findById(listingId);
 
       if (!listing) {
-        console.log("Elan tapılmadı:", listingId);
-        return res.json({ received: true }); // ⚠️ webhook-da 404 qaytarma
+        console.log("❌ elan tapılmadı");
+        return res.json({ received: true });
       }
 
       let expires = null;
 
       if (type === "vip") {
-        expires = moment.tz("Asia/Baku").add(3, "days").toDate();
+        expires = moment().add(3, "days").toDate();
       } else if (type === "premium") {
-        expires = moment.tz("Asia/Baku").add(7, "days").toDate();
+        expires = moment().add(7, "days").toDate();
       }
 
       listing.priorityType = type;
-      listing.priority = type === "vip" ? 1 : 2;
       listing.priorityExpires = expires;
       listing.isActive = true;
 
       await listing.save();
 
-      console.log(`Elan ${listingId} yeniləndi: ${type}`);
+      console.log("✅ UPDATED:", listingId, type);
     }
 
     res.json({ received: true });
