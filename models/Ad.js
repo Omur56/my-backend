@@ -16,7 +16,17 @@ const adSchema = new mongoose.Schema(
   unique: true,
 },
 
+mainImage: String,
 
+liked: {
+  type: Boolean,
+  default: false,
+},
+
+favorite: {
+  type: Boolean,
+  default: false,
+},
     title: String,
     description: String,
     price: Number,
@@ -57,7 +67,7 @@ const adSchema = new mongoose.Schema(
       enum: [
         "car",
         "phone",
-        "electronika",
+        "electronics",
         "clothing", // 🔥 düzəldildi
         "realEstate",
         "homeGarden",
@@ -88,6 +98,8 @@ const adSchema = new mongoose.Schema(
   default: undefined,
   required: false,
 },
+
+
 },
 
 

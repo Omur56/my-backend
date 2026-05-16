@@ -7,7 +7,7 @@ import connectDB from "./db.js";
 // import Announcement from "./models/Announcement.js";
 import adRoutes from "./routes/adRoutes.js";
 import HomeAndGarden from "./models/HomeAndGarden.js";
-import Electronika from "./models/Electronika.js";
+// import electronics from "./models/.js";
 import Accessory from "./models/Acsesuar.js";
 import RealEstate from "./models/RealEstate.js";
 import HouseHold from "./models/Household.js";
@@ -393,7 +393,7 @@ app.get("/api/my-ads", authMiddleware, async (req, res) => {
 //   homeAndGarden: HomeAndGarden,
 //   Clothing: Clothing,
 //   Announcement: Announcement,
-//   Electronika: Electronika,
+//   electronics: electronics,
 //   Accessory: Accessory,
 //   HouseHold: HouseHold,
 //   Phone: Phone,
@@ -412,12 +412,12 @@ app.get("/count/car", async (req, res) => {
   }
 });
 
-app.get("/count/electronika", async (req, res) => {
+app.get("/count/electronics", async (req, res) => {
   try {
-    const count = await Electronika.countDocuments();
+    const count = await electronics.countDocuments();
     res.json({ count });
   } catch (err) {
-    res.status(500).json({ message: "Electronika count error" });
+    res.status(500).json({ message: "electronics count error" });
   }
 });
 
@@ -1079,34 +1079,34 @@ app.patch("/api/Phone/:id/favorite", async (req, res) => {
 
 // ----------elektronika
 
-app.get("/api/my-electronika", verifyToken, async (req, res) => {
+app.get("/api/my-electronics", verifyToken, async (req, res) => {
   try {
-    const electronika = await Ad.find({
+    const electronics = await Ad.find({
       userId: req.user.id,
-      category: "electronika",
+      category: "electronics",
     }).sort({ priorityType: -1, createdAt: -1 });
 
-    res.json(electronika);
+    res.json(electronics);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
 
-app.get("/api/electronika", async (req, res) => {
+app.get("/api/electronics", async (req, res) => {
   try {
-    const electronika = await Ad.find({
-      category: "electronika",
+    const electronics = await Ad.find({
+      category: "electronics",
     }).sort({ createdAt: -1 });
 
-    res.json(electronika);
+    res.json(electronics);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 app.post(
-  "/api/electronika",
+  "/api/electronics",
   verifyToken,
   upload.array("images", 20),
   async (req, res) => {
@@ -1117,7 +1117,7 @@ app.post(
 
       // 🔥 SAFE UPLOAD
       for (const file of files) {
-        const result = await uploadToCloudinary(file.buffer, "electronika");
+        const result = await uploadToCloudinary(file.buffer, "electronics");
         uploadedImages.push(result.secure_url);
       }
 
@@ -1138,7 +1138,7 @@ app.post(
         price: req.body.price ? Number(req.body.price) : 0,
 
         location: req.body.location,
-        category: "electronika",
+        category: "electronics",
 
         brand: req.body.brand,
         model: req.body.model,
@@ -1162,17 +1162,17 @@ app.post(
 
 
 app.put(
-  "/api/electronika/:id",
+  "/api/electronics/:id",
   verifyToken,
   upload.array("images", 20),
   async (req, res) => {
     try {
-      const electronika = await Ad.findById(req.params.id);
+      const electronics = await Ad.findById(req.params.id);
 
-      if (!electronika)
+      if (!electronics)
         return res.status(404).json({ message: "Elan tapılmadı" });
 
-      if (electronika.userId.toString() !== req.user.id) {
+      if (electronics.userId.toString() !== req.user.id) {
         return res.status(403).json({ message: "İcazə yoxdur" });
       }
 
@@ -1181,7 +1181,7 @@ app.put(
 
         for (const file of req.files) {
           const result = await cloudinary.uploader.upload(file.path, {
-            folder: "electronika",
+            folder: "electronics",
           });
 
           uploadedImages.push(result.secure_url);
@@ -1189,18 +1189,18 @@ app.put(
           if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
         }
 
-        electronika.images = uploadedImages;
+        electronics.images = uploadedImages;
       }
 
-      electronika.title = req.body.title || electronika.title;
-      electronika.description = req.body.description || electronika.description;
-      electronika.price = req.body.price
+      electronics.title = req.body.title || electronics.title;
+      electronics.description = req.body.description || electronics.description;
+      electronics.price = req.body.price
         ? Number(req.body.price)
-        : electronika.price;
+        : electronics.price;
 
-      await electronika.save();
+      await electronics.save();
 
-      res.json(electronika);
+      res.json(electronics);
     } catch (err) {
       console.error("❌ Update error:", err);
       res.status(500).json({ error: err.message });
@@ -1208,17 +1208,17 @@ app.put(
   },
 );
 
-app.delete("/api/electronika/:id", verifyToken, async (req, res) => {
+app.delete("/api/electronics/:id", verifyToken, async (req, res) => {
   try {
-    const electronika = await Ad.findById(req.params.id);
+    const electronics = await Ad.findById(req.params.id);
 
-    if (!electronika) return res.status(404).json({ message: "Tapılmadı" });
+    if (!electronics) return res.status(404).json({ message: "Tapılmadı" });
 
-    if (electronika.userId.toString() !== req.user.id) {
+    if (electronics.userId.toString() !== req.user.id) {
       return res.status(403).json({ message: "İcazə yoxdur" });
     }
 
-    await electronika.deleteOne();
+    await electronics.deleteOne();
 
     res.json({ message: "Silindi ✅" });
   } catch (err) {
@@ -1226,25 +1226,25 @@ app.delete("/api/electronika/:id", verifyToken, async (req, res) => {
   }
 });
 
-app.patch("/api/electronika/:id/like", async (req, res) => {
-  const electronika = await Ad.findById(req.params.id);
-  electronika.liked = !electronika.liked;
-  await electronika.save();
-  res.json(electronika);
+app.patch("/api/electronics/:id/like", async (req, res) => {
+  const electronics = await Ad.findById(req.params.id);
+  electronics.liked = !electronics.liked;
+  await electronics.save();
+  res.json(electronics);
 });
 
-app.patch("/api/electronika/:id/favorite", async (req, res) => {
-  const electronika = await Ad.findById(req.params.id);
-  electronika.favorite = !electronika.favorite;
-  await electronika.save();
-  res.json(electronika);
+app.patch("/api/electronics/:id/favorite", async (req, res) => {
+  const electronics = await Ad.findById(req.params.id);
+  electronics.favorite = !electronics.favorite;
+  await electronics.save();
+  res.json(electronics);
 });
 
 app.get("/api/ads/search", async (req, res) => {
   const { brand, model } = req.query;
 
   const ads = await Ad.find({
-    category: "electronika",
+    category: "electronics",
     ...(brand && { brand }),
     ...(model && { model: new RegExp(model, "i") }),
   });
@@ -3319,11 +3319,11 @@ app.get("/api/accessories/count", async (req, res) => {
 //   }
 // });
 
-// // ----------------- Electronika -----------------
+// // ----------------- electronics -----------------
 // // GET bütün elanlar
-// app.get("/api/electronika", async (req, res) => {
+// app.get("/api/electronics", async (req, res) => {
 //   try {
-//     const items = await Electronika.find();
+//     const items = await electronics.find();
 //     res.json(items);
 //   } catch (error) {
 //     res.status(500).json({ message: error.message });
@@ -3331,9 +3331,9 @@ app.get("/api/accessories/count", async (req, res) => {
 // });
 
 // // GET mənim elanlarım
-// app.get("/api/my-electronika", verifyToken, async (req, res) => {
+// app.get("/api/my-electronics", verifyToken, async (req, res) => {
 //   try {
-//     const items = await Electronika.find({ userId: req.user.id }).sort({
+//     const items = await electronics.find({ userId: req.user.id }).sort({
 //       data: -1,
 //     });
 //     res.json(items);
@@ -3343,9 +3343,9 @@ app.get("/api/accessories/count", async (req, res) => {
 // });
 
 // // DELETE elan (sahibinə görə)
-// app.delete("/api/electronika/:id", verifyToken, async (req, res) => {
+// app.delete("/api/electronics/:id", verifyToken, async (req, res) => {
 //   try {
-//     const item = await Electronika.findById(req.params.id);
+//     const item = await electronics.findById(req.params.id);
 //     if (!item) return res.status(404).json({ message: "Elan tapılmadı" });
 //     if (item.userId.toString() !== req.user.id)
 //       return res
@@ -3359,7 +3359,7 @@ app.get("/api/accessories/count", async (req, res) => {
 // });
 
 // // // Yeni elan əlavə et
-// // app.post("/api/electronika", verifyToken, upload.array("images", 20), async (req, res) => {
+// // app.post("/api/electronics", verifyToken, upload.array("images", 20), async (req, res) => {
 // //   try {
 // //     const newId = await idGenerator();
 
@@ -3373,7 +3373,7 @@ app.get("/api/accessories/count", async (req, res) => {
 // //       Phone: req.body["contact.Phone"] || "",
 // //     };
 
-// //     const newPost = new Electronika({
+// //     const newPost = new electronics({
 // //       id: newId,
 // //       category: req.body.category,
 // //       title: req.body.title,
@@ -3398,9 +3398,9 @@ app.get("/api/accessories/count", async (req, res) => {
 // // });
 
 // // // UPDATE elan
-// // app.put("/api/electronika/:id", verifyToken, upload.array("images", 20), async (req, res) => {
+// // app.put("/api/electronics/:id", verifyToken, upload.array("images", 20), async (req, res) => {
 // //   try {
-// //     const post = await Electronika.findById(req.params.id);
+// //     const post = await electronics.findById(req.params.id);
 // //     if (!post) return res.status(404).json({ message: "Post tapılmadı" });
 // //     if (post.userId.toString() !== req.user.id)
 // //       return res.status(403).json({ message: "Bu elanı dəyişmək hüququn yoxdur" });
@@ -3436,7 +3436,7 @@ app.get("/api/accessories/count", async (req, res) => {
 
 // // Yeni elan əlavə et
 // app.post(
-//   "/api/electronika",
+//   "/api/electronics",
 //   verifyToken,
 //   upload.array("images", 20),
 //   async (req, res) => {
@@ -3446,7 +3446,7 @@ app.get("/api/accessories/count", async (req, res) => {
 
 //       for (const file of req.files) {
 //         const result = await cloudinary.uploader.upload(file.path, {
-//           folder: "electronika",
+//           folder: "electronics",
 //           transformation: [
 //             {
 //               overlay: "proelan_watermark", // Cloudinary-də yüklədiyin watermark
@@ -3468,7 +3468,7 @@ app.get("/api/accessories/count", async (req, res) => {
 //         Phone: req.body["contact.Phone"] || "",
 //       };
 
-//       const newPost = new Electronika({
+//       const newPost = new electronics({
 //         id: newId,
 //         category: req.body.category,
 //         title: req.body.title,
@@ -3488,7 +3488,7 @@ app.get("/api/accessories/count", async (req, res) => {
 //       await newPost.save();
 //       res.status(201).json(newPost);
 //     } catch (error) {
-//       console.error("❌ Electronika əlavə olunarkən xəta:", error);
+//       console.error("❌ electronics əlavə olunarkən xəta:", error);
 //       res.status(400).json({ message: error.message });
 //     }
 //   }
@@ -3496,12 +3496,12 @@ app.get("/api/accessories/count", async (req, res) => {
 
 // // UPDATE elan
 // app.put(
-//   "/api/electronika/:id",
+//   "/api/electronics/:id",
 //   verifyToken,
 //   upload.array("images", 20),
 //   async (req, res) => {
 //     try {
-//       const post = await Electronika.findById(req.params.id);
+//       const post = await electronics.findById(req.params.id);
 //       if (!post) return res.status(404).json({ message: "Post tapılmadı" });
 //       if (post.userId.toString() !== req.user.id)
 //         return res
@@ -3512,7 +3512,7 @@ app.get("/api/accessories/count", async (req, res) => {
 //         const uploadedImages = [];
 //         for (const file of req.files) {
 //           const result = await cloudinary.uploader.upload(file.path, {
-//             folder: "electronika",
+//             folder: "electronics",
 //           });
 //           uploadedImages.push(result.secure_url);
 //           if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
@@ -3538,16 +3538,16 @@ app.get("/api/accessories/count", async (req, res) => {
 //       await post.save();
 //       res.json(post);
 //     } catch (error) {
-//       console.error("❌ Electronika yenilənərkən xəta:", error);
+//       console.error("❌ electronics yenilənərkən xəta:", error);
 //       res.status(400).json({ message: error.message });
 //     }
 //   }
 // );
 
 // // Like toggle
-// app.patch("/api/electronika/:id/like", async (req, res) => {
+// app.patch("/api/electronics/:id/like", async (req, res) => {
 //   try {
-//     const post = await Electronika.findById(req.params.id);
+//     const post = await electronics.findById(req.params.id);
 //     if (!post) return res.status(404).json({ message: "Post tapılmadı" });
 
 //     post.liked = !post.liked;
@@ -3559,9 +3559,9 @@ app.get("/api/accessories/count", async (req, res) => {
 // });
 
 // // Favorite toggle
-// app.patch("/api/electronika/:id/favorite", async (req, res) => {
+// app.patch("/api/electronics/:id/favorite", async (req, res) => {
 //   try {
-//     const post = await Electronika.findById(req.params.id);
+//     const post = await electronics.findById(req.params.id);
 //     if (!post) return res.status(404).json({ message: "Post tapılmadı" });
 
 //     post.favorite = !post.favorite;
@@ -3573,9 +3573,9 @@ app.get("/api/accessories/count", async (req, res) => {
 // });
 
 // // GET tək elan
-// app.get("/api/electronika/:id", async (req, res) => {
+// app.get("/api/electronics/:id", async (req, res) => {
 //   try {
-//     const item = await Electronika.findById(req.params.id);
+//     const item = await electronics.findById(req.params.id);
 //     if (!item) return res.status(404).json({ message: "Elan tapılmadı" });
 //     res.json(item);
 //   } catch (error) {
@@ -5271,10 +5271,10 @@ app.get("/api/users/:id", async (req, res) => {
 //     }).lean();
 //     announcementAds.forEach((ad) => (ad.modelName = "cars"));
 
-//     const electronikaAds = await Electronika.find({
+//     const electronicsAds = await electronics.find({
 //       userId: req.user.id,
 //     }).lean();
-//     electronikaAds.forEach((ad) => (ad.modelName = "electronika"));
+//     electronicsAds.forEach((ad) => (ad.modelName = "electronics"));
 
 //     const allAds = [
 //       ...homeAds,
@@ -5284,7 +5284,7 @@ app.get("/api/users/:id", async (req, res) => {
 //       ...realEstateAds,
 //       ...accessoryAds,
 //       ...announcementAds,
-//       ...electronikaAds,
+//       ...electronicsAds,
 //     ];
 
 //     allAds.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -5304,7 +5304,7 @@ app.get("/api/users/:id", async (req, res) => {
 //   realEstate: RealEstate,
 //   accessories: Accessory,
 //   cars: Announcement,
-//   electronika: Electronika,
+//   electronics: electronics,
 // };
 
 // app.delete("/api/:model/:id", verifyToken, async (req, res) => {
@@ -5337,7 +5337,7 @@ app.get("/api/users/:id", async (req, res) => {
 //     realestate: RealEstate,
 //     accessory: Accessory,
 //     cars: Announcement,
-//     electronika: Electronika,
+//     electronics: electronics,
 //   };
 
 //   const SelectedModel = models[model];
@@ -5399,22 +5399,56 @@ app.get("/api/users/:id", async (req, res) => {
 // const buildPath = path.join(__dirname, "frontend/build"); // əgər frontend build backend ilə eyni səviyyədədirsə
 // app.use(express.static(buildPath));
 
-// // React Router catch-all (ESM uyğun)
-app.get(/.*/, (req, res) => {
+// // // React Router catch-all (ESM uyğun)
+// app.get(/.*/, (req, res) => {
+//   res.sendFile(path.join(buildPath, "index.html"));
+// });
+
+// // STATIC
+
+// // frontend build
+// app.use(express.static(path.join(__dirname, "build")));
+
+// // SPA fallback (SAFE VERSION)
+// app.use((req, res, next) => {
+//   if (req.path.startsWith("/api")) return next();
+//   res.sendFile(path.join(__dirname, "build", "index.html"));
+// });
+
+// const buildPath = path.join(__dirname, "../frontend/build");
+
+// // Static frontend
+// app.use(express.static(buildPath));
+
+// // SPA fallback
+// app.use((req, res, next) => {
+//   if (req.path.startsWith("/api")) {
+//     return next();
+//   }
+
+//   res.sendFile(path.join(buildPath, "index.html"));
+// });
+
+// app.listen(PORT, () => {
+//   console.log(`🚀 Server işə düşdü: http://localhost:${PORT}`);
+//   // npx nodemon src/backend/cateqory.js serveri ise salmaq ucun
+// });
+
+
+const buildPath = path.join(__dirname, "../frontend/build");
+
+// Static frontend
+app.use(express.static(buildPath));
+
+// SPA fallback
+app.use((req, res, next) => {
+  if (req.path.startsWith("/api")) {
+    return next();
+  }
+
   res.sendFile(path.join(buildPath, "index.html"));
 });
 
-// STATIC
-
-// frontend build
-app.use(express.static(path.join(__dirname, "build")));
-
-// SPA fallback (SAFE VERSION)
-app.use((req, res, next) => {
-  if (req.path.startsWith("/api")) return next();
-  res.sendFile(path.join(__dirname, "build", "index.html"));
-});
 app.listen(PORT, () => {
   console.log(`🚀 Server işə düşdü: http://localhost:${PORT}`);
-  // npx nodemon src/backend/cateqory.js serveri ise salmaq ucun
 });
