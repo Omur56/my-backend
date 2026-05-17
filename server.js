@@ -8,7 +8,7 @@ import connectDB from "./db.js";
 import adRoutes from "./routes/adRoutes.js";
 import HomeAndGarden from "./models/HomeAndGarden.js";
 // import electronics from "./models/.js";
-import Accessory from "./models/Acsesuar.js";
+// import accessory from "./models/Acsesuar.js";
 import RealEstate from "./models/RealEstate.js";
 import HouseHold from "./models/Household.js";
 import Phone from "./models/Phone.js";
@@ -172,7 +172,7 @@ app.use(
   "/api",
   rateLimit({
     windowMs: 15 * 60 * 1000, // 15 dəqiqə
-    max: 500, // eyni IP üçün maksimum 100 sorğu
+    max: 5000, // eyni IP üçün maksimum 100 sorğu
     standardHeaders: true, // rate limit məlumatını `RateLimit-*` header-larda göstər
     legacyHeaders: false,
     message: "Çox request göndərdiniz, bir az sonra yenidən cəhd edin.", // `X-RateLimit-*` header-larını deaktiv et
@@ -394,7 +394,7 @@ app.get("/api/my-ads", authMiddleware, async (req, res) => {
 //   Clothing: Clothing,
 //   Announcement: Announcement,
 //   electronics: electronics,
-//   Accessory: Accessory,
+//   accessory: accessory,
 //   HouseHold: HouseHold,
 //   Phone: Phone,
 // };
@@ -466,12 +466,12 @@ app.get("/count/household", async (req, res) => {
   }
 });
 
-app.get("/count/accessories", async (req, res) => {
+app.get("/count/accessory", async (req, res) => {
   try {
-    const count = await Accessories.countDocuments();
+    const count = await accessory.countDocuments();
     res.json({ count });
   } catch (err) {
-    res.status(500).json({ message: "Accessories count error" });
+    res.status(500).json({ message: "accessory count error" });
   }
 });
 
@@ -2506,7 +2506,7 @@ app.get("/api/ads", async (req, res) => {
 
 
 app.post(
-  "/api/accessories",
+  "/api/accessory",
   verifyToken,
   upload.array("images", 20),
   async (req, res) => {
@@ -2517,7 +2517,7 @@ app.post(
 
       // 🔥 SAFE CLOUDINARY UPLOAD
       for (const file of files) {
-        const result = await uploadToCloudinary(file.buffer, "accessories");
+        const result = await uploadToCloudinary(file.buffer, "accessory");
         uploadedImages.push(result.secure_url);
       }
 
@@ -2551,7 +2551,7 @@ app.post(
       res.status(201).json(newAd);
 
     } catch (err) {
-      console.error("❌ Accessories error:", err);
+      console.error("❌ accessory error:", err);
       res.status(500).json({ error: err.message });
     }
   }
@@ -2559,7 +2559,7 @@ app.post(
 
 
 
-app.get("/api/accessories", async (req, res) => {
+app.get("/api/accessory", async (req, res) => {
   try {
     const data = await Ad.find({ category: "accessory", isActive: true }).sort({
       priorityType: -1,
@@ -2572,7 +2572,7 @@ app.get("/api/accessories", async (req, res) => {
   }
 });
 
-app.get("/api/my-accessories", verifyToken, async (req, res) => {
+app.get("/api/my-accessory", verifyToken, async (req, res) => {
   try {
     const data = await Ad.find({
       userId: req.user.id,
@@ -2585,7 +2585,7 @@ app.get("/api/my-accessories", verifyToken, async (req, res) => {
   }
 });
 
-app.get("/api/accessories/:id", async (req, res) => {
+app.get("/api/accessory/:id", async (req, res) => {
   try {
     const item = await Ad.findById(req.params.id);
 
@@ -2601,7 +2601,7 @@ app.get("/api/accessories/:id", async (req, res) => {
 
 
 app.post(
-  "/api/accessories",
+  "/api/accessory",
   verifyToken,
   upload.array("images", 20),
   async (req, res) => {
@@ -2612,7 +2612,7 @@ app.post(
 
       // 🔥 SAFE CLOUDINARY UPLOAD
       for (const file of files) {
-        const result = await uploadToCloudinary(file.buffer, "accessories");
+        const result = await uploadToCloudinary(file.buffer, "accessory");
         uploadedImages.push(result.secure_url);
       }
 
@@ -2651,7 +2651,7 @@ app.post(
       res.status(201).json(newAd);
 
     } catch (err) {
-      console.error("❌ Accessories error:", err);
+      console.error("❌ accessory error:", err);
       res.status(500).json({ error: err.message });
     }
   }
@@ -2659,7 +2659,7 @@ app.post(
 
 
 app.put(
-  "/api/accessories/:id",
+  "/api/accessory/:id",
   verifyToken,
   upload.array("images", 20),
   async (req, res) => {
@@ -2679,7 +2679,7 @@ app.put(
 
         for (const file of req.files) {
           const result = await cloudinary.uploader.upload(file.path, {
-            folder: "accessories",
+            folder: "accessory",
           });
 
           uploadedImages.push(result.secure_url);
@@ -2707,7 +2707,7 @@ app.put(
   },
 );
 
-app.delete("/api/accessories/:id", verifyToken, async (req, res) => {
+app.delete("/api/accessory/:id", verifyToken, async (req, res) => {
   try {
     const item = await Ad.findById(req.params.id);
 
@@ -2727,7 +2727,7 @@ app.delete("/api/accessories/:id", verifyToken, async (req, res) => {
   }
 });
 
-app.patch("/api/accessories/:id/like", async (req, res) => {
+app.patch("/api/accessory/:id/like", async (req, res) => {
   try {
     const item = await Ad.findById(req.params.id);
 
@@ -2740,7 +2740,7 @@ app.patch("/api/accessories/:id/like", async (req, res) => {
   }
 });
 
-app.patch("/api/accessories/:id/favorite", async (req, res) => {
+app.patch("/api/accessory/:id/favorite", async (req, res) => {
   try {
     const item = await Ad.findById(req.params.id);
 
@@ -2753,7 +2753,7 @@ app.patch("/api/accessories/:id/favorite", async (req, res) => {
   }
 });
 
-app.get("/api/accessories/search", async (req, res) => {
+app.get("/api/accessory/search", async (req, res) => {
   try {
     const { model } = req.query;
 
@@ -2771,7 +2771,7 @@ app.get("/api/accessories/search", async (req, res) => {
   }
 });
 // ---------------------------
-// app.get("/api/accessories", async (req, res) => {
+// app.get("/api/accessory", async (req, res) => {
 //   try {
 //     const data = await Ad.find({
 //       category: "accessory",
@@ -2784,7 +2784,7 @@ app.get("/api/accessories/search", async (req, res) => {
 //   }
 // });
 
-// app.get("/api/accessories/search", async (req, res) => {
+// app.get("/api/accessory/search", async (req, res) => {
 //   const { model } = req.query;
 
 //   const data = await Ad.find({
@@ -2798,7 +2798,7 @@ app.get("/api/accessories/search", async (req, res) => {
 //   });
 // });
 
-app.get("/api/accessories/count", async (req, res) => {
+app.get("/api/accessory/count", async (req, res) => {
   const { model } = req.query;
 
   const count = await Ad.countDocuments({
@@ -3583,10 +3583,10 @@ app.get("/api/accessories/count", async (req, res) => {
 //   }
 // });
 
-// // ----------------- Accessory -----------------
-// app.get("/api/my-accessories", verifyToken, async (req, res) => {
+// // ----------------- accessory -----------------
+// app.get("/api/my-accessory", verifyToken, async (req, res) => {
 //   try {
-//     const items = await Accessory.find({ userId: req.user.id }).sort({
+//     const items = await accessory.find({ userId: req.user.id }).sort({
 //       data: -1,
 //     });
 //     res.json(items);
@@ -3595,9 +3595,9 @@ app.get("/api/accessories/count", async (req, res) => {
 //   }
 // });
 
-// app.delete("/api/accessories/:id", verifyToken, async (req, res) => {
+// app.delete("/api/accessory/:id", verifyToken, async (req, res) => {
 //   try {
-//     const item = await Accessory.findById(req.params.id);
+//     const item = await accessory.findById(req.params.id);
 //     if (!item) return res.status(404).json({ message: "Elan tapılmadı" });
 //     if (item.userId !== req.user.id)
 //       return res
@@ -3609,18 +3609,18 @@ app.get("/api/accessories/count", async (req, res) => {
 //     res.status(500).json({ error: err.message });
 //   }
 // });
-// app.get("/api/accessories", async (req, res) => {
+// app.get("/api/accessory", async (req, res) => {
 //   try {
-//     const accessories = await Accessory.find();
-//     res.json(accessories);
+//     const accessory = await accessory.find();
+//     res.json(accessory);
 //   } catch (err) {
 //     res.status(500).json({ error: err.message });
 //   }
 // });
 
-// app.get("/api/accessories/:id", async (req, res) => {
+// app.get("/api/accessory/:id", async (req, res) => {
 //   try {
-//     const accessory = await Accessory.findById(req.params.id);
+//     const accessory = await accessory.findById(req.params.id);
 //     if (!accessory) return res.status(404).json({ message: "Elan tapılmadı" });
 //     res.json(accessory);
 //   } catch (err) {
@@ -3628,13 +3628,13 @@ app.get("/api/accessories/count", async (req, res) => {
 //   }
 // });
 
-// // app.post("/api/accessories", verifyToken, upload.array("images", 20), async (req, res) => {
+// // app.post("/api/accessory", verifyToken, upload.array("images", 20), async (req, res) => {
 // //   try {
 // //     const images = req.files.map(
 // //       file => `${BASE_URL}/uploads/${file.filename}`
 // //     );
 
-// //     const accessory = new Accessory({
+// //     const accessory = new accessory({
 // //       ...req.body,
 // //       images,
 // //       userId: req.user.id, // <- burda istifadəçinin ID-si
@@ -3653,7 +3653,7 @@ app.get("/api/accessories/count", async (req, res) => {
 // // });
 
 // // app.put(
-// //   "/api/accessories/:id",
+// //   "/api/accessory/:id",
 // //   upload.array("images", 10),
 // //   async (req, res) => {
 // //     try {
@@ -3665,7 +3665,7 @@ app.get("/api/accessories/count", async (req, res) => {
 // //         );
 // //       }
 
-// //       const updated = await Accessory.findByIdAndUpdate(
+// //       const updated = await accessory.findByIdAndUpdate(
 // //         req.params.id,
 // //         {
 // //           ...req.body,
@@ -3685,7 +3685,7 @@ app.get("/api/accessories/count", async (req, res) => {
 // //   }
 // // );
 // app.post(
-//   "/api/accessories",
+//   "/api/accessory",
 //   verifyToken,
 //   upload.array("images", 10),
 //   async (req, res) => {
@@ -3697,7 +3697,7 @@ app.get("/api/accessories/count", async (req, res) => {
 //       for (const file of req.files) {
 //         const filePath = file.path.replace(/\\/g, "/"); // Windows üçün
 //         const result = await cloudinary.uploader.upload(filePath, {
-//           folder: "accessories",
+//           folder: "accessory",
 //           transformation: [
 //             {
 //               overlay: "proelan_watermark", // Cloudinary-də yüklədiyin watermark
@@ -3713,7 +3713,7 @@ app.get("/api/accessories/count", async (req, res) => {
 //         if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
 //       }
 
-//       const accessory = new Accessory({
+//       const accessory = new accessory({
 //         ...req.body,
 //         images: uploadedImages, // ✅ watermarklı şəkillər
 //         userId: req.user.id,
@@ -3734,7 +3734,7 @@ app.get("/api/accessories/count", async (req, res) => {
 // );
 
 // app.put(
-//   "/api/accessories/:id",
+//   "/api/accessory/:id",
 //   upload.array("images", 10),
 //   async (req, res) => {
 //     try {
@@ -3744,7 +3744,7 @@ app.get("/api/accessories/count", async (req, res) => {
 //         for (const file of req.files) {
 //           const filePath = file.path.replace(/\\/g, "/");
 //           const result = await cloudinary.uploader.upload(filePath, {
-//             folder: "accessories",
+//             folder: "accessory",
 //           });
 //           uploadedImages.push(result.secure_url);
 
@@ -3752,7 +3752,7 @@ app.get("/api/accessories/count", async (req, res) => {
 //         }
 //       }
 
-//       const updated = await Accessory.findByIdAndUpdate(
+//       const updated = await accessory.findByIdAndUpdate(
 //         req.params.id,
 //         {
 //           ...req.body,
@@ -3774,18 +3774,18 @@ app.get("/api/accessories/count", async (req, res) => {
 //   }
 // );
 
-// app.delete("/api/accessories/:id", async (req, res) => {
+// app.delete("/api/accessory/:id", async (req, res) => {
 //   try {
-//     await Accessory.findByIdAndDelete(req.params.id);
-//     res.json({ message: "Accessory silindi" });
+//     await accessory.findByIdAndDelete(req.params.id);
+//     res.json({ message: "accessory silindi" });
 //   } catch (err) {
 //     res.status(500).json({ error: err.message });
 //   }
 // });
 
-// app.patch("/api/accessories/:id/favorite", async (req, res) => {
+// app.patch("/api/accessory/:id/favorite", async (req, res) => {
 //   try {
-//     const accessory = await Accessory.findById(req.params.id);
+//     const accessory = await accessory.findById(req.params.id);
 //     accessory.favorite = !accessory.favorite;
 //     await accessory.save();
 //     res.json(accessory);
@@ -3794,9 +3794,9 @@ app.get("/api/accessories/count", async (req, res) => {
 //   }
 // });
 
-// app.patch("/api/accessories/:id/like", async (req, res) => {
+// app.patch("/api/accessory/:id/like", async (req, res) => {
 //   try {
-//     const accessory = await Accessory.findById(req.params.id);
+//     const accessory = await accessory.findById(req.params.id);
 //     accessory.liked = !accessory.liked;
 //     await accessory.save();
 //     res.json(accessory);
@@ -3806,10 +3806,10 @@ app.get("/api/accessories/count", async (req, res) => {
 // });
 
 // // 📌 Yüklənmiş şəkili silmək
-// app.delete("/api/accessories/images/:imageName", async (req, res) => {
+// app.delete("/api/accessory/images/:imageName", async (req, res) => {
 //   try {
 //     const imageName = req.params.imageName;
-//     await Accessory.updateMany(
+//     await accessory.updateMany(
 //       {},
 //       { $pull: { images: { $regex: imageName } } }
 //     );
@@ -5263,8 +5263,8 @@ app.get("/api/users/:id", async (req, res) => {
 //     }).lean();
 //     realEstateAds.forEach((ad) => (ad.modelName = "RealEstate"));
 
-//     const accessoryAds = await Accessory.find({ userId: req.user._id }).lean();
-//     accessoryAds.forEach((ad) => (ad.modelName = "accessories"));
+//     const accessoryAds = await accessory.find({ userId: req.user._id }).lean();
+//     accessoryAds.forEach((ad) => (ad.modelName = "accessory"));
 
 //     const announcementAds = await Announcement.find({
 //       userId: req.user.id,
@@ -5302,7 +5302,7 @@ app.get("/api/users/:id", async (req, res) => {
 //   Phone: Phone,
 //   household: HouseHold,
 //   realEstate: RealEstate,
-//   accessories: Accessory,
+//   accessory: accessory,
 //   cars: Announcement,
 //   electronics: electronics,
 // };
@@ -5335,7 +5335,7 @@ app.get("/api/users/:id", async (req, res) => {
 //     Phone: Phone,
 //     household: HouseHold,
 //     realestate: RealEstate,
-//     accessory: Accessory,
+//     accessory: accessory,
 //     cars: Announcement,
 //     electronics: electronics,
 //   };

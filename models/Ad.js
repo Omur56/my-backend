@@ -66,7 +66,7 @@ favorite: {
       type: String,
       enum: [
         "car",
-        "phone",
+        "Phone",
         "electronics",
         "clothing", // 🔥 düzəldildi
         "realEstate",
