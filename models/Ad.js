@@ -71,7 +71,7 @@ favorite: {
       type: String,
       enum: [
         "car",
-        "Phone",
+        "phone",
         "electronics",
         "clothing", // 🔥 düzəldildi
         "realEstate",
@@ -82,8 +82,7 @@ favorite: {
       ],
     },
 
-    brand: String,
-    model: String,
+    
 
     car: {
   ban_type: String,
