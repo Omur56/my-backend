@@ -33,6 +33,11 @@ favorite: {
     location: String,
     city: String,
     images: [String],
+    brand: String,
+    model: String,
+       
+       
+       
     // data: { type: Date, default: Date.now },
    
     isActive: { type: Boolean, default: true },

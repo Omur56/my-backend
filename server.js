@@ -966,28 +966,29 @@ app.post(
   upload.array("images", 20),
   async (req, res) => {
     try {
+      console.log(req.files);
+      console.log(req.body);
+      console.log(req.user);
+
       const files = req.files || [];
+
       const uploadedImages = [];
 
       for (const file of files) {
-        const result = await uploadToCloudinary(file.buffer, "phone");
+        const result = await uploadToCloudinary(
+          file.buffer,
+          "phone"
+        );
+
         uploadedImages.push(result.secure_url);
       }
 
-      const mainImageIndex = parseInt(req.body.mainImageIndex);
-
-      const mainImage =
-        uploadedImages[mainImageIndex] ||
-        uploadedImages[0] ||
-        null;
-
       const newAd = await Ad.create({
         title: req.body.title,
+        brand: req.body.brand,
+        model: req.body.model,
         description: req.body.description,
-        price: req.body.price
-          ? Number(req.body.price)
-          : 0,
-
+        price: Number(req.body.price),
         location: req.body.location,
 
         category: "phone",
@@ -1008,10 +1009,7 @@ app.post(
         userId: req.user.id,
 
         images: uploadedImages,
-        mainImage,
-
-        priorityType:
-          req.body.priorityType || "free",
+        mainImage: uploadedImages[0],
 
         liked: false,
         favorite: false,
@@ -1020,15 +1018,14 @@ app.post(
       res.status(201).json(newAd);
 
     } catch (err) {
-      console.error("Phone ERROR:", err);
+      console.error(err);
 
       res.status(500).json({
-        error: err.message,
+        message: err.message,
       });
     }
   }
 );
-
 
 
 app.get("/api/phone", async (req, res) => {
