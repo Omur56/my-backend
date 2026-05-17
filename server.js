@@ -896,17 +896,79 @@ app.get("/api/ads/search", async (req, res) => {
 // ----Phones-------
 
 
+// app.post(
+//   "/api/phone",
+  
+//   upload.array("images", 20),
+//   async (req, res) => {
+//     try {
+//       const files = req.files || [];
+
+//       const uploadedImages = [];
+
+//       // 🔥 SAFE UPLOAD
+//       for (const file of files) {
+//         const result = await uploadToCloudinary(file.buffer, "phone");
+//         uploadedImages.push(result.secure_url);
+//       }
+
+//       const mainImageIndex = parseInt(req.body.mainImageIndex);
+
+//       const mainImage =
+//         uploadedImages[mainImageIndex] || uploadedImages[0] || null;
+
+//       const newAd = await Ad.create({
+//         title: req.body.title,
+//         description: req.body.description,
+//         price: req.body.price ? Number(req.body.price) : 0,
+//         location: req.body.location,
+
+//         category: "phone",
+
+//         phone: {
+//           storage: req.body.storage,
+//           color: req.body.color,
+//           ram: req.body.ram,
+//           sim_card: req.body.sim_card,
+//         },
+
+//         contact: {
+//           name: req.body["contact.name"],
+//           email: req.body["contact.email"],
+//           phone: req.body["contact.phone"],
+//         },
+
+//         userId: req.user.id,
+
+//         images: uploadedImages,
+//         mainImage,
+
+//         priorityType: req.body.priorityType || "free",
+//         liked: false,
+//         favorite: false,
+//       });
+
+//       res.status(201).json(newAd);
+
+//     } catch (err) {
+//       console.error("Phone ERROR:", err);
+//       res.status(500).json({ error: err.message });
+//     }
+//   }
+// );
+
+
+
+
 app.post(
   "/api/phone",
-  
+  verifyToken,
   upload.array("images", 20),
   async (req, res) => {
     try {
       const files = req.files || [];
-
       const uploadedImages = [];
 
-      // 🔥 SAFE UPLOAD
       for (const file of files) {
         const result = await uploadToCloudinary(file.buffer, "phone");
         uploadedImages.push(result.secure_url);
@@ -915,12 +977,17 @@ app.post(
       const mainImageIndex = parseInt(req.body.mainImageIndex);
 
       const mainImage =
-        uploadedImages[mainImageIndex] || uploadedImages[0] || null;
+        uploadedImages[mainImageIndex] ||
+        uploadedImages[0] ||
+        null;
 
       const newAd = await Ad.create({
         title: req.body.title,
         description: req.body.description,
-        price: req.body.price ? Number(req.body.price) : 0,
+        price: req.body.price
+          ? Number(req.body.price)
+          : 0,
+
         location: req.body.location,
 
         category: "phone",
@@ -943,7 +1010,9 @@ app.post(
         images: uploadedImages,
         mainImage,
 
-        priorityType: req.body.priorityType || "free",
+        priorityType:
+          req.body.priorityType || "free",
+
         liked: false,
         favorite: false,
       });
@@ -952,7 +1021,10 @@ app.post(
 
     } catch (err) {
       console.error("Phone ERROR:", err);
-      res.status(500).json({ error: err.message });
+
+      res.status(500).json({
+        error: err.message,
+      });
     }
   }
 );
