@@ -11,7 +11,7 @@ import HomeAndGarden from "./models/HomeAndGarden.js";
 // import accessory from "./models/Acsesuar.js";
 import RealEstate from "./models/RealEstate.js";
 import HouseHold from "./models/Household.js";
-import Phone from "./models/Phone.js";
+import phone from "./models/Phone.js";
 import Clothing from "./models/Clothing.js";
 import Jewelry from "./models/Jewelry.js";
 import User from "./models/user.js";
@@ -439,7 +439,7 @@ app.get("/count/homeGarden", async (req, res) => {
   }
 });
 
-app.get("/count/Phone", async (req, res) => {
+app.get("/count/phone", async (req, res) => {
   try {
     const count = await Phone.countDocuments();
     res.json({ count });
@@ -897,7 +897,7 @@ app.get("/api/ads/search", async (req, res) => {
 
 
 app.post(
-  "/api/Phone",
+  "/api/phone",
   
   upload.array("images", 20),
   async (req, res) => {
@@ -908,7 +908,7 @@ app.post(
 
       // 🔥 SAFE UPLOAD
       for (const file of files) {
-        const result = await uploadToCloudinary(file.buffer, "Phone");
+        const result = await uploadToCloudinary(file.buffer, "phone");
         uploadedImages.push(result.secure_url);
       }
 
@@ -923,9 +923,9 @@ app.post(
         price: req.body.price ? Number(req.body.price) : 0,
         location: req.body.location,
 
-        category: "Phone",
+        category: "phone",
 
-        Phone: {
+        phone: {
           storage: req.body.storage,
           color: req.body.color,
           ram: req.body.ram,
@@ -935,7 +935,7 @@ app.post(
         contact: {
           name: req.body["contact.name"],
           email: req.body["contact.email"],
-          Phone: req.body["contact.Phone"],
+          phone: req.body["contact.phone"],
         },
 
         userId: req.user.id,
@@ -959,10 +959,10 @@ app.post(
 
 
 
-app.get("/api/Phone", async (req, res) => {
+app.get("/api/phone", async (req, res) => {
   try {
     const data = await Ad.find({
-      category: "Phone",
+      category: "phone",
       isActive: true,
     }).sort({ createdAt: -1 });
 
@@ -972,7 +972,7 @@ app.get("/api/Phone", async (req, res) => {
   }
 });
 
-app.get("/api/Phone/:id",  async (req, res) => {
+app.get("/api/phone/:id",  async (req, res) => {
   try {
     const item = await Ad.findById(req.params.id);
 
@@ -987,7 +987,7 @@ app.get("/api/Phone/:id",  async (req, res) => {
 });
 
 app.put(
-  "/api/Phone/:id",
+  "/api/phone/:id",
   verifyToken,
   upload.array("images", 20),
   async (req, res) => {
@@ -1007,7 +1007,7 @@ app.put(
 
         for (const file of files) {
           const result = await cloudinary.uploader.upload(file.path, {
-            folder: "Phone",
+            folder: "phone",
           });
 
           uploadedImages.push(result.secure_url);
@@ -1031,7 +1031,7 @@ app.put(
   },
 );
 
-app.delete("/api/Phone/:id", verifyToken, async (req, res) => {
+app.delete("/api/phone/:id", verifyToken, async (req, res) => {
   try {
     const item = await Ad.findById(req.params.id);
 
@@ -1049,7 +1049,7 @@ app.delete("/api/Phone/:id", verifyToken, async (req, res) => {
   }
 });
 
-app.patch("/api/Phone/:id/like", async (req, res) => {
+app.patch("/api/phone/:id/like", async (req, res) => {
   try {
     const item = await Ad.findById(req.params.id);
 
@@ -1062,7 +1062,7 @@ app.patch("/api/Phone/:id/like", async (req, res) => {
   }
 });
 
-app.patch("/api/Phone/:id/favorite", async (req, res) => {
+app.patch("/api/phone/:id/favorite", async (req, res) => {
   try {
     const item = await Ad.findById(req.params.id);
 
