@@ -85,29 +85,31 @@ favorite: {
     
 
     car: {
-  ban_type: String,
-  year: String,
-  engine: String,
-  motor: String,
-  transmission: String,
-  km: String,
-  color: String,
-  modification: String,
-  barter: String,
-  credit: String,
-  salon: String,
-  type_magasine: {
+
+brand: String,
+model: String,
+
+ban_type: String,
+year: String,
+engine: String,
+motor: String,
+transmission: String,
+km: String,
+color: String,
+modification: String,
+barter: String,
+credit: String,
+salon: String,
+
+type_magasine: {
   type: String,
   enum: ["sifarisle", "magaza", "resmi"],
   default: undefined,
-  required: false,
+},
 },
 
 
-},
-
-
-    phone: {
+   phoneDeatail: {
       storage: String,
       color: String,
       ram: String,

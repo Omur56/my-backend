@@ -732,7 +732,7 @@ app.post(
       const contact = {
         name: req.body["contact.name"],
         email: req.body["contact.email"],
-        Phone: req.body["contact.Phone"],
+        phone: req.body["contact.phone"],
       };
 
       const mainImageIndex = parseInt(req.body.mainImageIndex);
@@ -777,9 +777,15 @@ app.post(
           credit: req.body.credit,
           salon: req.body.salon,
         },
+ contact: {
+          name: req.body["contact.name"],
+          email: req.body["contact.email"],
+          phone: req.body["contact.phone"],
+          userId: req.user.id,
+        },
 
-        contact,
-        userId: req.user.id,
+        // contact,
+        // userId: req.user.id,
 
         images: uploadedImages,
         mainImage,
@@ -993,7 +999,7 @@ app.post(
 
         category: "phone",
 
-        phone: {
+        phoneDeatail: {
           storage: req.body.storage,
           color: req.body.color,
           ram: req.body.ram,
@@ -1198,7 +1204,7 @@ app.post(
       const contact = {
         name: req.body["contact.name"],
         email: req.body["contact.email"],
-        Phone: req.body["contact.Phone"],
+        phone: req.body["contact.phone"],
       };
 
       const newAd = await Ad.create({
@@ -1595,7 +1601,7 @@ app.post(
         contact: {
           name: req.body["contact.name"],
           email: req.body["contact.email"],
-          Phone: req.body["contact.Phone"],
+          phone: req.body["contact.phone"],
         },
 
         images: uploadedImages,
@@ -1818,7 +1824,7 @@ app.post(
         contact: {
           name: req.body["contact.name"],
           email: req.body["contact.email"],
-          Phone: req.body["contact.Phone"],
+          phone: req.body["contact.phone"],
         },
 
         userId: req.user.id,
@@ -1939,7 +1945,7 @@ app.post(
         contact: {
           name: req.body["contact.name"],
           email: req.body["contact.email"],
-          Phone: req.body["contact.Phone"],
+          phone: req.body["contact.phone"],
         },
 
         userId: req.user.id,
@@ -2227,7 +2233,7 @@ app.post(
         contact: {
           name: req.body["contact.name"],
           email: req.body["contact.email"],
-          Phone: req.body["contact.Phone"],
+          phone: req.body["contact.phone"],
         },
 
         images: uploadedImages,
@@ -2379,7 +2385,7 @@ app.post(
         contact: {
           name: req.body["contact.name"],
           email: req.body["contact.email"],
-          Phone: req.body["contact.Phone"],
+          phone: req.body["contact.phone"],
         },
 
         images: uploadedImages,
@@ -2704,7 +2710,7 @@ app.post(
         contact: {
           name: req.body["contact.name"],
           email: req.body["contact.email"],
-          Phone: req.body["contact.Phone"],
+          phone: req.body["contact.phone"],
         },
 
         images: uploadedImages,
@@ -5142,7 +5148,7 @@ app.post("/api/reqister", async (req, res) => {
     // 3. create user
     const newUser = new User({
       username,
-      Phone,
+      phone,
       email,
       password: hashedPassword,
     });
