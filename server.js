@@ -198,12 +198,50 @@ const BASE_URL = process.env.BASE_URL || "http://localhost:10000";
 // const upload = multer({ storage });
 
 
+// const uploadToCloudinary = (buffer, folder = "uploads") => {
+//   return new Promise((resolve, reject) => {
+//     const stream = cloudinary.uploader.upload_stream(
+//       {
+//         folder,
+//         transformation: [
+//           {
+//             overlay: "proelan_watermark",
+//             width: 0.6,
+//             opacity: 30,
+//             gravity: "center",
+//           },
+//         ],
+//       },
+//       (error, result) => {
+//         if (error) return reject(error);
+//         resolve(result);
+//       }
+//     );
+
+//     stream.end(buffer);
+//   });
+// };
+
+
 const uploadToCloudinary = (buffer, folder = "uploads") => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       {
         folder,
+        quality: "auto",
+        fetch_format: "auto",
+
         transformation: [
+          {
+            width: 800,
+            crop: "limit",
+          },
+          {
+            quality: "auto",
+          },
+          {
+            fetch_format: "auto",
+          },
           {
             overlay: "proelan_watermark",
             width: 0.6,
