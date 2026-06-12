@@ -761,6 +761,8 @@ app.get("/api/car/:id", async (req, res) => {
   }
 });
 
+
+
 app.post(
   "/api/car",
   verifyToken,
@@ -797,6 +799,7 @@ app.post(
         price: Number(req.body.price),
         location: req.body.location,
         city: req.body.city,
+        userId: req.user.id, 
         category: "car",
 
         brand: req.body.brand,
@@ -819,11 +822,11 @@ app.post(
           name: req.body["contact.name"],
           email: req.body["contact.email"],
           phone: req.body["contact.phone"],
-          userId: req.user.id,
+          
         },
 
         // contact,
-        // userId: req.user.id,
+        userId: req.user.id,
 
         images: uploadedImages,
         mainImage,
