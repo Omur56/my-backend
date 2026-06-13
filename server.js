@@ -767,26 +767,25 @@ app.get("/api/car/:id", async (req, res) => {
   }
 });
 
-
-
 app.post(
   "/api/car",
   verifyToken,
   upload.array("images", 20),
   async (req, res) => {
     try {
+      // 🔥 FIX 1: car JSON parse (ƏGƏR frontend JSON göndərirsə)
+      const car = req.body.car ? JSON.parse(req.body.car) : {};
+
       const contact = {
-        name: req.body["contact.name"],
-        email: req.body["contact.email"],
-        phone: req.body["contact.phone"],
+        name: req.body["contact.name"] || "",
+        email: req.body["contact.email"] || "",
+        phone: req.body["contact.phone"] || "",
       };
 
       const mainImageIndex = parseInt(req.body.mainImageIndex);
 
-      const uploadedImages = [];
-
-      // 🔥 SAFETY FIX
       const files = req.files || [];
+      const uploadedImages = [];
 
       for (const file of files) {
         const result = await uploadToCloudinary(file.buffer, "car");
@@ -800,39 +799,40 @@ app.post(
       }
 
       const newAd = await Ad.create({
-        title: req.body.title,
-        description: req.body.description,
-        price: Number(req.body.price),
-        location: req.body.location,
-        city: req.body.city,
-        userId: req.user.id, 
+        title: req.body.title || "",
+        description: req.body.description || "",
+        price: Number(req.body.price) || 0,
+        location: req.body.location || "",
+        city: req.body.city || "",
+
+        userId: req.user.id,
         category: "car",
 
-        brand: req.body.brand,
-        model: req.body.model,
+        brand: req.body.brand || "",
+        model: req.body.model || "",
 
+        // 🔥 BÜTÜN CAR DATA BURADA OLUR
         car: {
-          ban_type: req.body.ban_type,
-          year: req.body.year,
-          engine: req.body.engine,
-          transmission: req.body.transmission,
-          km: req.body.km,
-          color: req.body.color,
-          motor: req.body.motor,
-          modification: req.body.modification,
-          barter: req.body.barter,
-          credit: req.body.credit,
-          salon: req.body.salon,
-        },
- contact: {
-          name: req.body["contact.name"],
-          email: req.body["contact.email"],
-          phone: req.body["contact.phone"],
-          
+          ...car,
+
+          // safety fallback (frontend boş göndərsə)
+          ban_type: car.ban_type || "",
+          year: car.year || "",
+          engine: car.engine || "",
+          transmission: car.transmission || "",
+          km: car.km || "",
+          color: car.color || "",
+          motor: car.motor || "",
+          modification: car.modification || "",
+
+          barter: car.barter || "Xeyr",
+          credit: car.credit || "Xeyr",
+          salon: car.salon || "Xeyr",
+
+          type_magasine: car.type_magasine || "",
         },
 
-        // contact,
-        userId: req.user.id,
+        contact,
 
         images: uploadedImages,
         mainImage,
