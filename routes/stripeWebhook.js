@@ -95,6 +95,7 @@ router.post(
   "/webhook",
   express.raw({ type: "application/json" }),
   async (req, res) => {
+    console.log("🔥 STRIPE WEBHOOK ROUTE LOADED");
     const sig = req.headers["stripe-signature"];
     let event;
 

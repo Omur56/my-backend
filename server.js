@@ -74,7 +74,7 @@ const app = express();
 
 // const PORT = 5000;
 
-app.use("/api/stripe", stripeWebhookRoutes);
+// app.use("/api/stripe", stripeWebhookRoutes);
 
 // MongoDB-ə qoşul
 mongoose
@@ -166,7 +166,12 @@ app.use(
   })
 );
 
+app.use("/api/stripe", stripeWebhookRoutes);
+
+app.use(express.json());
 app.use(bodyParser.json());
+
+// app.use(bodyParser.json());
 
 app.use(
   "/api",
@@ -302,7 +307,7 @@ app.use(
 
 // API Routes
 app.use("/api/payments", paymentRoutes); // create-checkout
-app.use("/api/payments/webhook", stripeWebhookRoutes); // Stripe webhook
+// app.use("/api/payments/webhook", stripeWebhookRoutes); // Stripe webhook
 app.use("/api/listings", listingRoutes);
 app.use("/api/announcements", announcementRoutes);
 app.use("/api/ads", adsRouter);
