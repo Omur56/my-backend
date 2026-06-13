@@ -88,6 +88,11 @@ import Stripe from "stripe";
 import moment from "moment-timezone";
 import Ad from "../models/Ad.js";
 
+
+
+console.log("🔥 STRIPE WEBHOOK ROUTE LOADED");
+
+
 const router = express.Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET);
 
