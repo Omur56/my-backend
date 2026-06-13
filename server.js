@@ -773,7 +773,6 @@ app.post(
   upload.array("images", 20),
   async (req, res) => {
     try {
-      // 🔥 FIX 1: car JSON parse (ƏGƏR frontend JSON göndərirsə)
       const car = req.body.car ? JSON.parse(req.body.car) : {};
 
       const contact = {
@@ -808,14 +807,11 @@ app.post(
         userId: req.user.id,
         category: "car",
 
-        brand: req.body.brand || "",
-        model: req.body.model || "",
+        // 🔥 BURA KRİTİKDİR
+        brand: car.brand || "",
+        model: car.model || "",
 
-        // 🔥 BÜTÜN CAR DATA BURADA OLUR
         car: {
-          ...car,
-
-          // safety fallback (frontend boş göndərsə)
           ban_type: car.ban_type || "",
           year: car.year || "",
           engine: car.engine || "",
@@ -824,11 +820,9 @@ app.post(
           color: car.color || "",
           motor: car.motor || "",
           modification: car.modification || "",
-
           barter: car.barter || "Xeyr",
           credit: car.credit || "Xeyr",
           salon: car.salon || "Xeyr",
-
           type_magasine: car.type_magasine || "",
         },
 
@@ -845,14 +839,12 @@ app.post(
       });
 
       res.status(201).json(newAd);
-
     } catch (err) {
       console.error("❌ Car əlavə olunarkən xəta:", err);
       res.status(500).json({ error: err.message });
     }
   }
 );
-
 app.put(
   "/api/car/:id",
   verifyToken,
