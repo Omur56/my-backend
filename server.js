@@ -767,18 +767,99 @@ app.get("/api/car/:id", async (req, res) => {
   }
 });
 
+// app.post(
+//   "/api/car",
+//   verifyToken,
+//   upload.array("images", 20),
+//   async (req, res) => {
+//     try {
+//       const car = req.body.car ? JSON.parse(req.body.car) : {};
+
+//       const contact = {
+//         name: req.body["contact.name"] || "",
+//         email: req.body["contact.email"] || "",
+//         phone: req.body["contact.phone"] || "",
+//       };
+
+//       const mainImageIndex = parseInt(req.body.mainImageIndex);
+
+//       const files = req.files || [];
+//       const uploadedImages = [];
+
+//       for (const file of files) {
+//         const result = await uploadToCloudinary(file.buffer, "car");
+//         uploadedImages.push(result.secure_url);
+//       }
+
+//       let mainImage = uploadedImages[0] || null;
+
+//       if (!isNaN(mainImageIndex) && uploadedImages[mainImageIndex]) {
+//         mainImage = uploadedImages[mainImageIndex];
+//       }
+
+//       const newAd = await Ad.create({
+//         title: req.body.title || "",
+//         description: req.body.description || "",
+//         price: Number(req.body.price) || 0,
+//         location: req.body.location || "",
+//         city: req.body.city || "",
+
+//         userId: req.user.id,
+//         category: "car",
+
+//         // 🔥 BURA KRİTİKDİR
+//         brand: car.brand || "",
+//         model: car.model || "",
+
+//         car: {
+//           ban_type: car.ban_type || "",
+//           year: car.year || "",
+//           engine: car.engine || "",
+//           transmission: car.transmission || "",
+//           km: car.km || "",
+//           color: car.color || "",
+//           motor: car.motor || "",
+//           modification: car.modification || "",
+//           barter: car.barter || "Xeyr",
+//           credit: car.credit || "Xeyr",
+//           salon: car.salon || "Xeyr",
+//           type_magasine: car.type_magasine || "",
+//         },
+
+//         contact,
+
+//         images: uploadedImages,
+//         mainImage,
+
+//         priorityType: req.body.priorityType || "free",
+//         priorityExpires: req.body.priorityExpires || null,
+
+//         liked: false,
+//         favorite: false,
+//       });
+
+//       res.status(201).json(newAd);
+//     } catch (err) {
+//       console.error("❌ Car əlavə olunarkən xəta:", err);
+//       res.status(500).json({ error: err.message });
+//     }
+//   }
+// );
+
 app.post(
   "/api/car",
   verifyToken,
   upload.array("images", 20),
   async (req, res) => {
     try {
+      // 🔥 car JSON parse
       const car = req.body.car ? JSON.parse(req.body.car) : {};
 
-      const contact = {
-        name: req.body["contact.name"] || "",
-        email: req.body["contact.email"] || "",
-        phone: req.body["contact.phone"] || "",
+      // 🔥 FIX: contact artıq car içindən gəlir
+      const contact = car.contact || {
+        name: "",
+        email: "",
+        phone: "",
       };
 
       const mainImageIndex = parseInt(req.body.mainImageIndex);
@@ -798,7 +879,7 @@ app.post(
       }
 
       const newAd = await Ad.create({
-        title: req.body.title || "",
+        title: car.title || "",
         description: req.body.description || "",
         price: Number(req.body.price) || 0,
         location: req.body.location || "",
@@ -807,7 +888,7 @@ app.post(
         userId: req.user.id,
         category: "car",
 
-        // 🔥 BURA KRİTİKDİR
+        // 🔥 CAR DATA
         brand: car.brand || "",
         model: car.model || "",
 
@@ -820,12 +901,18 @@ app.post(
           color: car.color || "",
           motor: car.motor || "",
           modification: car.modification || "",
+
           barter: car.barter || "Xeyr",
           credit: car.credit || "Xeyr",
           salon: car.salon || "Xeyr",
+
           type_magasine: car.type_magasine || "",
+
+          // 🔥 FIXED CONTACT (car içində də saxlanır)
+          contact,
         },
 
+        // 🔥 ayrıca contact (istəsən silə bilərsən, amma saxladım)
         contact,
 
         images: uploadedImages,
@@ -838,13 +925,15 @@ app.post(
         favorite: false,
       });
 
-      res.status(201).json(newAd);
+      return res.status(201).json(newAd);
     } catch (err) {
       console.error("❌ Car əlavə olunarkən xəta:", err);
-      res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: err.message });
     }
   }
 );
+
+
 app.put(
   "/api/car/:id",
   verifyToken,
@@ -1218,6 +1307,27 @@ app.get("/api/electronics", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+app.get("/api/electronics/:id", async (req, res) => {
+  try {
+    const electronics = await Ad.findById(req.params.id);
+
+    if (!electronics) {
+      return res.status(404).json({
+        message: "Elan tapılmadı",
+      });
+    }
+
+    res.json(electronics);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+});
+
+
 
 app.post(
   "/api/electronics",
