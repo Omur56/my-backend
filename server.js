@@ -2729,57 +2729,7 @@ app.get("/api/ads", async (req, res) => {
 // ----acsesuarr
 
 
-app.post(
-  "/api/accessory",
-  verifyToken,
-  upload.array("images", 20),
-  async (req, res) => {
-    try {
-      const files = req.files || [];
 
-      const uploadedImages = [];
-
-      // 🔥 SAFE CLOUDINARY UPLOAD
-      for (const file of files) {
-        const result = await uploadToCloudinary(file.buffer, "accessory");
-        uploadedImages.push(result.secure_url);
-      }
-
-      const mainImageIndex = parseInt(req.body.mainImageIndex);
-
-      const mainImage =
-        uploadedImages[mainImageIndex] || uploadedImages[0] || null;
-
-      const newAd = await Ad.create({
-        title: req.body.title,
-        description: req.body.description,
-        price: req.body.price ? Number(req.body.price) : 0,
-        location: req.body.location,
-
-        category: "accessory",
-
-        brand: req.body.brand,
-        model: req.body.model,
-
-        images: uploadedImages,
-        mainImage,
-
-        userId: req.user.id,
-
-        liked: false,
-        favorite: false,
-
-        priorityType: req.body.priorityType || "free",
-      });
-
-      res.status(201).json(newAd);
-
-    } catch (err) {
-      console.error("❌ accessory error:", err);
-      res.status(500).json({ error: err.message });
-    }
-  }
-);
 
 
 
