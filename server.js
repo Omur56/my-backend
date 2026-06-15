@@ -2774,7 +2774,9 @@ app.get("/api/accessory/:id", async (req, res) => {
 });
 
 
+
 app.post(
+  
   "/api/accessory",
   verifyToken,
   upload.array("images", 20),
@@ -2795,32 +2797,31 @@ app.post(
       const mainImage =
         uploadedImages[mainImageIndex] || uploadedImages[0] || null;
 
-      const newAd = await Ad.create({
-        title: req.body.title,
-        description: req.body.description,
-        price: req.body.price ? Number(req.body.price) : 0,
-        location: req.body.location,
+     const contact = req.body.contact ? JSON.parse(req.body.contact) : {};
 
-        category: "accessory",
+const newAd = await Ad.create({
+  title: req.body.title,
+  description: req.body.description,
+  price: req.body.price ? Number(req.body.price) : 0,
+  location: req.body.location,
+  category: "accessory",
 
-        brand: req.body.brand,
-        model: req.body.model,
+  brand: req.body.brand,
+  model: req.body.model,
 
-        contact: {
-          name: req.body["contact.name"],
-          email: req.body["contact.email"],
-          phone: req.body["contact.phone"],
-        },
+  contact: {
+    name: contact.name,
+    email: contact.email,
+    phone: contact.phone,
+  },
 
-        images: uploadedImages,
-        mainImage,
-
-        userId: req.user.id,
-
-        priorityType: req.body.priorityType || "free",
-        liked: false,
-        favorite: false,
-      });
+  images: uploadedImages,
+  mainImage,
+  userId: req.user.id,
+  priorityType: req.body.priorityType || "free",
+  liked: false,
+  favorite: false,
+});
 
       res.status(201).json(newAd);
 
