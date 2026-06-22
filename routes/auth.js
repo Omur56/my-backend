@@ -20,30 +20,92 @@ const transporter = nodemailer.createTransport({
 });
 
 // 1️⃣ Şifrə unutduqda — kod göndər
+// router.post("/forgot-password", async (req, res) => {
+//   try {
+//     const { email } = req.body;
+//     if (!email) return res.status(400).json({ message: "Email lazımdır" });
+
+//     const user = await User.findOne({ email });
+//     if (!user)
+//       return res
+//         .status(404)
+//         .json({ message: "Bu email ilə istifadəçi yoxdur" });
+
+//     // 6 rəqəmli təsadüfi kod
+//     const code = Math.floor(100000 + Math.random() * 900000).toString();
+//     const codeHash = await bcrypt.hash(code, 10);
+
+//     user.resetPasswordCode = codeHash;
+//     user.resetPasswordExpires = Date.now() + 1000 * 60 * 15; // 15 dəq
+//     await user.save();
+
+//     const resetLink = `${
+//       process.env.BASE_URL
+//     }/reset-password?email=${encodeURIComponent(
+//       email
+//     )}&code=${encodeURIComponent(code)}`;
+
+//     await transporter.sendMail({
+//       from: process.env.SMTP_FROM,
+//       to: email,
+//       subject: "Şifrəni yeniləmə",
+//       html: `
+//         <p>Şifrəni yeniləmək üçün kodunuz: <b>${code}</b></p>
+//         <p>Yaxud bu linkə klikləyin:</p>
+//         <a href="${resetLink}">${resetLink}</a>
+//         <p>Kod 15 dəqiqə ərzində etibarlıdır.</p>
+//       `,
+//     });
+
+//     res.json({ message: "Email-ə kod göndərildi" });
+//   } catch (err) {
+//     console.error("Forgot password error:", err);
+//     res.status(500).json({ message: "Xəta baş verdi" });
+//   }
+// });
+
+
+
 router.post("/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;
-    if (!email) return res.status(400).json({ message: "Email lazımdır" });
+
+    if (!email) {
+      return res.status(400).json({ message: "Email lazımdır" });
+    }
 
     const user = await User.findOne({ email });
-    if (!user)
-      return res
-        .status(404)
-        .json({ message: "Bu email ilə istifadəçi yoxdur" });
 
-    // 6 rəqəmli təsadüfi kod
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    if (!user) {
+      return res.status(404).json({
+        message: "Bu email ilə istifadəçi yoxdur",
+      });
+    }
+
+    const code = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
+
     const codeHash = await bcrypt.hash(code, 10);
 
     user.resetPasswordCode = codeHash;
-    user.resetPasswordExpires = Date.now() + 1000 * 60 * 15; // 15 dəq
+    user.resetPasswordExpires = Date.now() + 1000 * 60 * 15;
+
     await user.save();
 
-    const resetLink = `${
-      process.env.BASE_URL
-    }/reset-password?email=${encodeURIComponent(
-      email
-    )}&code=${encodeURIComponent(code)}`;
+    // TEST
+    console.log("SMTP_HOST:", process.env.SMTP_HOST);
+    console.log("SMTP_USER:", process.env.SMTP_USER);
+    console.log(
+      "SMTP_PASS:",
+      process.env.SMTP_PASS ? "OK" : "YOXDUR"
+    );
+
+    await transporter.verify();
+
+    console.log("SMTP CONNECTED");
+
+    const resetLink = `${process.env.BASE_URL}/reset-password?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`;
 
     await transporter.sendMail({
       from: process.env.SMTP_FROM,
@@ -51,16 +113,17 @@ router.post("/forgot-password", async (req, res) => {
       subject: "Şifrəni yeniləmə",
       html: `
         <p>Şifrəni yeniləmək üçün kodunuz: <b>${code}</b></p>
-        <p>Yaxud bu linkə klikləyin:</p>
         <a href="${resetLink}">${resetLink}</a>
-        <p>Kod 15 dəqiqə ərzində etibarlıdır.</p>
       `,
     });
 
     res.json({ message: "Email-ə kod göndərildi" });
   } catch (err) {
     console.error("Forgot password error:", err);
-    res.status(500).json({ message: "Xəta baş verdi" });
+
+    res.status(500).json({
+      message: err.message,
+    });
   }
 });
 
