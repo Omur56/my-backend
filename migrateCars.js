@@ -22,31 +22,25 @@ for (const ad of ads) {
   }
 
   // Root brand -> car.brand
-  if (ad.brand && !ad.car.brand) {
-    ad.car.brand = ad.brand;
+  if (!ad.car.brand) {
+    ad.car.brand = ad.get("brand") || "";
     changed = true;
   }
 
   // Root model -> car.model
-  if (ad.model && !ad.car.model) {
-    ad.car.model = ad.model;
+  if (
+    !ad.car.model ||
+    (typeof ad.car.model === "string" &&
+      ad.car.model.startsWith("function"))
+  ) {
+    ad.car.model = ad.get("model") || "";
     changed = true;
   }
 
   // type_magasine boşdursa sil
   if (
-    ad.car &&
-    (ad.car.type_magasine === "" ||
-      ad.car.type_magasine === null)
-  ) {
-    delete ad.car.type_magasine;
-    changed = true;
-  }
-
-  // undefined olsa da sil
-  if (
-    ad.car &&
-    Object.prototype.hasOwnProperty.call(ad.car, "type_magasine") &&
+    ad.car.type_magasine === "" ||
+    ad.car.type_magasine === null ||
     ad.car.type_magasine === undefined
   ) {
     delete ad.car.type_magasine;

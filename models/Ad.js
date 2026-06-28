@@ -232,7 +232,10 @@ const adSchema = new mongoose.Schema(
         type: String,
         default: "",
       },
-
+generation: {
+  type: String,
+  default: "",
+},
       year: {
         type: String,
         default: "",

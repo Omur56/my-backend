@@ -125,7 +125,6 @@ app.use(
           "https://www.google-analytics.com",
           "https://www.googletagmanager.com",
           "https://my-backend-wj5g.onrender.com",
-           
         ],
 
         scriptSrc: [
@@ -133,38 +132,26 @@ app.use(
           "'unsafe-inline'",
           "https://pagead2.googlesyndication.com",
           "https://www.googletagmanager.com",
-          "https://www.google-analytics.com"
+          "https://www.google-analytics.com",
         ],
 
         workerSrc: ["'self'", "blob:"],
 
-        styleSrc: [
-          "'self'",
-          "'unsafe-inline'",
-          "https://fonts.googleapis.com"
-        ],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
 
-        imgSrc: [
-          "'self'",
-          "data:",
-          "blob:",
-          "https://res.cloudinary.com"
-        ],
+        imgSrc: ["'self'", "data:", "blob:", "https://res.cloudinary.com"],
 
-        fontSrc: [
-          "'self'",
-          "https://fonts.gstatic.com"
-        ],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
 
         frameSrc: [
           "'self'",
           "https://googleads.g.doubleclick.net",
           "https://pagead2.googlesyndication.com",
-          "https://www.google.com"
-        ]
-      }
-    }
-  })
+          "https://www.google.com",
+        ],
+      },
+    },
+  }),
 );
 
 app.use("/api/stripe", stripeWebhookRoutes);
@@ -203,7 +190,6 @@ const BASE_URL = process.env.BASE_URL || "http://localhost:10000";
 // });
 // const upload = multer({ storage });
 
-
 // const uploadToCloudinary = (buffer, folder = "uploads") => {
 //   return new Promise((resolve, reject) => {
 //     const stream = cloudinary.uploader.upload_stream(
@@ -227,7 +213,6 @@ const BASE_URL = process.env.BASE_URL || "http://localhost:10000";
 //     stream.end(buffer);
 //   });
 // };
-
 
 const uploadToCloudinary = (buffer, folder = "uploads") => {
   return new Promise((resolve, reject) => {
@@ -259,13 +244,12 @@ const uploadToCloudinary = (buffer, folder = "uploads") => {
       (error, result) => {
         if (error) return reject(error);
         resolve(result);
-      }
+      },
     );
 
     stream.end(buffer);
   });
 };
-
 
 // Watermark əlavə edən funksiya
 const addWatermark = async (imagePath) => {
@@ -330,7 +314,6 @@ app.use((req, res, next) => {
   next();
 });
 
-
 // const upload = multer({
 //   storage: multer.memoryStorage(),
 //   limits: { fileSize: 10 * 1024 * 1024 } // 10MB
@@ -342,8 +325,6 @@ cloudinary.config({
   api_key: process.env.CLOUD_API_KEY,
   api_secret: process.env.CLOUD_API_SECRET,
 });
-
-
 
 app.post("/upload", upload.array("images", 10), async (req, res) => {
   try {
@@ -378,44 +359,48 @@ app.post("/upload", upload.array("images", 10), async (req, res) => {
     res.status(500).json({ message: "Xəta baş verdi", error: err.message });
   }
 });
-app.post("/api/ads", upload.array("images", 20), authMiddleware, async (req, res) => {
-  try {
-    if (!req.files || req.files.length === 0)
-      throw new Error("Şəkil seçilməyib");
+app.post(
+  "/api/ads",
+  upload.array("images", 20),
+  authMiddleware,
+  async (req, res) => {
+    try {
+      if (!req.files || req.files.length === 0)
+        throw new Error("Şəkil seçilməyib");
 
-    const uploadedImages = [];
+      const uploadedImages = [];
 
-    for (const file of req.files) {
-      const filePath = file.path.replace(/\\/g, "/");
+      for (const file of req.files) {
+        const filePath = file.path.replace(/\\/g, "/");
 
-      const result = await cloudinary.uploader.upload(filePath, {
-        folder: "ads",
+        const result = await cloudinary.uploader.upload(filePath, {
+          folder: "ads",
+        });
+
+        uploadedImages.push(result.secure_url);
+
+        if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+      }
+
+      const ad = new Ad({
+        title: req.body.title,
+        link: req.body.link,
+        description: req.body.description,
+        images: uploadedImages,
+
+        // 🔥 VACİB FIX
+        userId: req.user.id,
       });
 
-      uploadedImages.push(result.secure_url);
+      await ad.save();
 
-      if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+      res.status(201).json(ad);
+    } catch (err) {
+      console.error("❌ Reklam əlavə olunarkən xəta:", err);
+      res.status(500).json({ error: err.message });
     }
-
-    const ad = new Ad({
-      title: req.body.title,
-      link: req.body.link,
-      description: req.body.description,
-      images: uploadedImages,
-
-      // 🔥 VACİB FIX
-      userId: req.user.id, 
-    });
-
-    await ad.save();
-
-    res.status(201).json(ad);
-  } catch (err) {
-    console.error("❌ Reklam əlavə olunarkən xəta:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
+  },
+);
 
 app.get("/api/my-ads", authMiddleware, async (req, res) => {
   try {
@@ -429,7 +414,6 @@ app.get("/api/my-ads", authMiddleware, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // kateqoriya-mapping
 // const modelsMap = {
@@ -519,7 +503,6 @@ app.get("/count/accessory", async (req, res) => {
   }
 });
 
-
 // --------------------------------------
 
 // -----axtarış filteri
@@ -551,7 +534,6 @@ app.get("/count/accessory", async (req, res) => {
 //   }
 // });
 
-
 // app.get("/api/filter/motors", async (req, res) => {
 //   try {
 //     const { brand, model } = req.query;
@@ -568,7 +550,33 @@ app.get("/count/accessory", async (req, res) => {
 //   }
 // });
 
+// sayt xəritəsi api çağrış
 
+app.get("/api/car", async (req, res) => {
+  console.log("QUERY:", req.query);
+
+  const filter = {
+    category: "car",
+  };
+
+  if (req.query.brand) {
+    filter["car.brand"] = req.query.brand;
+  }
+
+  if (req.query.model) {
+    filter["car.model"] = req.query.model;
+  }
+
+  console.log("FILTER:", filter);
+
+  const cars = await Ad.find(filter);
+
+  console.log("FOUND:", cars.length);
+
+  res.json(cars);
+});
+
+// -----------------------------
 
 app.get("/api/filter/brands", async (req, res) => {
   const brands = await Ad.distinct("car.brand", {
@@ -591,10 +599,10 @@ app.get("/api/filter/models", async (req, res) => {
   res.json(models.filter(Boolean).sort());
 });
 
-app.get("/api/filter/motors", async (req, res) => {
+app.get("/api/filter/motor", async (req, res) => {
   const { brand, model } = req.query;
 
-  const motors = await Ad.distinct("car.motor", {
+  const motors = await Ad.distinct("car.motors", {
     category: "car",
     isActive: true,
     "car.brand": brand,
@@ -618,7 +626,6 @@ app.get("/my-:category", authMiddleware, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-
 
 app.delete("/:category/:id", authMiddleware, async (req, res) => {
   try {
@@ -938,12 +945,20 @@ app.post(
     try {
       // 🔥 car JSON parse
       const car = req.body.car ? JSON.parse(req.body.car) : {};
+      console.log("CAR OBJECT:", car);
+      console.log("GENERATION:", car.generation);;
 
       // 🔥 FIX: contact artıq car içindən gəlir
-      const contact = car.contact || {
-        name: "",
-        email: "",
-        phone: "",
+      // const contact = car.contact || {
+      //   name: "",
+      //   email: "",
+      //   phone: "",
+      // };
+
+      const contact = {
+        name: car.contact?.name || "",
+        email: car.contact?.email || "",
+        phone: car.contact?.phone || "",
       };
 
       const mainImageIndex = parseInt(req.body.mainImageIndex);
@@ -961,6 +976,8 @@ app.post(
       if (!isNaN(mainImageIndex) && uploadedImages[mainImageIndex]) {
         mainImage = uploadedImages[mainImageIndex];
       }
+console.log(Ad.schema.path("car.generation"));
+
 
       const newAd = await Ad.create({
         title: car.title || "",
@@ -977,9 +994,9 @@ app.post(
         // model: car.model || "",
 
         car: {
-
-            brand: car.brand || "",
-  model: car.model || "",
+          brand: car.brand || "",
+          model: car.model || "",
+         generation: car.generation || "",
           ban_type: car.ban_type || "",
           year: car.year || "",
           engine: car.engine || "",
@@ -1011,15 +1028,15 @@ app.post(
         liked: false,
         favorite: false,
       });
+      
 
       return res.status(201).json(newAd);
     } catch (err) {
       console.error("❌ Car əlavə olunarkən xəta:", err);
       return res.status(500).json({ error: err.message });
     }
-  }
+  },
 );
-
 
 app.put(
   "/api/car/:id",
@@ -1057,22 +1074,23 @@ app.put(
 
       const body = req.body.car ? JSON.parse(req.body.car) : {};
 
-car.title = body.title || car.title;
-car.description = body.description || car.description;
-car.price = Number(body.price) || car.price;
+      car.title = body.title || car.title;
+      car.description = body.description || car.description;
+      car.price = Number(body.price) || car.price;
 
-car.location = body.location || car.location;
-car.city = body.city || car.city;
+      car.location = body.location || car.location;
+      car.city = body.city || car.city;
 
-car.car.brand = body.brand || car.car.brand;
-car.car.model = body.model || car.car.model;
+      car.car.brand = body.brand || car.car.brand;
+      car.car.model = body.model || car.car.model;
 
-car.car.motor = body.motor || car.car.motor;
-car.car.engine = body.engine || car.car.engine;
-car.car.year = body.year || car.car.year;
-car.car.transmission = body.transmission || car.car.transmission;
-car.car.color = body.color || car.car.color;
-car.car.km = body.km || car.car.km;
+      car.car.motor = body.motor || car.car.motor;
+      car.car.engine = body.engine || car.car.engine;
+      car.car.year = body.year || car.car.year;
+      car.car.transmission = body.transmission || car.car.transmission;
+      car.car.color = body.color || car.car.color;
+      car.car.km = body.km || car.car.km;
+      car.car.generation = body.generation || car.car.generation;
 
       await car.save();
 
@@ -1135,10 +1153,9 @@ app.get("/api/ads/search", async (req, res) => {
 
 // ----Phones-------
 
-
 // app.post(
 //   "/api/phone",
-  
+
 //   upload.array("images", 20),
 //   async (req, res) => {
 //     try {
@@ -1197,9 +1214,6 @@ app.get("/api/ads/search", async (req, res) => {
 //   }
 // );
 
-
-
-
 app.post(
   "/api/phone",
   verifyToken,
@@ -1215,10 +1229,7 @@ app.post(
       const uploadedImages = [];
 
       for (const file of files) {
-        const result = await uploadToCloudinary(
-          file.buffer,
-          "phone"
-        );
+        const result = await uploadToCloudinary(file.buffer, "phone");
 
         uploadedImages.push(result.secure_url);
       }
@@ -1256,7 +1267,6 @@ app.post(
       });
 
       res.status(201).json(newAd);
-
     } catch (err) {
       console.error(err);
 
@@ -1264,9 +1274,8 @@ app.post(
         message: err.message,
       });
     }
-  }
+  },
 );
-
 
 app.get("/api/phone", async (req, res) => {
   try {
@@ -1281,7 +1290,7 @@ app.get("/api/phone", async (req, res) => {
   }
 });
 
-app.get("/api/phone/:id",  async (req, res) => {
+app.get("/api/phone/:id", async (req, res) => {
   try {
     const item = await Ad.findById(req.params.id);
 
@@ -1433,8 +1442,6 @@ app.get("/api/electronics/:id", async (req, res) => {
   }
 });
 
-
-
 app.post(
   "/api/electronics",
   verifyToken,
@@ -1487,9 +1494,8 @@ app.post(
       console.error("❌ ELECTRONICS ERROR:", err);
       res.status(500).json({ error: err.message });
     }
-  }
+  },
 );
-
 
 app.put(
   "/api/electronics/:id",
@@ -1819,8 +1825,6 @@ app.get("/api/clothing/:id", async (req, res) => {
   }
 });
 
-
-
 app.post(
   "/api/clothing",
   verifyToken,
@@ -1870,14 +1874,12 @@ app.post(
       });
 
       res.status(201).json(newAd);
-
     } catch (err) {
       console.error("❌ Clothing error:", err);
       res.status(500).json({ error: err.message });
     }
-  }
+  },
 );
-
 
 app.put(
   "/api/clothing/:id",
@@ -2093,15 +2095,12 @@ app.post(
       });
 
       res.status(201).json(newAd);
-
     } catch (err) {
       console.error("❌ RealEstate error:", err);
       res.status(500).json({ error: err.message });
     }
-  }
+  },
 );
-
-
 
 app.get("/api/realEstate", async (req, res) => {
   try {
@@ -2453,7 +2452,6 @@ app.get("/api/homeGarden/:id", async (req, res) => {
   }
 });
 
-
 app.post(
   "/api/homeGarden",
   verifyToken,
@@ -2502,15 +2500,12 @@ app.post(
       });
 
       res.status(201).json(newAd);
-
     } catch (err) {
       console.error("❌ HomeGarden error:", err);
       res.status(500).json({ error: err.message });
     }
-  }
+  },
 );
-
-
 
 app.put(
   "/api/homeGarden/:id",
@@ -2654,15 +2649,12 @@ app.post(
       });
 
       res.status(201).json(newAd);
-
     } catch (err) {
       console.error("❌ Household error:", err);
       res.status(500).json({ error: err.message });
     }
-  }
+  },
 );
-
-
 
 app.get("/api/household", async (req, res) => {
   try {
@@ -2834,11 +2826,6 @@ app.get("/api/ads", async (req, res) => {
 
 // ----acsesuarr
 
-
-
-
-
-
 app.get("/api/accessory", async (req, res) => {
   try {
     const data = await Ad.find({ category: "accessory", isActive: true }).sort({
@@ -2879,10 +2866,7 @@ app.get("/api/accessory/:id", async (req, res) => {
   }
 });
 
-
-
 app.post(
-  
   "/api/accessory",
   verifyToken,
   upload.array("images", 20),
@@ -2903,41 +2887,39 @@ app.post(
       const mainImage =
         uploadedImages[mainImageIndex] || uploadedImages[0] || null;
 
-     const contact = req.body.contact ? JSON.parse(req.body.contact) : {};
+      const contact = req.body.contact ? JSON.parse(req.body.contact) : {};
 
-const newAd = await Ad.create({
-  title: req.body.title,
-  description: req.body.description,
-  price: req.body.price ? Number(req.body.price) : 0,
-  location: req.body.location,
-  category: "accessory",
+      const newAd = await Ad.create({
+        title: req.body.title,
+        description: req.body.description,
+        price: req.body.price ? Number(req.body.price) : 0,
+        location: req.body.location,
+        category: "accessory",
 
-  brand: req.body.brand,
-  model: req.body.model,
+        brand: req.body.brand,
+        model: req.body.model,
 
-  contact: {
-    name: contact.name,
-    email: contact.email,
-    phone: contact.phone,
-  },
+        contact: {
+          name: contact.name,
+          email: contact.email,
+          phone: contact.phone,
+        },
 
-  images: uploadedImages,
-  mainImage,
-  userId: req.user.id,
-  priorityType: req.body.priorityType || "free",
-  liked: false,
-  favorite: false,
-});
+        images: uploadedImages,
+        mainImage,
+        userId: req.user.id,
+        priorityType: req.body.priorityType || "free",
+        liked: false,
+        favorite: false,
+      });
 
       res.status(201).json(newAd);
-
     } catch (err) {
       console.error("❌ accessory error:", err);
       res.status(500).json({ error: err.message });
     }
-  }
+  },
 );
-
 
 app.put(
   "/api/accessory/:id",
@@ -5370,7 +5352,6 @@ app.post("/api/reqister", async (req, res) => {
         email: newUser.email,
       },
     });
-
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -5714,7 +5695,6 @@ app.get("/api/users/:id", async (req, res) => {
 //   console.log(`🚀 Server işə düşdü: http://localhost:${PORT}`);
 //   // npx nodemon src/backend/cateqory.js serveri ise salmaq ucun
 // });
-
 
 const buildPath = path.join(__dirname, "../frontend/build");
 
