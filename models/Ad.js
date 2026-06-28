@@ -293,11 +293,17 @@ const adSchema = new mongoose.Schema(
         default: "",
       },
 
+      // type_magasine: {
+      //   type: String,
+      //   enum: ["magaza", "sifarisle", "resmi"],
+      //   default: "",
+      // },
+
       type_magasine: {
-        type: String,
-        enum: ["magaza", "sifarisle", "resmi"],
-        default: "",
-      },
+  type: String,
+  enum: ["magaza", "sifarisle", "resmi"],
+  default: undefined,
+},
     },
 
     // ===========================
