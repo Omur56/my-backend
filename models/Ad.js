@@ -132,8 +132,6 @@
 // // -----------------------------
 
 
-
-
 import mongoose from "mongoose";
 import { nanoid } from "nanoid";
 
@@ -157,11 +155,23 @@ const adSchema = new mongoose.Schema(
       default: false,
     },
 
-    title: String,
-    description: String,
-    price: Number,
+    title: {
+      type: String,
+      default: "",
+    },
+
+    description: {
+      type: String,
+      default: "",
+    },
+
+    price: {
+      type: Number,
+      default: 0,
+    },
 
     location: String,
+
     city: String,
 
     images: [String],
@@ -207,84 +217,141 @@ const adSchema = new mongoose.Schema(
       required: true,
     },
 
-    // =======================
+    // ===========================
     // CAR
-    // =======================
+    // ===========================
 
     car: {
-      brand: String,
-      model: String,
 
-      year: Number,
+      brand: {
+        type: String,
+        default: "",
+      },
 
-      motor: String,
-      engine: String,
+      model: {
+        type: String,
+        default: "",
+      },
 
-      transmission: String,
+      year: {
+        type: String,
+        default: "",
+      },
 
-      fuel: String,
+      motor: {
+        type: String,
+        default: "",
+      },
 
-      ban_type: String,
+      engine: {
+        type: String,
+        default: "",
+      },
 
-      color: String,
+      transmission: {
+        type: String,
+        default: "",
+      },
 
-      km: Number,
+      fuel: {
+        type: String,
+        default: "",
+      },
 
-      modification: String,
+      ban_type: {
+        type: String,
+        default: "",
+      },
 
-      credit: Boolean,
+      color: {
+        type: String,
+        default: "",
+      },
 
-      barter: Boolean,
+      km: {
+        type: String,
+        default: "",
+      },
 
-      salon: Boolean,
+      modification: {
+        type: String,
+        default: "",
+      },
+
+      credit: {
+        type: String,
+        default: "",
+      },
+
+      barter: {
+        type: String,
+        default: "",
+      },
+
+      salon: {
+        type: String,
+        default: "",
+      },
 
       type_magasine: {
         type: String,
         enum: ["magaza", "sifarisle", "resmi"],
+        default: "",
       },
     },
 
-    // =======================
+    // ===========================
     // PHONE
-    // =======================
+    // ===========================
 
     phoneDetail: {
+
       brand: String,
+
       model: String,
 
       storage: String,
+
       ram: String,
 
       color: String,
 
       sim_card: String,
+
     },
 
-    // =======================
+    // ===========================
     // ELECTRONICS
-    // =======================
+    // ===========================
 
     electronics: {
+
       brand: String,
+
       model: String,
+
       type: String,
+
     },
 
-    // =======================
+    // ===========================
     // REAL ESTATE
-    // =======================
+    // ===========================
 
     realEstate: {
+
       city: String,
 
       type_building: String,
 
-      rooms: Number,
+      rooms: String,
 
-      area: Number,
+      area: String,
 
-      floor: Number,
+      floor: String,
+
     },
+
   },
   {
     timestamps: true,

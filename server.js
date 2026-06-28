@@ -524,51 +524,85 @@ app.get("/count/accessory", async (req, res) => {
 
 // -----axtarış filteri
 
-app.get("/api/filter/brands", async (req, res) => {
-  try {
-    const brands = await Ad.distinct("car.brand", {
-      category: "car",
-    });
+// app.get("/api/filter/brands", async (req, res) => {
+//   try {
+//     const brands = await Ad.distinct("car.brand", {
+//       category: "car",
+//     });
 
-    res.json(brands.filter(Boolean).sort());
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+//     res.json(brands.filter(Boolean).sort());
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// });
+
+// app.get("/api/filter/models", async (req, res) => {
+//   try {
+//     const { brand } = req.query;
+
+//     const models = await Ad.distinct("car.model", {
+//       category: "car",
+//       "car.brand": brand,
+//     });
+
+//     res.json(models.filter(Boolean).sort());
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// });
+
+
+// app.get("/api/filter/motors", async (req, res) => {
+//   try {
+//     const { brand, model } = req.query;
+
+//     const motors = await Ad.distinct("car.motor", {
+//       category: "car",
+//       "car.brand": brand,
+//       "car.model": model,
+//     });
+
+//     res.json(motors.filter(Boolean).sort());
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// });
+
+
+
+app.get("/api/filter/brands", async (req, res) => {
+  const brands = await Ad.distinct("car.brand", {
+    category: "car",
+    isActive: true,
+  });
+
+  res.json(brands.filter(Boolean).sort());
 });
 
 app.get("/api/filter/models", async (req, res) => {
-  try {
-    const { brand } = req.query;
+  const { brand } = req.query;
 
-    const models = await Ad.distinct("car.model", {
-      category: "car",
-      "car.brand": brand,
-    });
+  const models = await Ad.distinct("car.model", {
+    category: "car",
+    isActive: true,
+    "car.brand": brand,
+  });
 
-    res.json(models.filter(Boolean).sort());
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  res.json(models.filter(Boolean).sort());
 });
-
 
 app.get("/api/filter/motors", async (req, res) => {
-  try {
-    const { brand, model } = req.query;
+  const { brand, model } = req.query;
 
-    const motors = await Ad.distinct("car.motor", {
-      category: "car",
-      "car.brand": brand,
-      "car.model": model,
-    });
+  const motors = await Ad.distinct("car.motor", {
+    category: "car",
+    isActive: true,
+    "car.brand": brand,
+    "car.model": model,
+  });
 
-    res.json(motors.filter(Boolean).sort());
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  res.json(motors.filter(Boolean).sort());
 });
-
-
 // -----------------
 
 app.get("/my-:category", authMiddleware, async (req, res) => {
