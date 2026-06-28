@@ -519,6 +519,60 @@ app.get("/count/accessory", async (req, res) => {
   }
 });
 
+
+// --------------------------------------
+
+// -----axtarış filteri
+
+app.get("/api/filter/brands", async (req, res) => {
+  try {
+    const brands = await Ad.distinct("car.brand", {
+      category: "car",
+      "car.brand": { $exists: true, $ne: "" },
+    });
+
+    res.json(brands.sort());
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/api/filter/models", async (req, res) => {
+  try {
+    const { brand } = req.query;
+
+    const models = await Ad.distinct("car.model", {
+      category: "car",
+      "car.brand": brand,
+      "car.model": { $exists: true, $ne: "" },
+    });
+
+    res.json(models.sort());
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+
+app.get("/api/filter/motors", async (req, res) => {
+  try {
+    const { brand, model } = req.query;
+
+    const motors = await Ad.distinct("car.motor", {
+      category: "car",
+      "car.brand": brand,
+      "car.model": model,
+      "car.motor": { $exists: true, $ne: "" },
+    });
+
+    res.json(motors.sort());
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 // -----------------
 
 app.get("/my-:category", authMiddleware, async (req, res) => {
