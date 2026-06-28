@@ -1,46 +1,175 @@
+// import mongoose from "mongoose";
+// // import { v4 as uuidv4 } from "uuid";
+// import { nanoid } from "nanoid";
+
+// const adSchema = new mongoose.Schema(
+//   {
+//     // id: {
+//     //   type: String,
+//     //   required: true,
+//     //   default: () => uuidv4(),
+//     // },
+
+//     id: {
+//   type: String,
+//   default: () => nanoid(10),
+//   unique: true,
+// },
+
+// mainImage: String,
+
+// liked: {
+//   type: Boolean,
+//   default: false,
+// },
+
+// favorite: {
+//   type: Boolean,
+//   default: false,
+// },
+//     title: String,
+//     description: String,
+//     price: Number,
+//     location: String,
+//     city: String,
+//     images: [String],
+//     brand: String,
+//     model: String,
+       
+       
+       
+//     // data: { type: Date, default: Date.now },
+   
+//     isActive: { type: Boolean, default: true },
+
+//     priorityType: {
+//       type: String,
+//       enum: ["free", "vip", "premium"],
+//       default: "free",
+//     },
+
+//     priorityExpires: {
+//       type: Date,
+//       default: null,
+//     },
+
+//     contact: {
+//       name: String,
+//       email: String,
+//       phone: String,
+//     },
+
+
+    
+//     userId: {
+//       type: mongoose.Schema.Types.ObjectId,
+//       ref: "User",
+//       required: true,
+//     },
+
+//     category: {
+//       type: String,
+//       enum: [
+//         "car",
+//         "phone",
+//         "electronics",
+//         "clothing", // 🔥 düzəldildi
+//         "realEstate",
+//         "homeGarden",
+//         "household",
+//         "accessory",
+//         "listing",
+//       ],
+//     },
+
+    
+
+//     car: {
+
+// brand: String,
+// model: String,
+
+// ban_type: String,
+// year: String,
+// engine: String,
+// motor: String,
+// transmission: String,
+// km: String,
+// color: String,
+// modification: String,
+// barter: String,
+// credit: String,
+// salon: String,
+
+// type_magasine: {
+//   type: String,
+//   enum: ["sifarisle", "magaza", "resmi"],
+//   default: undefined,
+// },
+// },
+
+
+//    phoneDeatail: {
+//       storage: String,
+//       color: String,
+//       ram: String,
+//       sim_card: String,
+//     },
+
+//     realEstate: {
+//       rooms: String,
+//       area: String,
+//       city: String,
+//       type_building: String,
+//     },
+//   },
+//   { timestamps: true }
+// );
+
+// export default mongoose.model("Ad", adSchema);
+
+
+// // -----------------------------
+
+
+
+
 import mongoose from "mongoose";
-// import { v4 as uuidv4 } from "uuid";
 import { nanoid } from "nanoid";
 
 const adSchema = new mongoose.Schema(
   {
-    // id: {
-    //   type: String,
-    //   required: true,
-    //   default: () => uuidv4(),
-    // },
-
     id: {
-  type: String,
-  default: () => nanoid(10),
-  unique: true,
-},
+      type: String,
+      default: () => nanoid(10),
+      unique: true,
+    },
 
-mainImage: String,
+    mainImage: String,
 
-liked: {
-  type: Boolean,
-  default: false,
-},
+    liked: {
+      type: Boolean,
+      default: false,
+    },
 
-favorite: {
-  type: Boolean,
-  default: false,
-},
+    favorite: {
+      type: Boolean,
+      default: false,
+    },
+
     title: String,
     description: String,
     price: Number,
+
     location: String,
     city: String,
+
     images: [String],
-    brand: String,
-    model: String,
-       
-       
-       
-    // data: { type: Date, default: Date.now },
-   
-    isActive: { type: Boolean, default: true },
+
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
 
     priorityType: {
       type: String,
@@ -48,10 +177,7 @@ favorite: {
       default: "free",
     },
 
-    priorityExpires: {
-      type: Date,
-      default: null,
-    },
+    priorityExpires: Date,
 
     contact: {
       name: String,
@@ -59,8 +185,6 @@ favorite: {
       phone: String,
     },
 
-
-    
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -73,62 +197,98 @@ favorite: {
         "car",
         "phone",
         "electronics",
-        "clothing", // 🔥 düzəldildi
+        "clothing",
         "realEstate",
         "homeGarden",
         "household",
         "accessory",
         "listing",
       ],
+      required: true,
     },
 
-    
+    // =======================
+    // CAR
+    // =======================
 
     car: {
+      brand: String,
+      model: String,
 
-brand: String,
-model: String,
+      year: Number,
 
-ban_type: String,
-year: String,
-engine: String,
-motor: String,
-transmission: String,
-km: String,
-color: String,
-modification: String,
-barter: String,
-credit: String,
-salon: String,
+      motor: String,
+      engine: String,
 
-type_magasine: {
-  type: String,
-  enum: ["sifarisle", "magaza", "resmi"],
-  default: undefined,
-},
-},
+      transmission: String,
 
+      fuel: String,
 
-   phoneDeatail: {
-      storage: String,
+      ban_type: String,
+
       color: String,
+
+      km: Number,
+
+      modification: String,
+
+      credit: Boolean,
+
+      barter: Boolean,
+
+      salon: Boolean,
+
+      type_magasine: {
+        type: String,
+        enum: ["magaza", "sifarisle", "resmi"],
+      },
+    },
+
+    // =======================
+    // PHONE
+    // =======================
+
+    phoneDetail: {
+      brand: String,
+      model: String,
+
+      storage: String,
       ram: String,
+
+      color: String,
+
       sim_card: String,
     },
 
+    // =======================
+    // ELECTRONICS
+    // =======================
+
+    electronics: {
+      brand: String,
+      model: String,
+      type: String,
+    },
+
+    // =======================
+    // REAL ESTATE
+    // =======================
+
     realEstate: {
-      rooms: String,
-      area: String,
       city: String,
+
       type_building: String,
+
+      rooms: Number,
+
+      area: Number,
+
+      floor: Number,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
 export default mongoose.model("Ad", adSchema);
-
-
-// -----------------------------
-
-

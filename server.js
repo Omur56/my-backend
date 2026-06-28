@@ -528,10 +528,9 @@ app.get("/api/filter/brands", async (req, res) => {
   try {
     const brands = await Ad.distinct("car.brand", {
       category: "car",
-      "car.brand": { $exists: true, $ne: "" },
     });
 
-    res.json(brands.sort());
+    res.json(brands.filter(Boolean).sort());
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -544,15 +543,13 @@ app.get("/api/filter/models", async (req, res) => {
     const models = await Ad.distinct("car.model", {
       category: "car",
       "car.brand": brand,
-      "car.model": { $exists: true, $ne: "" },
     });
 
-    res.json(models.sort());
+    res.json(models.filter(Boolean).sort());
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 
 app.get("/api/filter/motors", async (req, res) => {
@@ -563,10 +560,9 @@ app.get("/api/filter/motors", async (req, res) => {
       category: "car",
       "car.brand": brand,
       "car.model": model,
-      "car.motor": { $exists: true, $ne: "" },
     });
 
-    res.json(motors.sort());
+    res.json(motors.filter(Boolean).sort());
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -943,10 +939,13 @@ app.post(
         category: "car",
 
         // 🔥 CAR DATA
-        brand: car.brand || "",
-        model: car.model || "",
+        // brand: car.brand || "",
+        // model: car.model || "",
 
         car: {
+
+            brand: car.brand || "",
+  model: car.model || "",
           ban_type: car.ban_type || "",
           year: car.year || "",
           engine: car.engine || "",
@@ -1018,9 +1017,28 @@ app.put(
         car.images = uploadedImages;
       }
 
-      car.title = req.body.title || car.title;
-      car.description = req.body.description || car.description;
-      car.price = req.body.price ? Number(req.body.price) : car.price;
+      // car.title = req.body.title || car.title;
+      // car.description = req.body.description || car.description;
+      // car.price = req.body.price ? Number(req.body.price) : car.price;
+
+      const body = req.body.car ? JSON.parse(req.body.car) : {};
+
+car.title = body.title || car.title;
+car.description = body.description || car.description;
+car.price = Number(body.price) || car.price;
+
+car.location = body.location || car.location;
+car.city = body.city || car.city;
+
+car.car.brand = body.brand || car.car.brand;
+car.car.model = body.model || car.car.model;
+
+car.car.motor = body.motor || car.car.motor;
+car.car.engine = body.engine || car.car.engine;
+car.car.year = body.year || car.car.year;
+car.car.transmission = body.transmission || car.car.transmission;
+car.car.color = body.color || car.car.color;
+car.car.km = body.km || car.car.km;
 
       await car.save();
 
