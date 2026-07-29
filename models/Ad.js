@@ -55,6 +55,11 @@ const adSchema = new mongoose.Schema(
       default: "free",
     },
 
+    priority: {
+  type: Number,
+  default: 3, // free
+},
+
     priorityExpires: Date,
 
     contact: {
