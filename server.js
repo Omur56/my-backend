@@ -1,3 +1,5 @@
+console.log("SERVER FILE:", import.meta.url);
+
 import express from "express";
 import cors from "cors";
 import multer from "multer";
@@ -965,6 +967,9 @@ app.post(
   verifyToken,
   upload.array("images", 20),
   async (req, res) => {
+     console.log("🔥 NEW PHONE ROUTE");
+     console.log("PHONE ROUTE WORKING");
+console.log(req.body);
     try {
       console.log(req.files);
       console.log(req.body);
@@ -979,40 +984,90 @@ app.post(
 
         uploadedImages.push(result.secure_url);
       }
-const title = `${req.body.brand || ""} ${req.body.model || ""}`.trim();
 
-      const newAd = await Ad.create({
-        title,
-        brand: req.body.brand,
-        model: req.body.model,
-        description: req.body.description,
-        price: Number(req.body.price),
-        location: req.body.location,
+// const title = `${req.body.brand || ""} ${req.body.model || ""}`.trim();
 
-        category: "phone",
+//       const newAd = await Ad.create({
+//         // title,
+//         // brand: req.body.brand,
+//         // model: req.body.model,
+//         description: req.body.description,
+//         price: Number(req.body.price),
+//         location: req.body.location,
 
-        phoneDetail: {
-          storage: req.body.storage,
-          color: req.body.color,
-          ram: req.body.ram,
-          sim_card: req.body.sim_card,
-        },
+// title,
 
-        contact: {
-          name: req.body["contact.name"],
-          email: req.body["contact.email"],
-          phone: req.body["contact.phone"],
-        },
+//         category: "phone",
+
+
+//         phone: {
+//   title,
+//   brand: req.body.brand,
+//   model: req.body.model,
+//   storage: req.body.storage,
+//   ram: req.body.ram,
+//   color: req.body.color,
+//   sim_card: req.body.sim_card,
+// },
+//         // phoneDetail: {
+//         //   storage: req.body.storage,
+//         //   color: req.body.color,
+//         //   ram: req.body.ram,
+//         //   sim_card: req.body.sim_card,
+//         // },
+
+//         contact: {
+//           name: req.body["contact.name"],
+//           email: req.body["contact.email"],
+//           phone: req.body["contact.phone"],
+//         },
         
 
-        userId: req.user.id,
+//         userId: req.user.id,
 
-        images: uploadedImages,
-        mainImage: uploadedImages[0],
+//         images: uploadedImages,
+//         mainImage: uploadedImages[0],
 
-        liked: false,
-        favorite: false,
-      });
+//         liked: false,
+//         favorite: false,
+//       });
+
+
+
+const title = `${req.body.brand || ""} ${req.body.model || ""}`.trim();
+
+const newAd = await Ad.create({
+  title,
+  description: req.body.description,
+  price: Number(req.body.price) || 0,
+  location: req.body.location,
+
+  category: "phone",
+
+  phone: {
+    title,
+    brand: req.body.brand,
+    model: req.body.model,
+    storage: req.body.storage,
+    ram: req.body.ram,
+    color: req.body.color,
+    sim_card: req.body.sim_card,
+  },
+
+  contact: {
+    name: req.body["contact.name"],
+    email: req.body["contact.email"],
+    phone: req.body["contact.phone"],
+  },
+
+  userId: req.user.id,
+
+  images: uploadedImages,
+  mainImage: uploadedImages[0],
+
+  priorityType: req.body.priorityType || "free",
+});
+
 
       res.status(201).json(newAd);
     } catch (err) {
@@ -1216,26 +1271,59 @@ app.post(
         email: req.body["contact.email"],
         phone: req.body["contact.phone"],
       };
+// const title = `${req.body.brand || ""} ${req.body.model || ""}`.trim();
+//       const newAd = await Ad.create({
+//         title,
+//         description: req.body.description,
+//         price: req.body.price ? Number(req.body.price) : 0,
+
+//         location: req.body.location,
+//         category: "electronics",
+//   electronics: {
+//     brand: req.body.brand,
+//     model: req.body.model,
+//     type: req.body.type,
+//   },
+
+//         // brand: req.body.brand,
+//         // model: req.body.model,
+
+//         contact,
+//         userId: req.user.id,
+
+//         images: uploadedImages,
+//         mainImage,
+
+//         priorityType: req.body.priorityType || "free",
+//       });
+
+
 const title = `${req.body.brand || ""} ${req.body.model || ""}`.trim();
-      const newAd = await Ad.create({
-        title,
-        description: req.body.description,
-        price: req.body.price ? Number(req.body.price) : 0,
 
-        location: req.body.location,
-        category: "electronics",
+const newAd = await Ad.create({
+  title,
+  description: req.body.description,
+  price: Number(req.body.price) || 0,
+  location: req.body.location,
 
-        brand: req.body.brand,
-        model: req.body.model,
+  category: "electronics",
 
-        contact,
-        userId: req.user.id,
+  electronics: {
+    title,
+    brand: req.body.brand,
+    model: req.body.model,
+    type: req.body.type,
+  },
 
-        images: uploadedImages,
-        mainImage,
+  contact,
+  userId: req.user.id,
 
-        priorityType: req.body.priorityType || "free",
-      });
+  images: uploadedImages,
+  mainImage,
+
+  priorityType: req.body.priorityType || "free",
+});
+
 
       res.status(201).json(newAd);
     } catch (err) {
@@ -1405,33 +1493,74 @@ app.post(
 
       const mainImage =
         uploadedImages[mainImageIndex] || uploadedImages[0] || null;
-const title = `${req.body.brand || ""} ${req.body.type || ""}`.trim();
-      const newAd = await Ad.create({
-        title,
-        description: req.body.description,
-        price: req.body.price ? Number(req.body.price) : 0,
-        location: req.body.location,
 
-        category: "clothing",
+// const title = `${req.body.brand || ""} ${req.body.type || ""}`.trim();
+//       const newAd = await Ad.create({
+//         title,
+//         description: req.body.description,
+//         price: req.body.price ? Number(req.body.price) : 0,
+//         location: req.body.location,
 
-        type: req.body.type || "magaza",
-        brand: req.body.brand,
+//         category: "clothing",
+// clothing: {
+//   title,
+//   brand: req.body.brand,
+//   model: req.body.model,
+//   type: req.body.type,
+//   color: req.body.color,
+//   size: req.body.size,
+// },
+//         // type: req.body.type || "magaza",
+//         // brand: req.body.brand,
 
-        contact: {
-          name: req.body["contact.name"],
-          email: req.body["contact.email"],
-          phone: req.body["contact.phone"],
-        },
+//         contact: {
+//           name: req.body["contact.name"],
+//           email: req.body["contact.email"],
+//           phone: req.body["contact.phone"],
+//         },
 
-        images: uploadedImages,
-        mainImage,
+//         images: uploadedImages,
+//         mainImage,
 
-        userId: req.user.id,
+//         userId: req.user.id,
 
-        priorityType: req.body.priorityType || "free",
-        liked: false,
-        favorite: false,
-      });
+//         priorityType: req.body.priorityType || "free",
+//         liked: false,
+//         favorite: false,
+//       });
+
+const title = `${req.body.brand || ""} ${req.body.model || ""}`.trim();
+
+const newAd = await Ad.create({
+  title,
+  description: req.body.description,
+  price: Number(req.body.price) || 0,
+  location: req.body.location,
+
+  category: "clothing",
+
+  clothing: {
+    title,
+    brand: req.body.brand,
+    model: req.body.model,
+    type: req.body.type,
+    color: req.body.color,
+    size: req.body.size,
+  },
+
+  contact: {
+    name: req.body["contact.name"],
+    email: req.body["contact.email"],
+    phone: req.body["contact.phone"],
+  },
+
+  images: uploadedImages,
+  mainImage,
+
+  userId: req.user.id,
+
+  priorityType: req.body.priorityType || "free",
+});
 
       res.status(201).json(newAd);
     } catch (err) {
@@ -1578,42 +1707,88 @@ app.post(
 
       const mainImage =
         uploadedImages[mainImageIndex] || uploadedImages[0] || null;
-        const title = `${req.body.rooms || ""} otaqlı ${req.body.type_building || ""}`.trim();
 
-      const newAd = await Ad.create({
-        title,
-        description: req.body.description,
-        price: req.body.price ? Number(req.body.price) : 0,
-        location: req.body.location,
 
-        category: "realEstate",
+//         const title = `${req.body.rooms || ""} otaqlı ${req.body.type_building || ""}`.trim();
 
-        type: req.body.type || "resmi",
+//       const newAd = await Ad.create({
+//         title,
+//         description: req.body.description,
+//         price: req.body.price ? Number(req.body.price) : 0,
+//         location: req.body.location,
 
-        realEstate: {
-          rooms: req.body.rooms,
-          area: req.body.area,
-          city: req.body.city,
-          type_building: req.body.type_building,
-          field: req.body.field,
-          number_of_rooms: req.body.number_of_rooms,
-        },
+//         category: "realEstate",
 
-        contact: {
-          name: req.body["contact.name"],
-          email: req.body["contact.email"],
-          phone: req.body["contact.phone"],
-        },
+//         type: req.body.type || "resmi",
 
-        userId: req.user.id,
+//         // realEstate: {
+//         //   rooms: req.body.rooms,
+//         //   area: req.body.area,
+//         //   city: req.body.city,
+//         //   type_building: req.body.type_building,
+//         //   field: req.body.field,
+//         //   number_of_rooms: req.body.number_of_rooms,
+//         // },
 
-        images: uploadedImages,
-        mainImage,
+//         realEstate: {
+//   title,
+//   city: req.body.city,
+//   type_building: req.body.type_building,
+//   rooms: req.body.rooms,
+//   area: req.body.area,
+//   floor: req.body.floor,
+// },
 
-        priorityType: req.body.priorityType || "free",
-        liked: false,
-        favorite: false,
-      });
+//         contact: {
+//           name: req.body["contact.name"],
+//           email: req.body["contact.email"],
+//           phone: req.body["contact.phone"],
+//         },
+
+//         userId: req.user.id,
+
+//         images: uploadedImages,
+//         mainImage,
+
+//         priorityType: req.body.priorityType || "free",
+//         liked: false,
+//         favorite: false,
+//       });
+
+
+const title =
+`${req.body.rooms || ""} otaqlı ${req.body.type_building || ""}`.trim();
+
+const newAd = await Ad.create({
+  title,
+  description: req.body.description,
+  price: Number(req.body.price) || 0,
+  location: req.body.location,
+
+  category: "realEstate",
+
+  realEstate: {
+    title,
+    city: req.body.city,
+    type_building: req.body.type_building,
+    rooms: req.body.rooms,
+    area: req.body.area,
+    floor: req.body.floor,
+  },
+
+  contact: {
+    name: req.body["contact.name"],
+    email: req.body["contact.email"],
+    phone: req.body["contact.phone"],
+  },
+
+  userId: req.user.id,
+
+  images: uploadedImages,
+  mainImage,
+
+  priorityType: req.body.priorityType || "free",
+});
 
       res.status(201).json(newAd);
     } catch (err) {
@@ -1662,85 +1837,85 @@ app.get("/api/realEstate/:id", async (req, res) => {
   }
 });
 
-app.post(
-  "/api/realEstate",
-  verifyToken,
-  upload.array("images", 20),
-  async (req, res) => {
-    try {
-      const mainImageIndex = parseInt(req.body.mainImageIndex);
+// app.post(
+//   "/api/realEstate",
+//   verifyToken,
+//   upload.array("images", 20),
+//   async (req, res) => {
+//     try {
+//       const mainImageIndex = parseInt(req.body.mainImageIndex);
 
-      const uploadedImages = [];
-      const files = req.files || [];
+//       const uploadedImages = [];
+//       const files = req.files || [];
 
-      for (const file of files) {
-        const result = await cloudinary.uploader.upload(file.path, {
-          folder: "realEstate",
-          transformation: [
-            {
-              overlay: "proelan_watermark",
-              width: 0.6,
-              opacity: 30,
-              gravity: "center",
-            },
-          ],
-        });
+//       for (const file of files) {
+//         const result = await cloudinary.uploader.upload(file.path, {
+//           folder: "realEstate",
+//           transformation: [
+//             {
+//               overlay: "proelan_watermark",
+//               width: 0.6,
+//               opacity: 30,
+//               gravity: "center",
+//             },
+//           ],
+//         });
 
-        uploadedImages.push(result.secure_url);
+//         uploadedImages.push(result.secure_url);
 
-        if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
-      }
+//         if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+//       }
 
-      let mainImage = null;
-      if (!isNaN(mainImageIndex) && uploadedImages[mainImageIndex]) {
-        mainImage = uploadedImages[mainImageIndex];
-      } else if (uploadedImages.length > 0) {
-        mainImage = uploadedImages[0];
-      }
+//       let mainImage = null;
+//       if (!isNaN(mainImageIndex) && uploadedImages[mainImageIndex]) {
+//         mainImage = uploadedImages[mainImageIndex];
+//       } else if (uploadedImages.length > 0) {
+//         mainImage = uploadedImages[0];
+//       }
 
-      const newAd = new Ad({
-        title: req.body.title,
-        description: req.body.description,
-        price: req.body.price ? Number(req.body.price) : 0,
-        location: req.body.location,
+//       const newAd = new Ad({
+//         title: req.body.title,
+//         description: req.body.description,
+//         price: req.body.price ? Number(req.body.price) : 0,
+//         location: req.body.location,
 
-        category: "realEstate",
+//         category: "realEstate",
 
-        type: req.body.type || "resmi",
+//         type: req.body.type || "resmi",
 
-        realEstate: {
-          rooms: req.body.rooms,
-          area: req.body.area,
-          city: req.body.city,
-          type_building: req.body.type_building,
-          field: req.body.field,
-          number_of_rooms: req.body.number_of_rooms,
-        },
+//         realEstate: {
+//           rooms: req.body.rooms,
+//           area: req.body.area,
+//           city: req.body.city,
+//           type_building: req.body.type_building,
+//           field: req.body.field,
+//           number_of_rooms: req.body.number_of_rooms,
+//         },
 
-        contact: {
-          name: req.body["contact.name"],
-          email: req.body["contact.email"],
-          phone: req.body["contact.phone"],
-        },
+//         contact: {
+//           name: req.body["contact.name"],
+//           email: req.body["contact.email"],
+//           phone: req.body["contact.phone"],
+//         },
 
-        userId: req.user.id,
-        images: uploadedImages,
-        mainImage,
+//         userId: req.user.id,
+//         images: uploadedImages,
+//         mainImage,
 
-        priorityType: req.body.priorityType || "free",
-        liked: false,
-        favorite: false,
-      });
+//         priorityType: req.body.priorityType || "free",
+//         liked: false,
+//         favorite: false,
+//       });
 
-      await newAd.save();
+//       await newAd.save();
 
-      res.status(201).json(newAd);
-    } catch (err) {
-      console.error("❌ RealEstate error:", err);
-      res.status(500).json({ error: err.message });
-    }
-  },
-);
+//       res.status(201).json(newAd);
+//     } catch (err) {
+//       console.error("❌ RealEstate error:", err);
+//       res.status(500).json({ error: err.message });
+//     }
+//   },
+// );
 
 app.put(
   "/api/realEstate/:id",
@@ -1884,32 +2059,71 @@ app.post(
 
       const mainImage =
         uploadedImages[mainImageIndex] || uploadedImages[0] || null;
-const title = `${req.body.brand || ""}`.trim();
-      const newAd = await Ad.create({
-        title,
-        description: req.body.description,
-        price: req.body.price ? Number(req.body.price) : 0,
-        location: req.body.location,
 
-        category: "homeGarden",
 
-        brand: req.body.brand,
+// const title = `${req.body.brand || ""}`.trim();
+//       const newAd = await Ad.create({
+//         title,
+//         description: req.body.description,
+//         price: req.body.price ? Number(req.body.price) : 0,
+//         location: req.body.location,
 
-        contact: {
-          name: req.body["contact.name"],
-          email: req.body["contact.email"],
-          phone: req.body["contact.phone"],
-        },
+//         category: "homeGarden",
 
-        images: uploadedImages,
-        mainImage,
+//         // brand: req.body.brand,
+//         homeGarden: {
+//   title,
+//   brand: req.body.brand,
+//   model: req.body.model,
+//   type: req.body.type,
+// },
 
-        userId: req.user.id,
+//         contact: {
+//           name: req.body["contact.name"],
+//           email: req.body["contact.email"],
+//           phone: req.body["contact.phone"],
+//         },
 
-        priorityType: req.body.priorityType || "free",
-        liked: false,
-        favorite: false,
-      });
+//         images: uploadedImages,
+//         mainImage,
+
+//         userId: req.user.id,
+
+//         priorityType: req.body.priorityType || "free",
+//         liked: false,
+//         favorite: false,
+//       });
+
+const title = req.body.title || req.body.brand || "";
+
+const newAd = await Ad.create({
+  title,
+  description: req.body.description,
+  price: Number(req.body.price) || 0,
+  location: req.body.location,
+
+  category: "homeGarden",
+
+  homeGarden: {
+    title,
+    brand: req.body.brand,
+    model: req.body.model,
+    type: req.body.type,
+  },
+
+  contact: {
+    name: req.body["contact.name"],
+    email: req.body["contact.email"],
+    phone: req.body["contact.phone"],
+  },
+
+  images: uploadedImages,
+  mainImage,
+
+  userId: req.user.id,
+
+  priorityType: req.body.priorityType || "free",
+});
 
       res.status(201).json(newAd);
     } catch (err) {
@@ -2034,33 +2248,70 @@ app.post(
       const mainImage =
         uploadedImages[mainImageIndex] || uploadedImages[0] || null;
 
-        const title = `${req.body.brand || ""}`.trim();
+//         const title = `${req.body.brand || ""}`.trim();
 
-      const newAd = await Ad.create({
-        title,
-        description: req.body.description,
-        price: req.body.price ? Number(req.body.price) : 0,
-        location: req.body.location,
+//       const newAd = await Ad.create({
+//         title,
+//         description: req.body.description,
+//         price: req.body.price ? Number(req.body.price) : 0,
+//         location: req.body.location,
 
-        category: "household",
+//         category: "household",
 
-        brand: req.body.brand || "",
+//         // brand: req.body.brand || "",
 
-        contact: {
-          name: req.body["contact.name"],
-          email: req.body["contact.email"],
-          phone: req.body["contact.phone"],
-        },
+//         household: {
+//   title,
+//   brand: req.body.brand,
+//   model: req.body.model,
+//   type: req.body.type,
+// },
+//         contact: {
+//           name: req.body["contact.name"],
+//           email: req.body["contact.email"],
+//           phone: req.body["contact.phone"],
+//         },
 
-        images: uploadedImages,
-        mainImage,
+//         images: uploadedImages,
+//         mainImage,
 
-        userId: req.user.id,
+//         userId: req.user.id,
 
-        priorityType: req.body.priorityType || "free",
-        liked: false,
-        favorite: false,
-      });
+//         priorityType: req.body.priorityType || "free",
+//         liked: false,
+//         favorite: false,
+//       });
+
+const title = req.body.title || req.body.brand || "";
+
+const newAd = await Ad.create({
+  title,
+  description: req.body.description,
+  price: Number(req.body.price) || 0,
+  location: req.body.location,
+
+  category: "household",
+
+  household: {
+    title,
+    brand: req.body.brand,
+    model: req.body.model,
+    type: req.body.type,
+  },
+
+  contact: {
+    name: req.body["contact.name"],
+    email: req.body["contact.email"],
+    phone: req.body["contact.phone"],
+  },
+
+  images: uploadedImages,
+  mainImage,
+
+  userId: req.user.id,
+
+  priorityType: req.body.priorityType || "free",
+});
 
       res.status(201).json(newAd);
     } catch (err) {
@@ -2303,31 +2554,72 @@ app.post(
 
       const contact = req.body.contact ? JSON.parse(req.body.contact) : {};
 
+// const title = `${req.body.brand || ""} ${req.body.model || ""}`.trim();
+
+//       const newAd = await Ad.create({
+//         title,
+//         description: req.body.description,
+//         price: req.body.price ? Number(req.body.price) : 0,
+//         location: req.body.location,
+//         category: "accessory",
+
+//         // brand: req.body.brand,
+//         // model: req.body.model,
+
+//           accessory: {
+//     title,
+//     brand: req.body.brand,
+//     model: req.body.model,
+//     type: req.body.type,
+//   },
+
+//         contact: {
+//           name: contact.name,
+//           email: contact.email,
+//           phone: contact.phone,
+//         },
+
+//         images: uploadedImages,
+//         mainImage,
+//         userId: req.user.id,
+//         priorityType: req.body.priorityType || "free",
+//         liked: false,
+//         favorite: false,
+//       });
+
+
 const title = `${req.body.brand || ""} ${req.body.model || ""}`.trim();
 
-      const newAd = await Ad.create({
-        title,
-        description: req.body.description,
-        price: req.body.price ? Number(req.body.price) : 0,
-        location: req.body.location,
-        category: "accessory",
+const newAd = await Ad.create({
+  title,
+  description: req.body.description,
+  price: Number(req.body.price) || 0,
+  location: req.body.location,
 
-        brand: req.body.brand,
-        model: req.body.model,
+  category: "accessory",
 
-        contact: {
-          name: contact.name,
-          email: contact.email,
-          phone: contact.phone,
-        },
+  accessory: {
+    title,
+    brand: req.body.brand,
+    model: req.body.model,
+    type: req.body.type,
+  },
 
-        images: uploadedImages,
-        mainImage,
-        userId: req.user.id,
-        priorityType: req.body.priorityType || "free",
-        liked: false,
-        favorite: false,
-      });
+  contact: {
+    name: contact.name,
+    email: contact.email,
+    phone: contact.phone,
+  },
+
+  images: uploadedImages,
+  mainImage,
+
+  userId: req.user.id,
+
+  priorityType: req.body.priorityType || "free",
+});
+
+
 
       res.status(201).json(newAd);
     } catch (err) {
