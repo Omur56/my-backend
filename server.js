@@ -10,7 +10,7 @@ import adRoutes from "./routes/adRoutes.js";
 import HomeAndGarden from "./models/HomeAndGarden.js";
 import RealEstate from "./models/RealEstate.js";
 import HouseHold from "./models/Household.js";
-import phone from "./models/Phone.js";
+// import phone from "./models/Phone.js";
 import Clothing from "./models/Clothing.js";
 import Jewelry from "./models/Jewelry.js";
 import User from "./models/user.js";
@@ -967,13 +967,10 @@ app.post(
   verifyToken,
   upload.array("images", 20),
   async (req, res) => {
-     console.log("🔥 NEW PHONE ROUTE");
-     console.log("PHONE ROUTE WORKING");
-console.log(req.body);
+    
+
     try {
-      console.log(req.files);
-      console.log(req.body);
-      console.log(req.user);
+    
 
       const files = req.files || [];
 
@@ -984,53 +981,6 @@ console.log(req.body);
 
         uploadedImages.push(result.secure_url);
       }
-
-// const title = `${req.body.brand || ""} ${req.body.model || ""}`.trim();
-
-//       const newAd = await Ad.create({
-//         // title,
-//         // brand: req.body.brand,
-//         // model: req.body.model,
-//         description: req.body.description,
-//         price: Number(req.body.price),
-//         location: req.body.location,
-
-// title,
-
-//         category: "phone",
-
-
-//         phone: {
-//   title,
-//   brand: req.body.brand,
-//   model: req.body.model,
-//   storage: req.body.storage,
-//   ram: req.body.ram,
-//   color: req.body.color,
-//   sim_card: req.body.sim_card,
-// },
-//         // phoneDetail: {
-//         //   storage: req.body.storage,
-//         //   color: req.body.color,
-//         //   ram: req.body.ram,
-//         //   sim_card: req.body.sim_card,
-//         // },
-
-//         contact: {
-//           name: req.body["contact.name"],
-//           email: req.body["contact.email"],
-//           phone: req.body["contact.phone"],
-//         },
-        
-
-//         userId: req.user.id,
-
-//         images: uploadedImages,
-//         mainImage: uploadedImages[0],
-
-//         liked: false,
-//         favorite: false,
-//       });
 
 
 
@@ -1045,7 +995,7 @@ const newAd = await Ad.create({
   category: "phone",
 
   phone: {
-    title,
+    
     brand: req.body.brand,
     model: req.body.model,
     storage: req.body.storage,
@@ -1309,7 +1259,7 @@ const newAd = await Ad.create({
   category: "electronics",
 
   electronics: {
-    title,
+    
     brand: req.body.brand,
     model: req.body.model,
     type: req.body.type,
@@ -1540,7 +1490,7 @@ const newAd = await Ad.create({
   category: "clothing",
 
   clothing: {
-    title,
+    
     brand: req.body.brand,
     model: req.body.model,
     type: req.body.type,
@@ -1768,12 +1718,14 @@ const newAd = await Ad.create({
   category: "realEstate",
 
   realEstate: {
-    title,
+    
     city: req.body.city,
     type_building: req.body.type_building,
     rooms: req.body.rooms,
     area: req.body.area,
     floor: req.body.floor,
+    number_of_rooms: req.body.number_of_rooms,
+    field: req.body.field,
   },
 
   contact: {
@@ -2105,7 +2057,7 @@ const newAd = await Ad.create({
   category: "homeGarden",
 
   homeGarden: {
-    title,
+    
     brand: req.body.brand,
     model: req.body.model,
     type: req.body.type,
@@ -2293,7 +2245,7 @@ const newAd = await Ad.create({
   category: "household",
 
   household: {
-    title,
+    
     brand: req.body.brand,
     model: req.body.model,
     type: req.body.type,
@@ -2599,7 +2551,7 @@ const newAd = await Ad.create({
   category: "accessory",
 
   accessory: {
-    title,
+    
     brand: req.body.brand,
     model: req.body.model,
     type: req.body.type,
@@ -2743,20 +2695,68 @@ app.get("/api/accessory/search", async (req, res) => {
 });
 // ---------------------------
 
-app.post("/api/reqister", async (req, res) => {
-  try {
-    const { username, Phone, email, password } = req.body;
+// app.post("/api/register", async (req, res) => {
+//   try {
+//     const { username, Phone, email, password } = req.body;
 
-    // 1. check user exists
+//     // 1. check user exists
+//     const existingUser = await User.findOne({ email });
+//     if (existingUser) {
+//       return res.status(400).json({ message: "User already exists" });
+//     }
+
+//     // 2. hash password
+//     const hashedPassword = await bcrypt.hash(password, 10);
+
+//     // 3. create user
+//     const newUser = new User({
+//       username,
+//       phone,
+//       email,
+//       password: hashedPassword,
+//     });
+
+//     // 4. save user
+//     await newUser.save();
+
+//     res.status(201).json({
+//       message: "User created successfully",
+//       user: {
+//         id: newUser._id,
+//         username: newUser.username,
+//         email: newUser.email,
+//       },
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// });
+
+
+
+app.post("/api/register", async (req, res) => {
+  try {
+    console.log("BODY:", req.body);
+    console.log("PHONE:", req.body.phone);
+    console.log("TYPE:", typeof req.body.phone);
+    const {
+      username,
+      phone,
+      email,
+      password
+    } = req.body;
+ console.log("PHONE AFTER DESTRUCTURE:", phone);
     const existingUser = await User.findOne({ email });
+
     if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
+      return res.status(400).json({
+        message: "User already exists",
+      });
     }
 
-    // 2. hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 3. create user
     const newUser = new User({
       username,
       phone,
@@ -2764,20 +2764,15 @@ app.post("/api/reqister", async (req, res) => {
       password: hashedPassword,
     });
 
-    // 4. save user
     await newUser.save();
 
     res.status(201).json({
-      message: "User created successfully",
-      user: {
-        id: newUser._id,
-        username: newUser.username,
-        email: newUser.email,
-      },
+      message: "User created",
     });
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    console.log(err);
+    res.status(500).json(err);
   }
 });
 

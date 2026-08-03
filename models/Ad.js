@@ -295,6 +295,7 @@ const carSchema = new Schema(
     color: String,
     km: String,
     modification: String,
+    description: String,
 
     credit: {
       type: Boolean,
@@ -328,6 +329,7 @@ const phoneSchema = new Schema(
     ram: String,
     color: String,
     sim_card: String,
+    description: String,
   },
   {
     _id: false,
@@ -341,6 +343,7 @@ const electronicsSchema = new Schema(
     brand: String,
     model: String,
     type: String,
+    description: String,
   },
   {
     _id: false,
@@ -356,6 +359,10 @@ const realEstateSchema = new Schema(
     rooms: String,
     area: String,
     floor: String,
+    number_of_floors: String,
+    number_of_rooms: String,
+    field: String,
+    description: String,
   },
   {
     _id: false,
@@ -371,6 +378,8 @@ const clothingSchema = new Schema(
     type: String,
     color: String,
     size: String,
+    condition: String,
+    description: String,
   },
   {
     _id: false,
@@ -397,6 +406,8 @@ const householdSchema = new Schema(
     brand: String,
     model: String,
     type: String,
+    category: String,
+    type_of_household: String,
   },
   {
     _id: false,
@@ -552,11 +563,7 @@ const adSchema = new Schema(
     minimize: true,
   }
 );
-console.log("========== AD SCHEMA ==========");
-console.log("phone:", adSchema.path("phone"));
-console.log("phoneDetail:", adSchema.path("phoneDetail"));
-console.log("car:", adSchema.path("car"));
-console.log("===============================");
+
 
 
 
