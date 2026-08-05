@@ -68,23 +68,19 @@ router.post("/forgot-password", async (req, res) => {
     console.log("📨 Mail göndərilir...");
 
     try {
-      const info = await transporter.sendMail({
-        from: process.env.SMTP_FROM,
-        to: email,
-        subject: "Şifrəni yeniləmə",
-        html: `
-          <p>Şifrəni yeniləmək üçün kodunuz:</p>
-          <h2>${code}</h2>
-
-          <p>və ya aşağıdakı linkdən istifadə edin:</p>
-
-          <a href="${resetLink}">
-            ${resetLink}
-          </a>
-
-          <p>Kod 15 dəqiqə etibarlıdır.</p>
-        `,
-      });
+   const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT),
+  secure: process.env.SMTP_SECURE === "true",
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+  connectionTimeout: 10000, // 10 saniyə
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
+});
+      
 
       console.log("✅ Mail göndərildi:", info.messageId);
 
@@ -92,13 +88,12 @@ router.post("/forgot-password", async (req, res) => {
         message: "Email-ə kod göndərildi",
       });
     } catch (mailErr) {
-      console.error("❌ SendMail Error");
-      console.error(mailErr);
-
-      return res.status(500).json({
-        message: mailErr.message,
-      });
-    }
+  console.error("❌ SendMail Error:", mailErr);
+  return res.status(500).json({
+    message: mailErr.message,
+    code: mailErr.code,
+  });
+}
   } catch (err) {
     console.error("❌ Forgot Password Error");
     console.error(err);
