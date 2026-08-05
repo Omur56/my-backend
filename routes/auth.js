@@ -5,17 +5,21 @@ import User from "../models/user.js";
 
 const router = express.Router();
 
+// SMTP
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT) || 587,
+  port: Number(process.env.SMTP_PORT),
   secure: process.env.SMTP_SECURE === "true",
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
 });
 
-// SMTP test
+// SMTP Test
 (async () => {
   try {
     await transporter.verify();
@@ -34,7 +38,9 @@ console.log({
   BASE_URL: process.env.BASE_URL,
 });
 
+// =========================
 // Forgot Password
+// =========================
 router.post("/forgot-password", async (req, res) => {
   try {
     console.log("📩 Forgot Password Request");
@@ -55,7 +61,9 @@ router.post("/forgot-password", async (req, res) => {
       });
     }
 
+    // 6 rəqəmli kod
     const code = Math.floor(100000 + Math.random() * 900000).toString();
+
     const codeHash = await bcrypt.hash(code, 10);
 
     user.resetPasswordCode = codeHash;
@@ -63,48 +71,56 @@ router.post("/forgot-password", async (req, res) => {
 
     await user.save();
 
-    const resetLink = `${process.env.BASE_URL}/reset-password?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`;
+    const resetLink = `${process.env.BASE_URL}/reset-password?email=${encodeURIComponent(
+      email
+    )}&code=${encodeURIComponent(code)}`;
 
     console.log("📨 Mail göndərilir...");
 
-    try {
-   const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT),
-  secure: process.env.SMTP_SECURE === "true",
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-  connectionTimeout: 10000, // 10 saniyə
-  greetingTimeout: 10000,
-  socketTimeout: 10000,
-});
-      
+    const info = await transporter.sendMail({
+      from: process.env.SMTP_FROM,
+      to: email,
+      subject: "Şifrəni yenilə",
+      html: `
+        <h2>Şifrəni sıfırla</h2>
 
-      console.log("✅ Mail göndərildi:", info.messageId);
+        <p>Sizin təsdiq kodunuz:</p>
 
-      return res.json({
-        message: "Email-ə kod göndərildi",
-      });
-    } catch (mailErr) {
-  console.error("❌ SendMail Error:", mailErr);
-  return res.status(500).json({
-    message: mailErr.message,
-    code: mailErr.code,
-  });
-}
+        <h1 style="letter-spacing:6px">${code}</h1>
+
+        <p>və ya aşağıdakı linkə klik edin:</p>
+
+        <a href="${resetLink}">
+          ${resetLink}
+        </a>
+
+        <br><br>
+
+        <small>Kod 15 dəqiqə etibarlıdır.</small>
+      `,
+    });
+
+    console.log("✅ Mail göndərildi");
+    console.log("Message ID:", info.messageId);
+    console.log("Response:", info.response);
+
+    return res.json({
+      message: "Email-ə kod göndərildi",
+    });
   } catch (err) {
     console.error("❌ Forgot Password Error");
     console.error(err);
 
     return res.status(500).json({
       message: err.message,
+      code: err.code,
     });
   }
 });
 
+// =========================
 // Reset Password
+// =========================
 router.post("/reset-password", async (req, res) => {
   try {
     const { email, code, newPassword } = req.body;
