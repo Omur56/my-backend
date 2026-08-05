@@ -60,8 +60,28 @@ router.post("/forgot-password", async (req, res) => {
     res.json({ message: "Email-ə kod göndərildi" });
   } catch (err) {
     console.error("Forgot password error:", err);
+    console.error(err);
+  console.error(err.message);
+  console.error(err.stack);
     res.status(500).json({ message: "Xəta baş verdi" });
   }
+});
+
+transporter.verify((error, success) => {
+  if (error) {
+    console.error("SMTP Verify Error:", error);
+  } else {
+    console.log("SMTP Server hazırdır");
+  }
+});
+
+console.log({
+  SMTP_HOST: process.env.SMTP_HOST,
+  SMTP_PORT: process.env.SMTP_PORT,
+  SMTP_USER: process.env.SMTP_USER,
+  SMTP_FROM: process.env.SMTP_FROM,
+  SMTP_PASS_EXISTS: !!process.env.SMTP_PASS,
+  BASE_URL: process.env.BASE_URL,
 });
 
 // 2️⃣ Reset Password — kodu yoxla və yenilə
@@ -96,6 +116,9 @@ router.post("/reset-password", async (req, res) => {
     res.json({ message: "Şifrə uğurla yeniləndi" });
   } catch (err) {
     console.error("Reset password error:", err);
+     console.error(err);
+  console.error(err.message);
+  console.error(err.stack);
     res.status(500).json({ message: "Xəta baş verdi" });
   }
 });
