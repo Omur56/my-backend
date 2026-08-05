@@ -71,9 +71,8 @@ router.post("/forgot-password", async (req, res) => {
 
     await user.save();
 
-    const resetLink = `${process.env.BASE_URL}/reset-password?email=${encodeURIComponent(
-      email
-    )}&code=${encodeURIComponent(code)}`;
+   const resetLink =
+`${process.env.FRONTEND_URL}/reset-password?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`;
 
     console.log("📨 Mail göndərilir...");
 
