@@ -168,10 +168,10 @@ app.use(
   }),
 );
 
-app.listen(5000, async () => {
-  console.log("Server started");
-  await generateSitemap(); // sitemap yaradılır
-});
+// app.listen(5000, async () => {
+//   console.log("Server started");
+//   await generateSitemap(); // sitemap yaradılır
+// });
 
 // Routes
 
