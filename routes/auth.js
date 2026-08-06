@@ -9,14 +9,12 @@ const router = express.Router();
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: Number(process.env.SMTP_PORT),
-  secure: process.env.SMTP_SECURE === "false" ? false : true,
+  secure: process.env.SMTP_SECURE === "true",
+  requireTLS: process.env.SMTP_SECURE !== "true",
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 10000,
 });
 
 // SMTP Test
@@ -25,7 +23,8 @@ const transporter = nodemailer.createTransport({
     await transporter.verify();
     console.log("✅ SMTP Verify OK");
   } catch (err) {
-    console.error("❌ SMTP Verify Failed:", err);
+    console.error("❌ SMTP Verify Failed");
+    console.error(err);
   }
 })();
 
