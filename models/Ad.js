@@ -502,6 +502,12 @@ const adSchema = new Schema(
       required: true,
     },
 
+    businessId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "BusinessProfile",
+      default: null,
+    },
+
     category: {
       type: String,
       enum: [
@@ -561,7 +567,7 @@ const adSchema = new Schema(
   {
     timestamps: true,
     minimize: true,
-  }
+  },
 );
 
 
