@@ -1226,68 +1226,121 @@ app.post(
   verifyToken,
   upload.array("images", 20),
   async (req, res) => {
-    
-
     try {
-    
-
+      // =====================================================
+      // ŞƏKİLLƏRİ CLOUDINARY-YƏ YÜKLƏ
+      // =====================================================
       const files = req.files || [];
-
       const uploadedImages = [];
 
       for (const file of files) {
-        const result = await uploadToCloudinary(file.buffer, "phone");
+        const result = await uploadToCloudinary(
+          file.buffer,
+          "phone"
+        );
 
         uploadedImages.push(result.secure_url);
       }
 
+      // =====================================================
+      // BAŞLIQ
+      // =====================================================
+      const title =
+        `${req.body.brand || ""} ${req.body.model || ""}`.trim() ||
+        "Telefon";
 
+      // =====================================================
+      // BİZNES ID
+      // =====================================================
+      const businessId =
+        req.body.businessId &&
+        String(req.body.businessId).trim() !== ""
+          ? req.body.businessId
+          : null;
 
-const title = `${req.body.brand || ""} ${req.body.model || ""}`.trim();
+      // =====================================================
+      // ELAN YARAT
+      // =====================================================
+      const newAd = await Ad.create({
+        title,
 
-const newAd = await Ad.create({
-  title,
-  description: req.body.description,
-  price: Number(req.body.price) || 0,
-  location: req.body.location,
+        description: req.body.description || "",
 
-  category: "phone",
+        price: Number(req.body.price) || 0,
 
-  phone: {
-    
-    brand: req.body.brand,
-    model: req.body.model,
-    storage: req.body.storage,
-    ram: req.body.ram,
-    color: req.body.color,
-    sim_card: req.body.sim_card,
-  },
+        location: req.body.location || "",
 
-  contact: {
-    name: req.body["contact.name"],
-    email: req.body["contact.email"],
-    phone: req.body["contact.phone"],
-  },
+        category: "phone",
 
-  userId: req.user.id,
+        // 🔥 BİZNES PROFİLİ İLƏ ƏLAQƏ
+        businessId,
 
-  images: uploadedImages,
-  mainImage: uploadedImages[0],
+        // =====================================================
+        // TELEFON MƏLUMATLARI
+        // =====================================================
+        phone: {
+          title,
 
-  priorityType: req.body.priorityType || "free",
-});
+          brand: req.body.brand || "",
 
+          model: req.body.model || "",
 
+          storage: req.body.storage || "",
+
+          ram: req.body.ram || "",
+
+          color: req.body.color || "",
+
+          sim_card: req.body.sim_card || "",
+
+          description: req.body.description || "",
+        },
+
+        // =====================================================
+        // ƏLAQƏ MƏLUMATLARI
+        // =====================================================
+        contact: {
+          name: req.body["contact.name"] || "",
+
+          email: req.body["contact.email"] || "",
+
+          phone: req.body["contact.phone"] || "",
+        },
+
+        // =====================================================
+        // İSTİFADƏÇİ
+        // =====================================================
+        userId: req.user.id,
+
+        // =====================================================
+        // ŞƏKİLLƏR
+        // =====================================================
+        images: uploadedImages,
+
+        mainImage:
+          uploadedImages[0] || null,
+
+        // =====================================================
+        // PRIORITET
+        // =====================================================
+        priorityType:
+          req.body.priorityType || "free",
+      });
+
+      // =====================================================
+      // UĞURLU CAVAB
+      // =====================================================
       res.status(201).json(newAd);
     } catch (err) {
-      console.error(err);
+      console.error("❌ Phone error:", err);
 
       res.status(500).json({
         message: err.message,
       });
     }
-  },
+  }
 );
+
 
 app.get("/api/phone", async (req, res) => {
   try {
@@ -1418,12 +1471,12 @@ app.post(
   async (req, res) => {
     try {
       const files = req.files || [];
-
       const uploadedImages = [];
 
       // 🔥 SAFE UPLOAD
       for (const file of files) {
         const result = await uploadToCloudinary(file.buffer, "electronics");
+
         uploadedImages.push(result.secure_url);
       }
 
@@ -1433,68 +1486,53 @@ app.post(
         uploadedImages[mainImageIndex] || uploadedImages[0] || null;
 
       const contact = {
-        name: req.body["contact.name"],
-        email: req.body["contact.email"],
-        phone: req.body["contact.phone"],
+        name: req.body["contact.name"] || "",
+        email: req.body["contact.email"] || "",
+        phone: req.body["contact.phone"] || "",
       };
-// const title = `${req.body.brand || ""} ${req.body.model || ""}`.trim();
-//       const newAd = await Ad.create({
-//         title,
-//         description: req.body.description,
-//         price: req.body.price ? Number(req.body.price) : 0,
 
-//         location: req.body.location,
-//         category: "electronics",
-//   electronics: {
-//     brand: req.body.brand,
-//     model: req.body.model,
-//     type: req.body.type,
-//   },
+      const title = `${req.body.brand || ""} ${req.body.model || ""}`.trim();
 
-//         // brand: req.body.brand,
-//         // model: req.body.model,
+      // 🏪 Biznes profilindən gələn businessId
+      const businessId =
+        req.body.businessId && String(req.body.businessId).trim() !== ""
+          ? req.body.businessId
+          : null;
 
-//         contact,
-//         userId: req.user.id,
+      const newAd = await Ad.create({
+        title,
+        description: req.body.description || "",
+        price: Number(req.body.price) || 0,
+        location: req.body.location || "",
 
-//         images: uploadedImages,
-//         mainImage,
+        category: "electronics",
 
-//         priorityType: req.body.priorityType || "free",
-//       });
+        // 🏪 Elanı biznes profilinə bağlayır
+        businessId,
 
+        electronics: {
+          brand: req.body.brand || "",
+          model: req.body.model || "",
+          type: req.body.type || "",
+        },
 
-const title = `${req.body.brand || ""} ${req.body.model || ""}`.trim();
+        contact,
 
-const newAd = await Ad.create({
-  title,
-  description: req.body.description,
-  price: Number(req.body.price) || 0,
-  location: req.body.location,
+        userId: req.user.id,
 
-  category: "electronics",
+        images: uploadedImages,
+        mainImage,
 
-  electronics: {
-    
-    brand: req.body.brand,
-    model: req.body.model,
-    type: req.body.type,
-  },
-
-  contact,
-  userId: req.user.id,
-
-  images: uploadedImages,
-  mainImage,
-
-  priorityType: req.body.priorityType || "free",
-});
-
+        priorityType: req.body.priorityType || "free",
+      });
 
       res.status(201).json(newAd);
     } catch (err) {
       console.error("❌ ELECTRONICS ERROR:", err);
-      res.status(500).json({ error: err.message });
+
+      res.status(500).json({
+        error: err.message,
+      });
     }
   },
 );
@@ -1601,12 +1639,12 @@ app.post(
   async (req, res) => {
     try {
       const files = req.files || [];
-
       const uploadedImages = [];
 
       // 🔥 SAFE CLOUDINARY UPLOAD
       for (const file of files) {
         const result = await uploadToCloudinary(file.buffer, "clothing");
+
         uploadedImages.push(result.secure_url);
       }
 
@@ -1615,82 +1653,57 @@ app.post(
       const mainImage =
         uploadedImages[mainImageIndex] || uploadedImages[0] || null;
 
-// const title = `${req.body.brand || ""} ${req.body.type || ""}`.trim();
-//       const newAd = await Ad.create({
-//         title,
-//         description: req.body.description,
-//         price: req.body.price ? Number(req.body.price) : 0,
-//         location: req.body.location,
+      const title = `${req.body.brand || ""} ${req.body.model || ""}`.trim();
 
-//         category: "clothing",
-// clothing: {
-//   title,
-//   brand: req.body.brand,
-//   model: req.body.model,
-//   type: req.body.type,
-//   color: req.body.color,
-//   size: req.body.size,
-// },
-//         // type: req.body.type || "magaza",
-//         // brand: req.body.brand,
+      // 🏪 Biznes profilindən gələn businessId
+      const businessId =
+        req.body.businessId && String(req.body.businessId).trim() !== ""
+          ? req.body.businessId
+          : null;
 
-//         contact: {
-//           name: req.body["contact.name"],
-//           email: req.body["contact.email"],
-//           phone: req.body["contact.phone"],
-//         },
+      const newAd = await Ad.create({
+        title,
+        description: req.body.description || "",
+        price: Number(req.body.price) || 0,
+        location: req.body.location || "",
 
-//         images: uploadedImages,
-//         mainImage,
+        category: "clothing",
 
-//         userId: req.user.id,
+        // 🏪 Elanı biznes profilinə bağlayır
+        businessId,
 
-//         priorityType: req.body.priorityType || "free",
-//         liked: false,
-//         favorite: false,
-//       });
+        clothing: {
+          brand: req.body.brand || "",
+          model: req.body.model || "",
+          type: req.body.type || "",
+          color: req.body.color || "",
+          size: req.body.size || "",
+        },
 
-const title = `${req.body.brand || ""} ${req.body.model || ""}`.trim();
+        contact: {
+          name: req.body["contact.name"] || "",
+          email: req.body["contact.email"] || "",
+          phone: req.body["contact.phone"] || "",
+        },
 
-const newAd = await Ad.create({
-  title,
-  description: req.body.description,
-  price: Number(req.body.price) || 0,
-  location: req.body.location,
+        images: uploadedImages,
+        mainImage,
 
-  category: "clothing",
+        userId: req.user.id,
 
-  clothing: {
-    
-    brand: req.body.brand,
-    model: req.body.model,
-    type: req.body.type,
-    color: req.body.color,
-    size: req.body.size,
-  },
-
-  contact: {
-    name: req.body["contact.name"],
-    email: req.body["contact.email"],
-    phone: req.body["contact.phone"],
-  },
-
-  images: uploadedImages,
-  mainImage,
-
-  userId: req.user.id,
-
-  priorityType: req.body.priorityType || "free",
-});
+        priorityType: req.body.priorityType || "free",
+      });
 
       res.status(201).json(newAd);
     } catch (err) {
       console.error("❌ Clothing error:", err);
-      res.status(500).json({ error: err.message });
+
+      res.status(500).json({
+        error: err.message,
+      });
     }
   },
 );
-
 
 
 app.delete("/api/clothing/:id", verifyToken, async (req, res) => {
@@ -1761,7 +1774,6 @@ app.get("/api/clothing/search", async (req, res) => {
 
 // ------ev alqi satqi----------
 
-
 app.post(
   "/api/realEstate",
   verifyToken,
@@ -1769,12 +1781,12 @@ app.post(
   async (req, res) => {
     try {
       const files = req.files || [];
-
       const uploadedImages = [];
 
       // 🔥 SAFE CLOUDINARY UPLOAD
       for (const file of files) {
         const result = await uploadToCloudinary(file.buffer, "realEstate");
+
         uploadedImages.push(result.secure_url);
       }
 
@@ -1783,94 +1795,58 @@ app.post(
       const mainImage =
         uploadedImages[mainImageIndex] || uploadedImages[0] || null;
 
+      const title =
+        `${req.body.rooms || ""} otaqlı ${req.body.type_building || ""}`.trim();
 
-//         const title = `${req.body.rooms || ""} otaqlı ${req.body.type_building || ""}`.trim();
+      // 🏪 Biznes profilindən gələn businessId
+      const businessId =
+        req.body.businessId && String(req.body.businessId).trim() !== ""
+          ? req.body.businessId
+          : null;
 
-//       const newAd = await Ad.create({
-//         title,
-//         description: req.body.description,
-//         price: req.body.price ? Number(req.body.price) : 0,
-//         location: req.body.location,
+      const newAd = await Ad.create({
+        title,
+        description: req.body.description || "",
+        price: Number(req.body.price) || 0,
+        location: req.body.location || "",
 
-//         category: "realEstate",
+        category: "realEstate",
 
-//         type: req.body.type || "resmi",
+        // 🏪 Elanı biznes profilinə bağlayır
+        businessId,
 
-//         // realEstate: {
-//         //   rooms: req.body.rooms,
-//         //   area: req.body.area,
-//         //   city: req.body.city,
-//         //   type_building: req.body.type_building,
-//         //   field: req.body.field,
-//         //   number_of_rooms: req.body.number_of_rooms,
-//         // },
+        realEstate: {
+          title,
+          city: req.body.city || "",
+          type_building: req.body.type_building || "",
+          rooms: req.body.rooms || "",
+          area: req.body.area || "",
+          floor: req.body.floor || "",
+          number_of_rooms: req.body.number_of_rooms || "",
+          field: req.body.field || "",
+        },
 
-//         realEstate: {
-//   title,
-//   city: req.body.city,
-//   type_building: req.body.type_building,
-//   rooms: req.body.rooms,
-//   area: req.body.area,
-//   floor: req.body.floor,
-// },
+        contact: {
+          name: req.body["contact.name"] || "",
+          email: req.body["contact.email"] || "",
+          phone: req.body["contact.phone"] || "",
+        },
 
-//         contact: {
-//           name: req.body["contact.name"],
-//           email: req.body["contact.email"],
-//           phone: req.body["contact.phone"],
-//         },
+        userId: req.user.id,
 
-//         userId: req.user.id,
+        images: uploadedImages,
+        mainImage,
 
-//         images: uploadedImages,
-//         mainImage,
-
-//         priorityType: req.body.priorityType || "free",
-//         liked: false,
-//         favorite: false,
-//       });
-
-
-const title =
-`${req.body.rooms || ""} otaqlı ${req.body.type_building || ""}`.trim();
-
-const newAd = await Ad.create({
-  title,
-  description: req.body.description,
-  price: Number(req.body.price) || 0,
-  location: req.body.location,
-
-  category: "realEstate",
-
-  realEstate: {
-    
-    city: req.body.city,
-    type_building: req.body.type_building,
-    rooms: req.body.rooms,
-    area: req.body.area,
-    floor: req.body.floor,
-    number_of_rooms: req.body.number_of_rooms,
-    field: req.body.field,
-  },
-
-  contact: {
-    name: req.body["contact.name"],
-    email: req.body["contact.email"],
-    phone: req.body["contact.phone"],
-  },
-
-  userId: req.user.id,
-
-  images: uploadedImages,
-  mainImage,
-
-  priorityType: req.body.priorityType || "free",
-});
+        priorityType: req.body.priorityType || "free",
+      });
 
       res.status(201).json(newAd);
     } catch (err) {
       console.error("❌ RealEstate error:", err);
-      res.status(500).json({ error: err.message });
+
+      res.status(500).json({
+        error: err.message,
+      });
     }
   },
 );
@@ -1999,12 +1975,12 @@ app.post(
   async (req, res) => {
     try {
       const files = req.files || [];
-
       const uploadedImages = [];
 
       // 🔥 SAFE CLOUDINARY UPLOAD
       for (const file of files) {
         const result = await uploadToCloudinary(file.buffer, "homeGarden");
+
         uploadedImages.push(result.secure_url);
       }
 
@@ -2013,79 +1989,56 @@ app.post(
       const mainImage =
         uploadedImages[mainImageIndex] || uploadedImages[0] || null;
 
+      const title = req.body.title || req.body.brand || "";
 
-// const title = `${req.body.brand || ""}`.trim();
-//       const newAd = await Ad.create({
-//         title,
-//         description: req.body.description,
-//         price: req.body.price ? Number(req.body.price) : 0,
-//         location: req.body.location,
+      // 🏪 Biznes profilindən gələn businessId
+      const businessId =
+        req.body.businessId && String(req.body.businessId).trim() !== ""
+          ? req.body.businessId
+          : null;
 
-//         category: "homeGarden",
+      const newAd = await Ad.create({
+        title,
+        description: req.body.description || "",
+        price: Number(req.body.price) || 0,
+        location: req.body.location || "",
 
-//         // brand: req.body.brand,
-//         homeGarden: {
-//   title,
-//   brand: req.body.brand,
-//   model: req.body.model,
-//   type: req.body.type,
-// },
+        category: "homeGarden",
 
-//         contact: {
-//           name: req.body["contact.name"],
-//           email: req.body["contact.email"],
-//           phone: req.body["contact.phone"],
-//         },
+        // 🏪 Elanı biznes profilinə bağlayır
+        businessId,
 
-//         images: uploadedImages,
-//         mainImage,
+        homeGarden: {
+          title,
+          brand: req.body.brand || "",
+          model: req.body.model || "",
+          type: req.body.type || "",
+        },
 
-//         userId: req.user.id,
+        contact: {
+          name: req.body["contact.name"] || "",
+          email: req.body["contact.email"] || "",
+          phone: req.body["contact.phone"] || "",
+        },
 
-//         priorityType: req.body.priorityType || "free",
-//         liked: false,
-//         favorite: false,
-//       });
+        images: uploadedImages,
+        mainImage,
 
-const title = req.body.title || req.body.brand || "";
+        userId: req.user.id,
 
-const newAd = await Ad.create({
-  title,
-  description: req.body.description,
-  price: Number(req.body.price) || 0,
-  location: req.body.location,
-
-  category: "homeGarden",
-
-  homeGarden: {
-    
-    brand: req.body.brand,
-    model: req.body.model,
-    type: req.body.type,
-  },
-
-  contact: {
-    name: req.body["contact.name"],
-    email: req.body["contact.email"],
-    phone: req.body["contact.phone"],
-  },
-
-  images: uploadedImages,
-  mainImage,
-
-  userId: req.user.id,
-
-  priorityType: req.body.priorityType || "free",
-});
+        priorityType: req.body.priorityType || "free",
+      });
 
       res.status(201).json(newAd);
     } catch (err) {
       console.error("❌ HomeGarden error:", err);
-      res.status(500).json({ error: err.message });
+
+      res.status(500).json({
+        error: err.message,
+      });
     }
   },
 );
-
 
 
 app.delete("/api/homeGarden/:id", verifyToken, async (req, res) => {
@@ -2143,92 +2096,115 @@ app.post(
   async (req, res) => {
     try {
       const files = req.files || [];
-
       const uploadedImages = [];
 
-      // 🔥 SAFE CLOUDINARY UPLOAD
+      // =====================================================
+      // CLOUDINARY ŞƏKİL YÜKLƏMƏ
+      // =====================================================
       for (const file of files) {
         const result = await uploadToCloudinary(file.buffer, "household");
+
         uploadedImages.push(result.secure_url);
       }
 
-      const mainImageIndex = parseInt(req.body.mainImageIndex);
+      // =====================================================
+      // ƏSAS ŞƏKİL
+      // =====================================================
+      const mainImageIndex = Number.isInteger(parseInt(req.body.mainImageIndex))
+        ? parseInt(req.body.mainImageIndex)
+        : 0;
 
       const mainImage =
         uploadedImages[mainImageIndex] || uploadedImages[0] || null;
 
-//         const title = `${req.body.brand || ""}`.trim();
+      // =====================================================
+      // BAŞLIQ
+      // =====================================================
+      const title = req.body.title || req.body.brand || "Məişət texnikası";
 
-//       const newAd = await Ad.create({
-//         title,
-//         description: req.body.description,
-//         price: req.body.price ? Number(req.body.price) : 0,
-//         location: req.body.location,
+      // =====================================================
+      // BİZNES ID
+      // =====================================================
+      const businessId =
+        req.body.businessId && String(req.body.businessId).trim() !== ""
+          ? req.body.businessId
+          : null;
 
-//         category: "household",
+      // =====================================================
+      // ELAN YARAT
+      // =====================================================
+      const newAd = await Ad.create({
+        title,
 
-//         // brand: req.body.brand || "",
+        description: req.body.description || "",
 
-//         household: {
-//   title,
-//   brand: req.body.brand,
-//   model: req.body.model,
-//   type: req.body.type,
-// },
-//         contact: {
-//           name: req.body["contact.name"],
-//           email: req.body["contact.email"],
-//           phone: req.body["contact.phone"],
-//         },
+        price: Number(req.body.price) || 0,
 
-//         images: uploadedImages,
-//         mainImage,
+        location: req.body.location || "",
 
-//         userId: req.user.id,
+        category: "household",
 
-//         priorityType: req.body.priorityType || "free",
-//         liked: false,
-//         favorite: false,
-//       });
+        // 🔥 BİZNES PROFİLİ İLƏ ƏLAQƏ
+        businessId,
 
-const title = req.body.title || req.body.brand || "";
+        // =====================================================
+        // HOUSEHOLD MƏLUMATLARI
+        // =====================================================
+        household: {
+          title: req.body.title || "",
+          brand: req.body.brand || "",
+          model: req.body.model || "",
 
-const newAd = await Ad.create({
-  title,
-  description: req.body.description,
-  price: Number(req.body.price) || 0,
-  location: req.body.location,
+          // Frontend-də type_of_goods istifadə edirsə
+          type: req.body.type || req.body.type_of_goods || "",
 
-  category: "household",
+          category: req.body.category || "",
 
-  household: {
-    
-    brand: req.body.brand,
-    model: req.body.model,
-    type: req.body.type,
-  },
+          type_of_household:
+            req.body.type_of_household || req.body.type_of_goods || "",
+        },
 
-  contact: {
-    name: req.body["contact.name"],
-    email: req.body["contact.email"],
-    phone: req.body["contact.phone"],
-  },
+        // =====================================================
+        // ƏLAQƏ
+        // =====================================================
+        contact: {
+          name: req.body["contact.name"] || "",
+          email: req.body["contact.email"] || "",
+          phone: req.body["contact.phone"] || "",
+        },
 
-  images: uploadedImages,
-  mainImage,
+        // =====================================================
+        // ŞƏKİLLƏR
+        // =====================================================
+        images: uploadedImages,
 
-  userId: req.user.id,
+        mainImage,
 
-  priorityType: req.body.priorityType || "free",
-});
+        // =====================================================
+        // İSTİFADƏÇİ
+        // =====================================================
+        userId: req.user.id,
 
+        // =====================================================
+        // ELAN PRIORİTETİ
+        // =====================================================
+        priorityType: req.body.priorityType || "free",
+      });
+
+      // =====================================================
+      // UĞURLU CAVAB
+      // =====================================================
       res.status(201).json(newAd);
     } catch (err) {
       console.error("❌ Household error:", err);
-      res.status(500).json({ error: err.message });
+
+      res.status(500).json({
+        error: err.message,
+      });
     }
   },
 );
+
 
 app.get("/api/household", async (req, res) => {
   try {
@@ -2390,12 +2366,12 @@ app.post(
   async (req, res) => {
     try {
       const files = req.files || [];
-
       const uploadedImages = [];
 
       // 🔥 SAFE CLOUDINARY UPLOAD
       for (const file of files) {
         const result = await uploadToCloudinary(file.buffer, "accessory");
+
         uploadedImages.push(result.secure_url);
       }
 
@@ -2406,81 +2382,56 @@ app.post(
 
       const contact = req.body.contact ? JSON.parse(req.body.contact) : {};
 
-// const title = `${req.body.brand || ""} ${req.body.model || ""}`.trim();
+      const title = `${req.body.brand || ""} ${req.body.model || ""}`.trim();
 
-//       const newAd = await Ad.create({
-//         title,
-//         description: req.body.description,
-//         price: req.body.price ? Number(req.body.price) : 0,
-//         location: req.body.location,
-//         category: "accessory",
+      // 🏪 Biznes profilindən gələn businessId
+      const businessId =
+        req.body.businessId && String(req.body.businessId).trim() !== ""
+          ? req.body.businessId
+          : null;
 
-//         // brand: req.body.brand,
-//         // model: req.body.model,
+      const newAd = await Ad.create({
+        title,
+        description: req.body.description || "",
+        price: Number(req.body.price) || 0,
+        location: req.body.location || "",
 
-//           accessory: {
-//     title,
-//     brand: req.body.brand,
-//     model: req.body.model,
-//     type: req.body.type,
-//   },
+        category: "accessory",
 
-//         contact: {
-//           name: contact.name,
-//           email: contact.email,
-//           phone: contact.phone,
-//         },
+        // 🏪 Elanı biznes profilinə bağlayır
+        businessId,
 
-//         images: uploadedImages,
-//         mainImage,
-//         userId: req.user.id,
-//         priorityType: req.body.priorityType || "free",
-//         liked: false,
-//         favorite: false,
-//       });
+        accessory: {
+          title,
+          brand: req.body.brand || "",
+          model: req.body.model || "",
+          type: req.body.type || "",
+        },
 
+        contact: {
+          name: contact.name || "",
+          email: contact.email || "",
+          phone: contact.phone || "",
+        },
 
-const title = `${req.body.brand || ""} ${req.body.model || ""}`.trim();
+        images: uploadedImages,
+        mainImage,
 
-const newAd = await Ad.create({
-  title,
-  description: req.body.description,
-  price: Number(req.body.price) || 0,
-  location: req.body.location,
+        userId: req.user.id,
 
-  category: "accessory",
-
-  accessory: {
-    
-    brand: req.body.brand,
-    model: req.body.model,
-    type: req.body.type,
-  },
-
-  contact: {
-    name: contact.name,
-    email: contact.email,
-    phone: contact.phone,
-  },
-
-  images: uploadedImages,
-  mainImage,
-
-  userId: req.user.id,
-
-  priorityType: req.body.priorityType || "free",
-});
-
-
+        priorityType: req.body.priorityType || "free",
+      });
 
       res.status(201).json(newAd);
     } catch (err) {
       console.error("❌ accessory error:", err);
-      res.status(500).json({ error: err.message });
+
+      res.status(500).json({
+        error: err.message,
+      });
     }
   },
 );
-
 
 
 app.delete("/api/accessory/:id", verifyToken, async (req, res) => {
