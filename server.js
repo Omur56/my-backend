@@ -958,16 +958,26 @@ app.get("/api/my-car", verifyToken, async (req, res) => {
 
 app.get("/api/car/:id", async (req, res) => {
   try {
-    const car = await Ad.findById(req.params.id);
-    if (!car) return res.status(404).json({ message: "Elan tapılmadı" });
+    const item = await Ad.findById(req.params.id).populate(
+      "businessId",
+      "businessName slug logo coverImage verified city",
+    );
 
-    res.json(car);
+    if (!item) {
+      return res.status(404).json({
+        message: "Elan tapılmadı",
+      });
+    }
+
+    res.json(item);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server xətası" });
+    console.error("❌ Car detail error:", err);
+
+    res.status(500).json({
+      error: err.message,
+    });
   }
 });
-
 
 
 app.post(
@@ -1357,15 +1367,24 @@ app.get("/api/phone", async (req, res) => {
 
 app.get("/api/phone/:id", async (req, res) => {
   try {
-    const item = await Ad.findById(req.params.id);
+    const item = await Ad.findById(req.params.id).populate(
+      "businessId",
+      "businessName slug logo coverImage verified city",
+    );
 
     if (!item) {
-      return res.status(404).json({ message: "Tapılmadı" });
+      return res.status(404).json({
+        message: "Tapılmadı",
+      });
     }
 
     res.json(item);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("❌ Phone detail error:", err);
+
+    res.status(500).json({
+      error: err.message,
+    });
   }
 });
 
@@ -1447,17 +1466,21 @@ app.get("/api/electronics", async (req, res) => {
 
 app.get("/api/electronics/:id", async (req, res) => {
   try {
-    const electronics = await Ad.findById(req.params.id);
+    const item = await Ad.findById(req.params.id).populate(
+      "businessId",
+      "businessName slug logo coverImage verified city",
+    );
 
-    if (!electronics) {
+    if (!item) {
       return res.status(404).json({
         message: "Elan tapılmadı",
       });
     }
 
-    res.json(electronics);
+    res.json(item);
   } catch (err) {
-    console.error(err);
+    console.error("❌ Electronics detail error:", err);
+
     res.status(500).json({
       error: err.message,
     });
@@ -1620,15 +1643,24 @@ app.get("/api/my-clothing", verifyToken, async (req, res) => {
 
 app.get("/api/clothing/:id", async (req, res) => {
   try {
-    const item = await Ad.findById(req.params.id);
+    const item = await Ad.findById(req.params.id).populate(
+      "businessId",
+      "businessName slug logo coverImage verified city",
+    );
 
     if (!item) {
-      return res.status(404).json({ message: "Elan tapılmadı" });
+      return res.status(404).json({
+        message: "Elan tapılmadı",
+      });
     }
 
     res.json(item);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("❌ Clothing detail error:", err);
+
+    res.status(500).json({
+      error: err.message,
+    });
   }
 });
 
@@ -1711,20 +1743,128 @@ app.delete("/api/clothing/:id", verifyToken, async (req, res) => {
     const item = await Ad.findById(req.params.id);
 
     if (!item) {
-      return res.status(404).json({ message: "Tapılmadı" });
+      return res.status(404).json({
+        message: "Tapılmadı",
+      });
     }
 
-    if (item.userId.toString() !== req.user.id) {
-      return res.status(403).json({ message: "İcazə yoxdur" });
+    // 👤 Adi elan sahibidirsə
+    const isDirectOwner =
+      item.userId && String(item.userId) === String(req.user.id);
+
+    // 🏪 Biznes sahibidirsə
+    let isBusinessOwner = false;
+
+    if (item.businessId) {
+      const business = await BusinessProfile.findOne({
+        _id: item.businessId,
+        owner: req.user.id,
+      }).lean();
+
+      isBusinessOwner = Boolean(business);
+    }
+
+    // ❌ Heç biri deyilsə icazə yoxdur
+    if (!isDirectOwner && !isBusinessOwner) {
+      return res.status(403).json({
+        message: "İcazə yoxdur",
+      });
     }
 
     await item.deleteOne();
 
-    res.json({ message: "Silindi ✅" });
+    res.json({
+      message: "Silindi ✅",
+    });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("❌ Clothing delete error:", err);
+
+    res.status(500).json({
+      error: err.message,
+    });
   }
 });
+
+app.put("/api/clothing/:id", verifyToken, async (req, res) => {
+  try {
+    const item = await Ad.findById(req.params.id);
+
+    if (!item) {
+      return res.status(404).json({
+        message: "Elan tapılmadı",
+      });
+    }
+
+    // 👤 Adi elan sahibidirsə
+    const isDirectOwner =
+      item.userId && String(item.userId) === String(req.user.id);
+
+    // 🏪 Biznes sahibidirsə
+    let isBusinessOwner = false;
+
+    if (item.businessId) {
+      const business = await BusinessProfile.findOne({
+        _id: item.businessId,
+        owner: req.user.id,
+      }).lean();
+
+      isBusinessOwner = Boolean(business);
+    }
+
+    // ❌ Nə elan sahibi, nə də biznes sahibi
+    if (!isDirectOwner && !isBusinessOwner) {
+      return res.status(403).json({
+        message: "İcazə yoxdur",
+      });
+    }
+
+    // ================================
+    // ƏSAS ELAN MƏLUMATLARI
+    // ================================
+
+    if (req.body.title !== undefined) {
+      item.title = String(req.body.title).trim();
+    }
+
+    if (req.body.price !== undefined) {
+      const price = Number(req.body.price);
+
+      if (Number.isNaN(price)) {
+        return res.status(400).json({
+          message: "Qiymət düzgün deyil",
+        });
+      }
+
+      item.price = price;
+    }
+
+    if (req.body.city !== undefined) {
+      item.city = String(req.body.city).trim();
+    }
+
+    if (req.body.location !== undefined) {
+      item.location = String(req.body.location).trim();
+    }
+
+    if (req.body.description !== undefined) {
+      item.description = String(req.body.description).trim();
+    }
+
+    await item.save();
+
+    res.json({
+      message: "Elan uğurla yeniləndi",
+      ad: item,
+    });
+  } catch (err) {
+    console.error("❌ Clothing update error:", err);
+
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+});
+
 
 app.patch("/api/clothing/:id/like", async (req, res) => {
   try {
@@ -1881,12 +2021,24 @@ app.get("/api/my-realEstate", verifyToken, async (req, res) => {
 
 app.get("/api/realEstate/:id", async (req, res) => {
   try {
-    const item = await Ad.findById(req.params.id);
-    if (!item) return res.status(404).json({ message: "Tapılmadı" });
+    const item = await Ad.findById(req.params.id).populate(
+      "businessId",
+      "businessName slug logo coverImage verified city",
+    );
+
+    if (!item) {
+      return res.status(404).json({
+        message: "Elan tapılmadı",
+      });
+    }
 
     res.json(item);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("❌ RealEstate detail error:", err);
+
+    res.status(500).json({
+      error: err.message,
+    });
   }
 });
 
@@ -1956,15 +2108,24 @@ app.get("/api/my-homeGarden", verifyToken, async (req, res) => {
 
 app.get("/api/homeGarden/:id", async (req, res) => {
   try {
-    const item = await Ad.findById(req.params.id);
+    const item = await Ad.findById(req.params.id).populate(
+      "businessId",
+      "businessName slug logo coverImage verified city",
+    );
 
     if (!item) {
-      return res.status(404).json({ message: "Elan tapılmadı" });
+      return res.status(404).json({
+        message: "Elan tapılmadı",
+      });
     }
 
     res.json(item);
   } catch (err) {
-    res.status(500).json({ message: "Server xətası" });
+    console.error("❌ HomeGarden detail error:", err);
+
+    res.status(500).json({
+      error: err.message,
+    });
   }
 });
 
@@ -2233,15 +2394,24 @@ app.get("/api/my-household", verifyToken, async (req, res) => {
 
 app.get("/api/household/:id", async (req, res) => {
   try {
-    const item = await Ad.findById(req.params.id);
+    const item = await Ad.findById(req.params.id).populate(
+      "businessId",
+      "businessName slug logo coverImage verified city",
+    );
 
     if (!item) {
-      return res.status(404).json({ message: "Elan tapılmadı" });
+      return res.status(404).json({
+        message: "Elan tapılmadı",
+      });
     }
 
     res.json(item);
   } catch (err) {
-    res.status(500).json({ message: "Server xətası" });
+    console.error("❌ Household detail error:", err);
+
+    res.status(500).json({
+      error: err.message,
+    });
   }
 });
 
@@ -2347,7 +2517,10 @@ app.get("/api/my-accessory", verifyToken, async (req, res) => {
 
 app.get("/api/accessory/:id", async (req, res) => {
   try {
-    const item = await Ad.findById(req.params.id);
+    const item = await Ad.findById(req.params.id).populate(
+      "businessId",
+      "businessName slug logo coverImage verified city",
+    );
 
     if (!item) {
       return res.status(404).json({ message: "Elan tapılmadı" });
@@ -2355,7 +2528,11 @@ app.get("/api/accessory/:id", async (req, res) => {
 
     res.json(item);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("❌ Accessory detail error:", err);
+
+    res.status(500).json({
+      error: err.message,
+    });
   }
 });
 
