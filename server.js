@@ -41,12 +41,12 @@ import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import adsRoutes from "./routes/ads.js";
 import generateSitemap from "./utils/sitemap.js";
-import listingRoutes from "./routes/listingRoutes.js";
+// import listingRoutes from "./routes/listingRoutes.js";
 import "./utils/expireChecker.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import "./cron/expireListings.js";
 import "./utils/expireChecker.js";
-import stripeWebhookRoutes from "./routes/stripeWebhook.js";
+// import stripeWebhookRoutes from "./routes/stripeWebhook.js";
 import announcements from "./routes/announcements.js";
 import cron from "node-cron";
 import { expireVip } from "./utils/expireVip.js";
@@ -155,7 +155,7 @@ app.use(
   }),
 );
 
-app.use("/api/stripe", stripeWebhookRoutes);
+// app.use("/api/stripe", stripeWebhookRoutes);
 
 app.use(express.json());
 app.use(bodyParser.json());
@@ -262,9 +262,9 @@ app.use(
 );
 
 // API Routes
-app.use("/api/payments", paymentRoutes); // create-checkout
+// app.use("/api/payments", paymentRoutes); // create-checkout
 // app.use("/api/payments/webhook", stripeWebhookRoutes); // Stripe webhook
-app.use("/api/listings", listingRoutes);
+// app.use("/api/listings", listingRoutes);
 app.use("/api/announcements", announcementRoutes);
 app.use("/api/ads", adsRouter);
 app.use("/api/stats", statsRouter);
@@ -275,6 +275,8 @@ app.use("/api/countSay", statsRoutes);
 app.use("/api/sticky-ads", stickyAdsRoutes);
 app.use("/api/ad", adRoutes);
 
+
+app.use("/api/payments", paymentRoutes);
 // Stripe ödəniş və checkout
 
 app.use((req, res, next) => {

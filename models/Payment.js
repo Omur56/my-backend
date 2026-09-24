@@ -1,11 +1,9 @@
-
-
 // import mongoose from "mongoose";
 
 // const paymentSchema = new mongoose.Schema(
 //   {
 //     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-//     listing: { type: mongoose.Schema.Types.ObjectId, ref: "Announcement", required: true },
+//     listing: { type: mongoose.Schema.Types.ObjectId, ref: "Ad", required: true },
 //     amount: { type: Number, required: true },
 //     type: { type: String, enum: ["free", "vip", "premium"], default: "free" },
 //     stripeSessionId: { type: String, required: true },
@@ -17,31 +15,61 @@
 // const Payment = mongoose.model("Payment", paymentSchema);
 // export default Payment;
 
-
-
-
-
-
-
-
-
-
-
-
-
 import mongoose from "mongoose";
 
 const paymentSchema = new mongoose.Schema(
   {
-    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    listing: { type: mongoose.Schema.Types.ObjectId, ref: "Ad", required: true },
-    amount: { type: Number, required: true },
-    type: { type: String, enum: ["free", "vip", "premium"], default: "free" },
-    stripeSessionId: { type: String, required: true },
-    paid: { type: Boolean, default: false } // ✅ Ödəniş tamamlandımı
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
+    listing: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Ad",
+      required: true,
+    },
+
+    amount: {
+      type: Number,
+      required: true,
+    },
+
+    type: {
+      type: String,
+      enum: ["free", "vip", "premium"],
+      default: "free",
+    },
+
+    // Kapital Bank order ID
+    kapitalOrderId: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
+
+    // Kapital Bank tərəfindən qaytarılan son status
+    kapitalStatus: {
+      type: String,
+      default: "Preparing",
+    },
+
+    // Ödəniş tamamlanıbmı?
+    paid: {
+      type: Boolean,
+      default: false,
+    },
+
+    // Ödənişin tamamlandığı vaxt
+    paidAt: {
+      type: Date,
+      default: null,
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const Payment = mongoose.model("Payment", paymentSchema);
+
 export default Payment;
