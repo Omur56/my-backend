@@ -1,58 +1,107 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 console.log("SERVER FILE:", import.meta.url);
 
 import express from "express";
 
 import cors from "cors";
+
 import multer from "multer";
+
 import path from "path";
-import dotenv from "dotenv";
+
 import connectDB from "./db.js";
+
 import adRoutes from "./routes/adRoutes.js";
+
 import HomeAndGarden from "./models/HomeAndGarden.js";
+
 import RealEstate from "./models/RealEstate.js";
+
 import HouseHold from "./models/Household.js";
+
 // import phone from "./models/Phone.js";
+
 import Clothing from "./models/Clothing.js";
+
 import Jewelry from "./models/Jewelry.js";
+
 import Ad from "./models/Ad.js";
+
 import User from "./models/user.js";
+
 import BusinessProfile from "./models/BusinessProfile.js";
 
+import BusinessProfileView from "./models/BusinessProfileView.js";
+
 import { fileURLToPath } from "url";
+
 import bcrypt from "bcryptjs";
+
 import jwt from "jsonwebtoken";
+
 import mongoose from "mongoose";
+
 import { verifyToken } from "./middleware/verifyToken.js";
+
 import nodemailer from "nodemailer";
+
 import authRoutes from "./routes/auth.js";
 
 import adsRouter from "./routes/ads.js";
+
 import statsRouter from "./routes/stats.js";
+
 import announcementRoutes from "./routes/announcements.js";
+
 import bodyParser from "body-parser";
+
 import twilio from "twilio";
+
 import authMiddleware from "./middleware/authMiddleware.js";
+
 import profileRoutes from "./routes/Profile.js";
+
 import { v2 as cloudinary } from "cloudinary";
+
 import fs from "fs";
+
 import sharp from "sharp";
+
 import rateLimit from "express-rate-limit";
+
 import helmet from "helmet";
+
 import adsRoutes from "./routes/ads.js";
+
 import generateSitemap from "./utils/sitemap.js";
+
 // import listingRoutes from "./routes/listingRoutes.js";
+
 import "./utils/expireChecker.js";
+
 import paymentRoutes from "./routes/paymentRoutes.js";
+
 import "./cron/expireListings.js";
-import "./utils/expireChecker.js";
+
 // import stripeWebhookRoutes from "./routes/stripeWebhook.js";
+
 import announcements from "./routes/announcements.js";
+
 import cron from "node-cron";
+
 import { expireVip } from "./utils/expireVip.js";
+
 import { checkExpiredListings } from "./utils/checkExpiredListings.js";
+
 import "./cron.js";
+
 import statsRoutes from "./routes/countSay.js";
+
 import stickyAdsRoutes from "./routes/stickyAdsRoutes.js";
+
+import moment from "moment-timezone";
 
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
@@ -64,8 +113,6 @@ cloudinary.config({
   api_secret: process.env.CLOUD_API_SECRET,
 });
 
-// .env faylını oxu
-dotenv.config();
 connectDB();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -241,7 +288,7 @@ const addWatermark = async (imagePath) => {
     .toFile(imagePath.replace(/(\.\w+)$/, "-wm$1")); // watermark əlavə olunmuş şəkil
 };
 
-dotenv.config({ path: path.resolve("../.env") });
+// dotenv.config({ path: path.resolve("../.env") });
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
@@ -282,6 +329,34 @@ app.use((req, res, next) => {
 });
 
 const upload = multer(); // memory storage default (BUFFER üçün lazımdır)
+
+// ============================================================
+// BUSINESS IMAGE -> CLOUDINARY
+// Logo və cover üçün ayrıca upload funksiyası
+// Watermark YOXDUR
+// ============================================================
+const uploadBusinessImageToCloudinary = (buffer, folder) => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder,
+        resource_type: "image",
+        quality: "auto",
+        fetch_format: "auto",
+      },
+      (error, result) => {
+        if (error) {
+          return reject(error);
+        }
+
+        resolve(result);
+      },
+    );
+
+    stream.end(buffer);
+  });
+};
+
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.CLOUD_API_KEY,
@@ -379,6 +454,193 @@ app.get("/api/my-ads", authMiddleware, async (req, res) => {
 
 const ads = await Ad.find().sort({ createdAt: -1 });
 
+// elan sayimi yeni
+
+app.get("/api/ads/today-count", async (req, res) => {
+  try {
+    const startOfToday = moment().tz("Asia/Baku").startOf("day").toDate();
+
+    const startOfTomorrow = moment()
+      .tz("Asia/Baku")
+      .add(1, "day")
+      .startOf("day")
+      .toDate();
+
+    const count = await Ad.countDocuments({
+      createdAt: {
+        $gte: startOfToday,
+        $lt: startOfTomorrow,
+      },
+    });
+
+    res.json({
+      success: true,
+      count,
+    });
+  } catch (error) {
+    console.error("❌ TODAY ADS COUNT ERROR:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Bugünkü elan sayı hesablana bilmədi",
+    });
+  }
+});
+
+// ----------
+
+// ========istfadəçilərin profil baxışı
+
+app.post("/api/business/:id/view", verifyToken, async (req, res) => {
+  try {
+    const businessId = req.params.id;
+    const viewerId = req.user.id;
+
+    const business = await BusinessProfile.findById(businessId).select(
+      "_id owner businessName",
+    );
+
+    if (!business) {
+      return res.status(404).json({
+        message: "Biznes profili tapılmadı",
+      });
+    }
+
+    // Biznes sahibi öz profilinə baxanda baxış sayılmasın
+    if (String(business.owner) === String(viewerId)) {
+      return res.json({
+        counted: false,
+        message: "Biznes sahibi öz profilinə baxdı",
+      });
+    }
+
+    const existingView = await BusinessProfileView.findOne({
+      business: businessId,
+      viewer: viewerId,
+    });
+
+    if (existingView) {
+      existingView.lastViewedAt = new Date();
+      await existingView.save();
+
+      return res.json({
+        counted: false,
+        message: "Bu istifadəçinin baxışı artıq mövcuddur",
+      });
+    }
+
+    await BusinessProfileView.create({
+      business: businessId,
+      viewer: viewerId,
+    });
+
+    return res.json({
+      counted: true,
+      message: "Baxış qeydə alındı",
+    });
+  } catch (error) {
+    console.error("❌ BUSINESS VIEW ERROR:", error);
+
+    return res.status(500).json({
+      message: "Biznes baxışı qeydə alınmadı",
+      error: error.message,
+    });
+  }
+});
+
+app.get("/api/business/:id/views", verifyToken, async (req, res) => {
+  try {
+    const businessId = req.params.id;
+
+    const business =
+      await BusinessProfile.findById(businessId).select("owner businessName");
+
+    if (!business) {
+      return res.status(404).json({
+        message: "Biznes profili tapılmadı",
+      });
+    }
+
+    // Yalnız biznes sahibi görə bilər
+    if (String(business.owner) !== String(req.user.id)) {
+      return res.status(403).json({
+        message: "Bu statistikaya baxmaq icazəniz yoxdur",
+      });
+    }
+
+    const views = await BusinessProfileView.find({
+      business: businessId,
+      viewer: { $ne: null },
+    })
+      .populate("viewer", "username name surname email avatar profileImage")
+      .sort({
+        lastViewedAt: -1,
+      })
+      .lean();
+
+    const totalViews = await BusinessProfileView.countDocuments({
+      business: businessId,
+    });
+
+    const uniqueUsers = views.length;
+
+    return res.json({
+      totalViews,
+      uniqueUsers,
+      visitors: views.map((view) => ({
+        id: view.viewer?._id,
+        username: view.viewer?.username || "",
+        name: view.viewer?.name || "",
+        surname: view.viewer?.surname || "",
+        email: view.viewer?.email || "",
+        avatar: view.viewer?.avatar || view.viewer?.profileImage || "",
+        lastViewedAt: view.lastViewedAt,
+      })),
+    });
+  } catch (error) {
+    console.error("❌ BUSINESS VIEWS FETCH ERROR:", error);
+
+    return res.status(500).json({
+      message: "Baxış statistikası alınmadı",
+      error: error.message,
+    });
+  }
+});
+
+// digər istfadəçilərin profilə baxış görüntüsü
+
+app.get("/api/business/:id/public-views", async (req, res) => {
+  try {
+    const businessId = req.params.id;
+
+    const business =
+      await BusinessProfile.findById(businessId).select("_id businessName");
+
+    if (!business) {
+      return res.status(404).json({
+        message: "Biznes profili tapılmadı",
+      });
+    }
+
+    const totalViews = await BusinessProfileView.countDocuments({
+      business: businessId,
+      viewer: { $ne: null },
+    });
+
+    return res.json({
+      success: true,
+      totalViews,
+    });
+  } catch (error) {
+    console.error("❌ PUBLIC BUSINESS VIEWS ERROR:", error);
+
+    return res.status(500).json({
+      message: "Baxış sayı alınmadı",
+    });
+  }
+});
+
+// ======================================
 // ---------count ---
 
 app.get("/count/car", async (req, res) => {
@@ -592,6 +854,44 @@ app.post("/api/business", verifyToken, async (req, res) => {
       city: city || "",
 
       slug,
+
+      workingHours: {
+        monday: {
+          open: "09:00",
+          close: "19:00",
+          closed: false,
+        },
+        tuesday: {
+          open: "09:00",
+          close: "19:00",
+          closed: false,
+        },
+        wednesday: {
+          open: "09:00",
+          close: "19:00",
+          closed: false,
+        },
+        thursday: {
+          open: "09:00",
+          close: "19:00",
+          closed: false,
+        },
+        friday: {
+          open: "09:00",
+          close: "19:00",
+          closed: false,
+        },
+        saturday: {
+          open: "10:00",
+          close: "17:00",
+          closed: false,
+        },
+        sunday: {
+          open: "10:00",
+          close: "17:00",
+          closed: true,
+        },
+      },
     });
 
     console.log("✅ BUSINESS CREATED:", business);
@@ -609,6 +909,217 @@ app.post("/api/business", verifyToken, async (req, res) => {
     });
   }
 });
+
+// ============================================================
+// BUSINESS PROFILE UPDATE
+// Logo + Cover + Working Hours
+// ============================================================
+app.put(
+  "/api/business/:id",
+  verifyToken,
+  upload.fields([
+    { name: "logo", maxCount: 1 },
+    { name: "coverImages", maxCount: 10 },
+  ]),
+  async (req, res) => {
+    try {
+      const businessId = req.params.id;
+
+      console.log("📥 BUSINESS UPDATE BODY:", req.body);
+      console.log("📸 BUSINESS UPDATE FILES:", req.files);
+
+      const business = await BusinessProfile.findById(businessId);
+
+      if (!business) {
+        return res.status(404).json({
+          message: "Biznes profili tapılmadı",
+        });
+      }
+
+      // ======================================================
+      // OWNER CHECK
+      // ======================================================
+      if (String(business.owner) !== String(req.user.id)) {
+        return res.status(403).json({
+          message: "Bu biznes profilini dəyişmək icazəniz yoxdur",
+        });
+      }
+
+      // ======================================================
+      // TEXT FIELDS
+      // ======================================================
+      if (req.body.businessName !== undefined) {
+        const businessName = String(req.body.businessName).trim();
+
+        if (!businessName) {
+          return res.status(400).json({
+            message: "Biznes adı boş ola bilməz",
+          });
+        }
+
+        business.businessName = businessName;
+      }
+
+      if (req.body.businessType !== undefined) {
+        business.businessType = req.body.businessType;
+      }
+
+      if (req.body.description !== undefined) {
+        business.description = req.body.description;
+      }
+
+      if (req.body.phone !== undefined) {
+        business.phone = req.body.phone;
+      }
+
+      if (req.body.email !== undefined) {
+        business.email = req.body.email;
+      }
+
+      if (req.body.address !== undefined) {
+        business.address = req.body.address;
+      }
+
+      if (req.body.city !== undefined) {
+        business.city = req.body.city;
+      }
+
+      // ======================================================
+      // WORKING HOURS
+      // ======================================================
+      if (req.body.workingHours) {
+        let parsedWorkingHours;
+
+        try {
+          parsedWorkingHours = JSON.parse(req.body.workingHours);
+        } catch (error) {
+          return res.status(400).json({
+            message: "İş saatləri məlumatı düzgün formatda deyil",
+          });
+        }
+
+        const allowedDays = [
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday",
+          "saturday",
+          "sunday",
+        ];
+
+        const cleanWorkingHours = {};
+
+        for (const day of allowedDays) {
+          const currentDay = parsedWorkingHours?.[day];
+
+          if (!currentDay) {
+            continue;
+          }
+
+          cleanWorkingHours[day] = {
+            open:
+              typeof currentDay.open === "string" ? currentDay.open : "09:00",
+
+            close:
+              typeof currentDay.close === "string" ? currentDay.close : "19:00",
+
+            closed: Boolean(currentDay.closed),
+          };
+        }
+
+        business.workingHours = {
+          ...business.workingHours?.toObject?.(),
+          ...cleanWorkingHours,
+        };
+      }
+
+      // ======================================================
+      // LOGO
+      // ======================================================
+      if (req.files?.logo?.[0]) {
+        const logoFile = req.files.logo[0];
+
+        if (!logoFile.mimetype.startsWith("image/")) {
+          return res.status(400).json({
+            message: "Logo yalnız şəkil formatında ola bilər",
+          });
+        }
+
+        const logoResult = await uploadBusinessImageToCloudinary(
+          logoFile.buffer,
+          "business/logo",
+        );
+
+        business.logo = logoResult.secure_url;
+
+        console.log("✅ BUSINESS LOGO:", business.logo);
+      }
+
+      // ======================================================
+      // COVER IMAGE
+      // ======================================================
+      // =====================================================
+      // COVER ŞƏKİLLƏRİ
+      // =====================================================
+
+      if (req.files?.coverImages?.length) {
+        const coverFiles = req.files.coverImages;
+
+        if (coverFiles.length > 10) {
+          return res.status(400).json({
+            message: "Maksimum 10 cover şəkli əlavə edə bilərsiniz.",
+          });
+        }
+
+        const uploadedCoverImages = [];
+
+        for (const coverFile of coverFiles) {
+          if (!coverFile.mimetype.startsWith("image/")) {
+            return res.status(400).json({
+              message: "Cover şəkilləri yalnız şəkil formatında ola bilər",
+            });
+          }
+
+          if (coverFile.size > 10 * 1024 * 1024) {
+            return res.status(400).json({
+              message: "Hər cover şəkli maksimum 10 MB ola bilər",
+            });
+          }
+
+          const coverResult = await uploadBusinessImageToCloudinary(
+            coverFile.buffer,
+            "business/cover",
+          );
+
+          uploadedCoverImages.push(coverResult.secure_url);
+        }
+
+        business.coverImages = uploadedCoverImages;
+
+        // Köhnə sistemlə uyğunluq üçün ilk şəkli coverImage-də də saxlayırıq
+        business.coverImage = uploadedCoverImages[0] || "";
+
+        console.log("✅ BUSINESS COVER IMAGES:", uploadedCoverImages);
+      }
+      await business.save();
+
+      console.log("✅ BUSINESS UPDATED:", business._id);
+
+      return res.json({
+        message: "Biznes profili uğurla yeniləndi",
+        business,
+      });
+    } catch (error) {
+      console.error("❌ Business update error:", error);
+
+      return res.status(500).json({
+        message: "Biznes profili yenilənə bilmədi",
+        error: error.message,
+      });
+    }
+  },
+);
 
 app.get("/api/business/my", verifyToken, async (req, res) => {
   try {

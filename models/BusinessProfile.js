@@ -1,3 +1,4 @@
+
 import mongoose from "mongoose";
 
 const businessProfileSchema = new mongoose.Schema(
@@ -30,7 +31,7 @@ const businessProfileSchema = new mongoose.Schema(
       default: "magaza",
     },
 
-    // 🔥 ƏSAS BİZNES ELAN KATEQORİYASI
+    // ƏSAS BİZNES ELAN KATEQORİYASI
     category: {
       type: String,
       enum: [
@@ -88,6 +89,55 @@ const businessProfileSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    coverImages: {
+      type: [String],
+      default: [],
+    },
+
+    // İş saatları
+    workingHours: {
+      monday: {
+        open: { type: String, default: "09:00" },
+        close: { type: String, default: "19:00" },
+        closed: { type: Boolean, default: false },
+      },
+
+      tuesday: {
+        open: { type: String, default: "09:00" },
+        close: { type: String, default: "19:00" },
+        closed: { type: Boolean, default: false },
+      },
+
+      wednesday: {
+        open: { type: String, default: "09:00" },
+        close: { type: String, default: "19:00" },
+        closed: { type: Boolean, default: false },
+      },
+
+      thursday: {
+        open: { type: String, default: "09:00" },
+        close: { type: String, default: "19:00" },
+        closed: { type: Boolean, default: false },
+      },
+
+      friday: {
+        open: { type: String, default: "09:00" },
+        close: { type: String, default: "19:00" },
+        closed: { type: Boolean, default: false },
+      },
+
+      saturday: {
+        open: { type: String, default: "10:00" },
+        close: { type: String, default: "17:00" },
+        closed: { type: Boolean, default: false },
+      },
+
+      sunday: {
+        open: { type: String, default: "10:00" },
+        close: { type: String, default: "17:00" },
+        closed: { type: Boolean, default: true },
+      },
+    },
 
     // Public URL
     slug: {
@@ -114,3 +164,4 @@ const BusinessProfile = mongoose.model(
 );
 
 export default BusinessProfile;
+
