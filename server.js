@@ -2,7 +2,6 @@ console.log("SERVER FILE:", import.meta.url);
 
 import express from "express";
 
-
 import cors from "cors";
 import multer from "multer";
 import path from "path";
@@ -55,7 +54,6 @@ import "./cron.js";
 import statsRoutes from "./routes/countSay.js";
 import stickyAdsRoutes from "./routes/stickyAdsRoutes.js";
 
-
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const twilioClient = twilio(accountSid, authToken);
@@ -75,8 +73,6 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 app.set("trust proxy", 1);
-
-
 
 // MongoDB-ə qoşul
 mongoose
@@ -184,7 +180,6 @@ const PORT = process.env.PORT || 10000;
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:10000";
 
-
 const uploadToCloudinary = (buffer, folder = "uploads") => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
@@ -275,7 +270,6 @@ app.use("/api/countSay", statsRoutes);
 app.use("/api/sticky-ads", stickyAdsRoutes);
 app.use("/api/ad", adRoutes);
 
-
 app.use("/api/payments", paymentRoutes);
 // Stripe ödəniş və checkout
 
@@ -286,8 +280,6 @@ app.use((req, res, next) => {
   );
   next();
 });
-
-
 
 const upload = multer(); // memory storage default (BUFFER üçün lazımdır)
 cloudinary.config({
@@ -384,8 +376,6 @@ app.get("/api/my-ads", authMiddleware, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-
 
 const ads = await Ad.find().sort({ createdAt: -1 });
 
@@ -642,8 +632,6 @@ app.get("/api/business/my", verifyToken, async (req, res) => {
     });
   }
 });
-
-
 
 app.get("/api/business/:slug", async (req, res) => {
   try {
@@ -981,7 +969,6 @@ app.get("/api/car/:id", async (req, res) => {
   }
 });
 
-
 app.post(
   "/api/car",
   verifyToken,
@@ -1009,8 +996,7 @@ app.post(
         // Biznes istifadəçiyə aid deyil
         if (!business) {
           return res.status(403).json({
-            message:
-              "Bu biznes profilindən elan yerləşdirmək icazəniz yoxdur.",
+            message: "Bu biznes profilindən elan yerləşdirmək icazəniz yoxdur.",
           });
         }
 
@@ -1172,14 +1158,8 @@ app.post(
         error: err.message,
       });
     }
-  }
+  },
 );
-
-
-
-
-
-
 
 app.delete("/api/car/:id", verifyToken, async (req, res) => {
   try {
@@ -1232,7 +1212,6 @@ app.get("/api/ads/search", async (req, res) => {
 
 // ----Phones-------
 
-
 app.post(
   "/api/phone",
   verifyToken,
@@ -1246,10 +1225,7 @@ app.post(
       const uploadedImages = [];
 
       for (const file of files) {
-        const result = await uploadToCloudinary(
-          file.buffer,
-          "phone"
-        );
+        const result = await uploadToCloudinary(file.buffer, "phone");
 
         uploadedImages.push(result.secure_url);
       }
@@ -1258,15 +1234,13 @@ app.post(
       // BAŞLIQ
       // =====================================================
       const title =
-        `${req.body.brand || ""} ${req.body.model || ""}`.trim() ||
-        "Telefon";
+        `${req.body.brand || ""} ${req.body.model || ""}`.trim() || "Telefon";
 
       // =====================================================
       // BİZNES ID
       // =====================================================
       const businessId =
-        req.body.businessId &&
-        String(req.body.businessId).trim() !== ""
+        req.body.businessId && String(req.body.businessId).trim() !== ""
           ? req.body.businessId
           : null;
 
@@ -1329,14 +1303,12 @@ app.post(
         // =====================================================
         images: uploadedImages,
 
-        mainImage:
-          uploadedImages[0] || null,
+        mainImage: uploadedImages[0] || null,
 
         // =====================================================
         // PRIORITET
         // =====================================================
-        priorityType:
-          req.body.priorityType || "free",
+        priorityType: req.body.priorityType || "free",
       });
 
       // =====================================================
@@ -1350,9 +1322,8 @@ app.post(
         message: err.message,
       });
     }
-  }
+  },
 );
-
 
 app.get("/api/phone", async (req, res) => {
   try {
@@ -1389,8 +1360,6 @@ app.get("/api/phone/:id", async (req, res) => {
     });
   }
 });
-
-
 
 app.delete("/api/phone/:id", verifyToken, async (req, res) => {
   try {
@@ -1562,8 +1531,6 @@ app.post(
   },
 );
 
-
-
 app.delete("/api/electronics/:id", verifyToken, async (req, res) => {
   try {
     const electronics = await Ad.findById(req.params.id);
@@ -1612,7 +1579,6 @@ app.get("/api/ads/search", async (req, res) => {
 });
 
 // -------------------------------------------
-
 
 // ----------------------------------
 
@@ -1738,7 +1704,6 @@ app.post(
     }
   },
 );
-
 
 app.delete("/api/clothing/:id", verifyToken, async (req, res) => {
   try {
@@ -1866,7 +1831,6 @@ app.put("/api/clothing/:id", verifyToken, async (req, res) => {
     });
   }
 });
-
 
 app.patch("/api/clothing/:id/like", async (req, res) => {
   try {
@@ -2044,7 +2008,6 @@ app.get("/api/realEstate/:id", async (req, res) => {
   }
 });
 
-
 app.delete("/api/realEstate/:id", verifyToken, async (req, res) => {
   try {
     const item = await Ad.findById(req.params.id);
@@ -2078,7 +2041,6 @@ app.patch("/api/realEstate/:id/favorite", async (req, res) => {
 });
 
 // ------HomeAndGarden---
-
 
 // ------
 
@@ -2202,7 +2164,6 @@ app.post(
     }
   },
 );
-
 
 app.delete("/api/homeGarden/:id", verifyToken, async (req, res) => {
   try {
@@ -2368,7 +2329,6 @@ app.post(
   },
 );
 
-
 app.get("/api/household", async (req, res) => {
   try {
     const items = await Ad.find({ category: "household", isActive: true }).sort(
@@ -2416,7 +2376,6 @@ app.get("/api/household/:id", async (req, res) => {
     });
   }
 });
-
 
 app.delete("/api/household/:id", verifyToken, async (req, res) => {
   try {
@@ -2612,7 +2571,6 @@ app.post(
   },
 );
 
-
 app.delete("/api/accessory/:id", verifyToken, async (req, res) => {
   try {
     const item = await Ad.findById(req.params.id);
@@ -2680,8 +2638,6 @@ app.get("/api/accessory/search", async (req, res) => {
 
 // ----------------------PUT------------------
 
-
-
 // ======================================================
 // UNIVERSAL ELAN UPDATE
 // BÜTÜN KATEQORİYALAR ÜÇÜN
@@ -2697,7 +2653,6 @@ const categoryDetailMap = {
   household: "household",
   accessory: "accessory",
 };
-
 
 // ======================================================
 // UNIVERSAL UPDATE HANDLER
@@ -2723,7 +2678,6 @@ const updateAdHandler = async (req, res) => {
       });
     }
 
-
     // ==================================================
     // ŞƏKİLLƏR
     // ==================================================
@@ -2748,10 +2702,7 @@ const updateAdHandler = async (req, res) => {
             fs.unlinkSync(file.path);
           }
         } catch (uploadError) {
-          console.error(
-            "❌ Cloudinary upload error:",
-            uploadError.message
-          );
+          console.error("❌ Cloudinary upload error:", uploadError.message);
 
           if (file?.path && fs.existsSync(file.path)) {
             fs.unlinkSync(file.path);
@@ -2766,7 +2717,6 @@ const updateAdHandler = async (req, res) => {
         ad.mainImage = uploadedImages[0];
       }
     }
-
 
     // ==================================================
     // REQUEST-DƏN DATA-NI OXU
@@ -2791,7 +2741,6 @@ const updateAdHandler = async (req, res) => {
       });
     }
 
-
     // ==================================================
     // ÜMUMİ ELAN SAHƏLƏRİ
     // ==================================================
@@ -2804,10 +2753,7 @@ const updateAdHandler = async (req, res) => {
       ad.description = payload.description;
     }
 
-    if (
-      payload.price !== undefined &&
-      payload.price !== ""
-    ) {
+    if (payload.price !== undefined && payload.price !== "") {
       const price = Number(payload.price);
 
       if (!Number.isNaN(price)) {
@@ -2823,52 +2769,35 @@ const updateAdHandler = async (req, res) => {
       ad.location = payload.location;
     }
 
-
     // ==================================================
     // KATEQORİYA DETALLARI
     // ==================================================
 
     const detailKey = categoryDetailMap[ad.category];
 
-    if (
-      detailKey &&
-      payload.details &&
-      typeof payload.details === "object"
-    ) {
-      const oldDetails =
-        ad[detailKey]?.toObject?.() ||
-        ad[detailKey] ||
-        {};
+    if (detailKey && payload.details && typeof payload.details === "object") {
+      const oldDetails = ad[detailKey]?.toObject?.() || ad[detailKey] || {};
 
       const newDetails = {
         ...oldDetails,
       };
 
-
       // ------------------------------------------------
       // Yalnız göndərilən sahələri dəyiş
       // ------------------------------------------------
 
-      Object.entries(payload.details).forEach(
-        ([field, value]) => {
-          if (
-            field === "_id" ||
-            field === "id" ||
-            field === "userId"
-          ) {
-            return;
-          }
-
-          if (value !== undefined) {
-            newDetails[field] = value;
-          }
+      Object.entries(payload.details).forEach(([field, value]) => {
+        if (field === "_id" || field === "id" || field === "userId") {
+          return;
         }
-      );
 
+        if (value !== undefined) {
+          newDetails[field] = value;
+        }
+      });
 
       ad[detailKey] = newDetails;
     }
-
 
     // ==================================================
     // SAVE
@@ -2883,7 +2812,6 @@ const updateAdHandler = async (req, res) => {
       message: "Elan uğurla yeniləndi",
       ad: updatedAd,
     });
-
   } catch (err) {
     console.error("❌ UNIVERSAL UPDATE ERROR:", err);
 
@@ -2894,7 +2822,6 @@ const updateAdHandler = async (req, res) => {
   }
 };
 
-
 // ======================================================
 // UNIVERSAL PUT
 // ======================================================
@@ -2903,9 +2830,8 @@ app.put(
   "/api/ads/:id",
   verifyToken,
   upload.array("images", 20),
-  updateAdHandler
+  updateAdHandler,
 );
-
 
 // ======================================================
 // KÖHNƏ ROUTE-LAR DA SAXLANILIR
@@ -2916,71 +2842,65 @@ app.put(
   "/api/car/:id",
   verifyToken,
   upload.array("images", 20),
-  updateAdHandler
+  updateAdHandler,
 );
 
 app.put(
   "/api/phone/:id",
   verifyToken,
   upload.array("images", 20),
-  updateAdHandler
+  updateAdHandler,
 );
 
 app.put(
   "/api/electronics/:id",
   verifyToken,
   upload.array("images", 20),
-  updateAdHandler
+  updateAdHandler,
 );
 
 app.put(
   "/api/clothing/:id",
   verifyToken,
   upload.array("images", 20),
-  updateAdHandler
+  updateAdHandler,
 );
 
 app.put(
   "/api/realEstate/:id",
   verifyToken,
   upload.array("images", 20),
-  updateAdHandler
+  updateAdHandler,
 );
 
 app.put(
   "/api/homeGarden/:id",
   verifyToken,
   upload.array("images", 20),
-  updateAdHandler
+  updateAdHandler,
 );
 
 app.put(
   "/api/household/:id",
   verifyToken,
   upload.array("images", 20),
-  updateAdHandler
+  updateAdHandler,
 );
 
 app.put(
   "/api/accessory/:id",
   verifyToken,
   upload.array("images", 20),
-  updateAdHandler
+  updateAdHandler,
 );
-
 
 app.post("/api/register", async (req, res) => {
   try {
     console.log("BODY:", req.body);
     console.log("PHONE:", req.body.phone);
     console.log("TYPE:", typeof req.body.phone);
-    const {
-      username,
-      phone,
-      email,
-      password
-    } = req.body;
- console.log("PHONE AFTER DESTRUCTURE:", phone);
+    const { username, phone, email, password } = req.body;
+    console.log("PHONE AFTER DESTRUCTURE:", phone);
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
@@ -3003,7 +2923,6 @@ app.post("/api/register", async (req, res) => {
     res.status(201).json({
       message: "User created",
     });
-
   } catch (err) {
     console.log(err);
     res.status(500).json(err);
@@ -3028,7 +2947,6 @@ app.post("/api/login", async (req, res) => {
     res.status(500).json(err);
   }
 });
-
 
 // profil üçün
 app.get("/api/users/:id", async (req, res) => {

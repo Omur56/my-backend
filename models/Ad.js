@@ -1,5 +1,3 @@
-
-
 // import mongoose from "mongoose";
 // import { nanoid } from "nanoid";
 
@@ -169,7 +167,6 @@
 //         default: "",
 //       },
 
-      
 //       type_magasine: {
 //   type: String,
 //   enum: ["magaza", "sifarisle", "resmi"],
@@ -211,7 +208,6 @@
 //       type: String,
 //       title: String,
 
-
 //     },
 
 //     // ===========================
@@ -232,7 +228,7 @@
 //       title: String,
 
 //     },
-    
+
 // clothing: {
 //       brand: String,
 //       model: String,
@@ -269,8 +265,6 @@
 // );
 
 // export default mongoose.model("Ad", adSchema);
-
-
 
 import mongoose from "mongoose";
 import { nanoid } from "nanoid";
@@ -317,7 +311,7 @@ const carSchema = new Schema(
   {
     _id: false,
     minimize: true,
-  }
+  },
 );
 
 const phoneSchema = new Schema(
@@ -334,7 +328,7 @@ const phoneSchema = new Schema(
   {
     _id: false,
     minimize: true,
-  }
+  },
 );
 
 const electronicsSchema = new Schema(
@@ -348,7 +342,7 @@ const electronicsSchema = new Schema(
   {
     _id: false,
     minimize: true,
-  }
+  },
 );
 
 const realEstateSchema = new Schema(
@@ -367,7 +361,7 @@ const realEstateSchema = new Schema(
   {
     _id: false,
     minimize: true,
-  }
+  },
 );
 
 const clothingSchema = new Schema(
@@ -384,7 +378,7 @@ const clothingSchema = new Schema(
   {
     _id: false,
     minimize: true,
-  }
+  },
 );
 
 const homeGardenSchema = new Schema(
@@ -397,7 +391,7 @@ const homeGardenSchema = new Schema(
   {
     _id: false,
     minimize: true,
-  }
+  },
 );
 
 const householdSchema = new Schema(
@@ -412,7 +406,7 @@ const householdSchema = new Schema(
   {
     _id: false,
     minimize: true,
-  }
+  },
 );
 
 const accessorySchema = new Schema(
@@ -425,7 +419,7 @@ const accessorySchema = new Schema(
   {
     _id: false,
     minimize: true,
-  }
+  },
 );
 
 // ===========================
@@ -569,8 +563,5 @@ const adSchema = new Schema(
     minimize: true,
   },
 );
-
-
-
 
 export default mongoose.model("Ad", adSchema);

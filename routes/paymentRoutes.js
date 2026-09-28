@@ -47,10 +47,11 @@ const getKapitalAuth = () => {
 ========================================================= */
 
 const kapitalRequest = async (url, options = {}) => {
-  console.log("🌐 KAPITAL API REQUEST:", {
-    method: options.method || "GET",
-    url,
-  });
+  console.log("==========================================");
+  console.log("🌐 KAPITAL API REQUEST");
+  console.log("METHOD:", options.method || "GET");
+  console.log("URL:", url);
+  console.log("==========================================");
 
   const response = await fetch(url, {
     ...options,
@@ -74,17 +75,13 @@ const kapitalRequest = async (url, options = {}) => {
     };
   }
 
-  console.log("🌐 KAPITAL API RESPONSE:", {
-    status: response.status,
-    data,
-  });
+  console.log("==========================================");
+  console.log("🌐 KAPITAL API RESPONSE");
+  console.log("STATUS:", response.status);
+  console.log("DATA:", JSON.stringify(data, null, 2));
+  console.log("==========================================");
 
   if (!response.ok) {
-    console.error("❌ KAPITAL API ERROR:", {
-      status: response.status,
-      data,
-    });
-
     const error = new Error(
       data?.message || data?.error || `Kapital API error: ${response.status}`,
     );
@@ -96,6 +93,115 @@ const kapitalRequest = async (url, options = {}) => {
   }
 
   return data;
+};
+
+/* =========================================================
+   GET ORDER OBJECT
+   Kapital cavabının müxtəlif wrapper formalarını
+   təhlükəsiz şəkildə qəbul edir.
+========================================================= */
+
+const extractKapitalOrder = (response) => {
+  if (!response) {
+    return null;
+  }
+
+  if (response.order) {
+    return response.order;
+  }
+
+  if (response.data?.order) {
+    return response.data.order;
+  }
+
+  if (response.result?.order) {
+    return response.result.order;
+  }
+
+  // Bəzi cavablarda order birbaşa gəlirsə
+  if (response.id || response.status || response.hppUrl) {
+    return response;
+  }
+
+  return null;
+};
+
+/* =========================================================
+   NORMALIZE STATUS
+========================================================= */
+
+const normalizeKapitalStatus = (status) => {
+  return String(status || "")
+    .trim()
+    .replace(/\s+/g, "")
+    .toLowerCase();
+};
+
+const isFullyPaid = (order) => {
+  const status = normalizeKapitalStatus(order?.status);
+
+  console.log("🔎 KAPITAL STATUS CHECK:", {
+    original: order?.status,
+    normalized: status,
+  });
+
+  return status === "fullypaid" || status === "fully_paid" || status === "paid";
+};
+
+/* =========================================================
+   WAIT FOR FULLY PAID
+========================================================= */
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const getKapitalOrder = async (orderId) => {
+  const response = await kapitalRequest(
+    `${KAPITAL_API_URL}/order/${encodeURIComponent(orderId)}?tranDetailLevel=2`,
+    {
+      method: "GET",
+    },
+  );
+
+  const order = extractKapitalOrder(response);
+
+  console.log("🔥 KAPITAL ORDER EXTRACTED:", {
+    orderId,
+    order,
+  });
+
+  return order;
+};
+
+const getFullyPaidOrderWithRetry = async (orderId) => {
+  let lastOrder = null;
+
+  // Kapital callback-dan dərhal sonra status bəzən
+  // hələ FullyPaid olmaya bilər.
+  for (let attempt = 1; attempt <= 5; attempt++) {
+    console.log(`🔄 KAPITAL PAYMENT STATUS CHECK ${attempt}/5`);
+
+    try {
+      lastOrder = await getKapitalOrder(orderId);
+
+      if (lastOrder) {
+        console.log("🔎 ORDER STATUS:", lastOrder.status);
+
+        if (isFullyPaid(lastOrder)) {
+          console.log("✅ KAPITAL ORDER FULLY PAID TAPILDI");
+
+          return lastOrder;
+        }
+      }
+    } catch (error) {
+      console.error("❌ Kapital order check error:", error?.message);
+    }
+
+    if (attempt < 5) {
+      await sleep(2000);
+    }
+  }
+
+  return lastOrder;
 };
 
 /* =========================================================
@@ -111,7 +217,11 @@ const activatePayment = async (payment, order) => {
     throw new Error("Kapital order tapılmadı");
   }
 
-  console.log("🔎 ACTIVATE PAYMENT CHECK:", {
+  console.log("==========================================");
+  console.log("🔥 ACTIVATE PAYMENT");
+  console.log("==========================================");
+
+  console.log({
     paymentId: payment._id,
     orderId: order.id,
     orderStatus: order.status,
@@ -121,15 +231,29 @@ const activatePayment = async (payment, order) => {
     currency: order.currency,
   });
 
-  /* ---------------------------------------------------------
-     YALNIZ FULLYPAID
-  --------------------------------------------------------- */
+  /* =======================================================
+     PAYMENT TYPE CHECK
+  ======================================================= */
 
-  if (order.status !== "FullyPaid") {
+  if (!["vip", "premium"].includes(payment.type)) {
+    payment.kapitalStatus = "InvalidPaymentType";
+    await payment.save();
+
+    return {
+      success: false,
+      paid: false,
+      reason: "invalid_payment_type",
+    };
+  }
+
+  /* =======================================================
+     PAYMENT STATUS
+  ======================================================= */
+
+  if (!isFullyPaid(order)) {
     console.log("⚠️ Ödəniş hələ FullyPaid deyil:", order.status);
 
     payment.kapitalStatus = order.status || "Unknown";
-
     await payment.save();
 
     return {
@@ -140,47 +264,26 @@ const activatePayment = async (payment, order) => {
     };
   }
 
-  /* ---------------------------------------------------------
-     ƏGƏR ARTIQ ÖDƏNİLİB
-  --------------------------------------------------------- */
-
-  if (payment.paid === true) {
-    console.log("ℹ️ Payment artıq təsdiqlənib:", payment._id);
-
-    const listing = await Ad.findById(payment.listing);
-
-    return {
-      success: true,
-      paid: true,
-      alreadyPaid: true,
-      type: payment.type,
-      listingId: payment.listing,
-      priority: listing?.priority || null,
-      priorityType: listing?.priorityType || payment.type,
-      priorityExpires: listing?.priorityExpires || null,
-    };
-  }
-
-  /* ---------------------------------------------------------
+  /* =======================================================
      AMOUNT CHECK
-  --------------------------------------------------------- */
+  ======================================================= */
 
   const expectedAmount = Number(payment.amount);
   const kapitalAmount = Number(order.amount);
 
+  console.log("💰 AMOUNT CHECK:", {
+    expectedAmount,
+    kapitalAmount,
+  });
+
   if (
     !Number.isFinite(kapitalAmount) ||
+    !Number.isFinite(expectedAmount) ||
     Math.abs(kapitalAmount - expectedAmount) > 0.001
   ) {
-    console.error("❌ AMOUNT MISMATCH:", {
-      paymentId: payment._id,
-      orderId: order.id,
-      expectedAmount,
-      kapitalAmount,
-    });
+    console.error("❌ AMOUNT MISMATCH");
 
     payment.kapitalStatus = "AmountMismatch";
-
     await payment.save();
 
     return {
@@ -190,15 +293,14 @@ const activatePayment = async (payment, order) => {
     };
   }
 
-  /* ---------------------------------------------------------
+  /* =======================================================
      CURRENCY CHECK
-  --------------------------------------------------------- */
+  ======================================================= */
 
-  if (order.currency !== "AZN") {
+  if (String(order.currency || "").toUpperCase() !== "AZN") {
     console.error("❌ CURRENCY MISMATCH:", order.currency);
 
     payment.kapitalStatus = "CurrencyMismatch";
-
     await payment.save();
 
     return {
@@ -208,9 +310,9 @@ const activatePayment = async (payment, order) => {
     };
   }
 
-  /* ---------------------------------------------------------
+  /* =======================================================
      FIND LISTING
-  --------------------------------------------------------- */
+  ======================================================= */
 
   const listing = await Ad.findById(payment.listing);
 
@@ -218,7 +320,6 @@ const activatePayment = async (payment, order) => {
     console.error("❌ Ödənişə aid elan tapılmadı:", payment.listing);
 
     payment.kapitalStatus = "ListingNotFound";
-
     await payment.save();
 
     return {
@@ -228,14 +329,20 @@ const activatePayment = async (payment, order) => {
     };
   }
 
-  /* ---------------------------------------------------------
-     USER / LISTING SECURITY
-  --------------------------------------------------------- */
+  console.log("✅ ELAN TAPILDI:", {
+    id: listing._id,
+    title: listing.title,
+    userId: listing.userId,
+    paymentUser: payment.user,
+    oldPriorityType: listing.priorityType,
+    oldPriority: listing.priority,
+  });
 
-  if (
-    !listing.userId ||
-    listing.userId.toString() !== payment.user.toString()
-  ) {
+  /* =======================================================
+     USER / LISTING SECURITY
+  ======================================================= */
+
+  if (!listing.userId || String(listing.userId) !== String(payment.user)) {
     console.error("❌ USER/LISTING MISMATCH:", {
       paymentUser: payment.user,
       listingUser: listing.userId,
@@ -243,7 +350,6 @@ const activatePayment = async (payment, order) => {
     });
 
     payment.kapitalStatus = "SecurityError";
-
     await payment.save();
 
     return {
@@ -253,49 +359,104 @@ const activatePayment = async (payment, order) => {
     };
   }
 
-  /* ---------------------------------------------------------
+  /* =======================================================
      EXPIRATION
-  --------------------------------------------------------- */
+  ======================================================= */
 
   const now = moment().tz("Asia/Baku");
 
-  let expires = null;
+  let expires;
 
   if (payment.type === "premium") {
     expires = now.clone().add(7, "days").toDate();
-  }
-
-  if (payment.type === "vip") {
+  } else {
     expires = now.clone().add(3, "days").toDate();
   }
 
-  /* ---------------------------------------------------------
+  /* =======================================================
      PRIORITY
-
-     Premium = 1
+     
+     PREMIUM = 1
      VIP     = 2
-     Free    = 3
-  --------------------------------------------------------- */
+     FREE    = 3
+  ======================================================= */
 
-  if (payment.type === "premium") {
-    listing.priorityType = "premium";
-    listing.priority = 1;
-  } else if (payment.type === "vip") {
-    listing.priorityType = "vip";
-    listing.priority = 2;
-  } else {
-    listing.priorityType = "free";
-    listing.priority = 3;
+  const newPriority = payment.type === "premium" ? 1 : 2;
+
+  const newPriorityType = payment.type;
+
+  console.log("==========================================");
+  console.log("💎 ELAN STATUS UPDATE");
+  console.log("==========================================");
+
+  console.log({
+    listingId: listing._id,
+    paymentType: payment.type,
+    newPriorityType,
+    newPriority,
+    priorityExpires: expires,
+  });
+
+  /* =======================================================
+     DIRECT DATABASE UPDATE
+     
+     Burada listing.save() əvəzinə
+     findByIdAndUpdate istifadə edirik.
+     
+     Beləliklə Mongoose document-in başqa
+     sahələrinin təsadüfən dəyişməsi qarşısı alınır.
+  ======================================================= */
+
+  const updatedListing = await Ad.findByIdAndUpdate(
+    listing._id,
+    {
+      $set: {
+        priorityType: newPriorityType,
+        priority: newPriority,
+        priorityExpires: expires,
+        isActive: true,
+      },
+    },
+    {
+      new: true,
+      runValidators: true,
+    },
+  );
+
+  /* =======================================================
+     VERIFY
+  ======================================================= */
+
+  if (!updatedListing) {
+    throw new Error("Elan update zamanı tapılmadı");
   }
 
-  listing.priorityExpires = expires;
-  listing.isActive = true;
+  console.log("==========================================");
+  console.log("🔎 DB UPDATE NƏTİCƏSİ");
+  console.log("==========================================");
 
-  await listing.save();
+  console.log({
+    listingId: updatedListing._id,
+    priorityType: updatedListing.priorityType,
+    priority: updatedListing.priority,
+    priorityExpires: updatedListing.priorityExpires,
+    isActive: updatedListing.isActive,
+  });
 
-  /* ---------------------------------------------------------
-     MARK PAYMENT PAID
-  --------------------------------------------------------- */
+  if (
+    updatedListing.priorityType !== newPriorityType ||
+    Number(updatedListing.priority) !== Number(newPriority)
+  ) {
+    throw new Error(
+      `Elan DB-də düzgün yenilənmədi. ` +
+        `priorityType=${updatedListing.priorityType}, ` +
+        `priority=${updatedListing.priority}`,
+    );
+  }
+
+  /* =======================================================
+     PAYMENT MARK PAID
+  ======================================================= */
 
   payment.paid = true;
   payment.paidAt = new Date();
@@ -303,23 +464,27 @@ const activatePayment = async (payment, order) => {
 
   await payment.save();
 
-  /* ---------------------------------------------------------
-     SUCCESS LOG
-  --------------------------------------------------------- */
+  /* =======================================================
+     FINAL DB VERIFY
+  ======================================================= */
+
+  const finalListing = await Ad.findById(updatedListing._id).select(
+    "_id title priority priorityType priorityExpires isActive",
+  );
 
   console.log("==========================================");
-  console.log("✅ VIP / PREMIUM AKTİVLƏŞDİRİLDİ");
+  console.log("🎉 VIP / PREMIUM AKTİVLƏŞDİRİLDİ");
   console.log("==========================================");
 
   console.log({
     paymentId: payment._id,
     orderId: order.id,
-    listingId: listing._id,
+    listingId: finalListing?._id,
     type: payment.type,
-    priorityType: listing.priorityType,
-    priority: listing.priority,
-    priorityExpires: listing.priorityExpires,
-    amount: payment.amount,
+    priorityType: finalListing?.priorityType,
+    priority: finalListing?.priority,
+    priorityExpires: finalListing?.priorityExpires,
+    paid: payment.paid,
   });
 
   console.log("==========================================");
@@ -328,10 +493,10 @@ const activatePayment = async (payment, order) => {
     success: true,
     paid: true,
     type: payment.type,
-    listingId: listing._id,
-    priority: listing.priority,
-    priorityType: listing.priorityType,
-    priorityExpires: listing.priorityExpires,
+    listingId: finalListing._id,
+    priority: finalListing.priority,
+    priorityType: finalListing.priorityType,
+    priorityExpires: finalListing.priorityExpires,
   };
 };
 
@@ -341,7 +506,7 @@ const activatePayment = async (payment, order) => {
    POST
    /api/payments/create-checkout/:listingId
 
-   Body:
+   BODY
    {
       "type": "vip"
    }
@@ -362,10 +527,6 @@ router.post("/create-checkout/:listingId", authMiddleware, async (req, res) => {
     const { listingId } = req.params;
     const { type } = req.body;
 
-    /* -----------------------------------------------------
-         USER CHECK
-      ----------------------------------------------------- */
-
     if (!req.user?.id) {
       return res.status(401).json({
         success: false,
@@ -373,20 +534,12 @@ router.post("/create-checkout/:listingId", authMiddleware, async (req, res) => {
       });
     }
 
-    /* -----------------------------------------------------
-         TYPE CHECK
-      ----------------------------------------------------- */
-
     if (!["vip", "premium"].includes(type)) {
       return res.status(400).json({
         success: false,
         message: "Yanlış ödəniş tipi",
       });
     }
-
-    /* -----------------------------------------------------
-         FIND LISTING
-      ----------------------------------------------------- */
 
     const listing = await Ad.findById(listingId);
 
@@ -397,39 +550,14 @@ router.post("/create-checkout/:listingId", authMiddleware, async (req, res) => {
       });
     }
 
-    /* -----------------------------------------------------
-         LISTING OWNER CHECK
-      ----------------------------------------------------- */
-
-    if (
-      !listing.userId ||
-      listing.userId.toString() !== req.user.id.toString()
-    ) {
+    if (!listing.userId || String(listing.userId) !== String(req.user.id)) {
       return res.status(403).json({
         success: false,
         message: "Bu elana access yoxdur",
       });
     }
 
-    /* -----------------------------------------------------
-         PRICE
-
-         VIP     = 3 AZN
-         Premium = 7 AZN
-      ----------------------------------------------------- */
-
-    const price = type === "premium" ? 7 : type === "vip" ? 3 : 0;
-
-    if (price <= 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Ödəniş məbləği düzgün deyil",
-      });
-    }
-
-    /* -----------------------------------------------------
-         CREATE KAPITAL ORDER
-      ----------------------------------------------------- */
+    const price = type === "premium" ? 7 : 3;
 
     console.log("🔥 KAPITAL ORDER YARADILIR:", {
       listingId,
@@ -439,15 +567,11 @@ router.post("/create-checkout/:listingId", authMiddleware, async (req, res) => {
 
     const kapitalResponse = await kapitalRequest(`${KAPITAL_API_URL}/order`, {
       method: "POST",
-
       body: JSON.stringify({
         order: {
           typeRid: "Order_SMS",
-
           amount: price.toFixed(2),
-
           currency: "AZN",
-
           language: "az",
 
           title:
@@ -465,11 +589,9 @@ router.post("/create-checkout/:listingId", authMiddleware, async (req, res) => {
       }),
     });
 
-    /* -----------------------------------------------------
-         KAPITAL ORDER RESPONSE
-      ----------------------------------------------------- */
+    const order = extractKapitalOrder(kapitalResponse);
 
-    const order = kapitalResponse?.order;
+    console.log("🔥 EXTRACTED ORDER:", order);
 
     if (!order || !order.id || !order.hppUrl || !order.password) {
       console.error("❌ KAPITAL ORDER RESPONSE DÜZGÜN DEYİL:", kapitalResponse);
@@ -480,44 +602,28 @@ router.post("/create-checkout/:listingId", authMiddleware, async (req, res) => {
       });
     }
 
-    console.log("✅ KAPITAL ORDER CREATED:", {
-      id: order.id,
-      status: order.status,
-      amount: order.amount,
-      currency: order.currency,
-      hppUrl: order.hppUrl,
-    });
-
-    /* -----------------------------------------------------
-         CREATE PAYMENT RECORD
-      ----------------------------------------------------- */
-
     const payment = await Payment.create({
       user: req.user.id,
       listing: listing._id,
       amount: price,
       type,
-
       kapitalOrderId: String(order.id),
-
       kapitalStatus: order.status || "Preparing",
-
       paid: false,
-
       paidAt: null,
     });
 
-    console.log("✅ PAYMENT CREATED:", {
+    console.log("==========================================");
+    console.log("✅ PAYMENT CREATED");
+    console.log("==========================================");
+
+    console.log({
       paymentId: payment._id,
       kapitalOrderId: order.id,
       listingId: listing._id,
       type,
       amount: price,
     });
-
-    /* -----------------------------------------------------
-         CREATE KAPITAL HPP URL
-      ----------------------------------------------------- */
 
     const paymentUrl = new URL(order.hppUrl);
 
@@ -526,10 +632,6 @@ router.post("/create-checkout/:listingId", authMiddleware, async (req, res) => {
     paymentUrl.searchParams.set("password", String(order.password));
 
     console.log("🔗 PAYMENT URL:", paymentUrl.toString());
-
-    /* -----------------------------------------------------
-         SEND FRONTEND
-      ----------------------------------------------------- */
 
     return res.json({
       success: true,
@@ -551,48 +653,53 @@ router.post("/create-checkout/:listingId", authMiddleware, async (req, res) => {
 });
 
 /* =========================================================
-   KAPITAL BANK CALLBACK
+   KAPITAL CALLBACK
 
    GET
    /api/payments/kapital/callback
 ========================================================= */
-
 router.get("/kapital/callback", async (req, res) => {
-  try {
-    console.log("==========================================");
-    console.log("🔥🔥🔥 KAPITAL CALLBACK GƏLDİ");
-    console.log("QUERY:", req.query);
-    console.log("URL:", req.originalUrl);
-    console.log("==========================================");
+  console.log("==========================================");
+  console.log("🔥🔥🔥 KAPITAL CALLBACK ÇAĞIRILDI");
+  console.log("🔥 QUERY:", JSON.stringify(req.query, null, 2));
+  console.log("🔥 TIME:", new Date().toISOString());
+  console.log("==========================================");
 
+  try {
     const orderId = req.query.ID;
     const callbackStatus = req.query.STATUS;
 
-    /* -----------------------------------------------------
-         ORDER ID CHECK
-      ----------------------------------------------------- */
+    console.log("🔥 ORDER ID:", orderId);
+    console.log("🔥 CALLBACK STATUS:", callbackStatus);
 
     if (!orderId) {
-      console.log("❌ KAPITAL CALLBACK: ID yoxdur");
+      console.log("❌ CALLBACK-DƏ ID YOXDUR");
 
       return res.redirect(
         `${FRONTEND_URL}/payment-result?status=error&reason=no_order_id`,
       );
     }
 
-    console.log("🔎 CALLBACK ORDER ID:", orderId);
-    console.log("🔎 CALLBACK STATUS:", callbackStatus);
-
-    /* -----------------------------------------------------
-         FIND PAYMENT
-      ----------------------------------------------------- */
-
     const payment = await Payment.findOne({
       kapitalOrderId: String(orderId),
     });
 
+    console.log(
+      "🔥 PAYMENT:",
+      payment
+        ? {
+            id: payment._id,
+            orderId: payment.kapitalOrderId,
+            listing: payment.listing,
+            type: payment.type,
+            paid: payment.paid,
+            kapitalStatus: payment.kapitalStatus,
+          }
+        : null,
+    );
+
     if (!payment) {
-      console.log("❌ Payment tapılmadı:", orderId);
+      console.log("❌ PAYMENT TAPILMADI:", orderId);
 
       return res.redirect(
         `${FRONTEND_URL}/payment-result?status=error&reason=payment_not_found&orderId=${encodeURIComponent(
@@ -601,51 +708,14 @@ router.get("/kapital/callback", async (req, res) => {
       );
     }
 
-    console.log("✅ PAYMENT TAPILDI:", {
-      paymentId: payment._id,
-      orderId: payment.kapitalOrderId,
-      type: payment.type,
-      amount: payment.amount,
-      paid: payment.paid,
-    });
-
-    /* -----------------------------------------------------
-         ƏGƏR ARTİQ ÖDƏNİLİBSƏ
-      ----------------------------------------------------- */
-
-    if (payment.paid === true) {
-      console.log("ℹ️ Payment artıq təsdiqlənib:", orderId);
-
-   return res.redirect(
-     `${FRONTEND_URL}/success?orderId=${encodeURIComponent(
-       orderId,
-     )}&type=${encodeURIComponent(payment.type)}`,
-   );
-    }
-
-    /* -----------------------------------------------------
-         CALLBACK STATUS-U REFUSED / FAILED VƏ S.
-      ----------------------------------------------------- */
-
-    if (callbackStatus && callbackStatus !== "FullyPaid") {
-      console.log("❌ KAPITAL CALLBACK UĞURSUZ:", callbackStatus);
-
+    if (callbackStatus) {
       payment.kapitalStatus = callbackStatus;
-
       await payment.save();
 
-      return res.redirect(
-        `${FRONTEND_URL}/payment-result?status=failed&orderId=${encodeURIComponent(
-          orderId,
-        )}&paymentStatus=${encodeURIComponent(callbackStatus)}`,
-      );
+      console.log("✅ CALLBACK STATUS PAYMENT-Ə YAZILDI:", callbackStatus);
     }
 
-    /* -----------------------------------------------------
-         GET REAL ORDER FROM KAPITAL
-      ----------------------------------------------------- */
-
-    console.log("🔎 Kapital order API ilə yoxlanılır:", orderId);
+    console.log("🔥 KAPITAL ORDER STATUS YOXLAMASI BAŞLAYIR");
 
     const kapitalResponse = await kapitalRequest(
       `${KAPITAL_API_URL}/order/${encodeURIComponent(
@@ -656,10 +726,21 @@ router.get("/kapital/callback", async (req, res) => {
       },
     );
 
-    const order = kapitalResponse?.order;
+    console.log(
+      "🔥 KAPITAL ORDER RESPONSE:",
+      JSON.stringify(kapitalResponse, null, 2),
+    );
+
+    const order =
+      kapitalResponse?.order ||
+      kapitalResponse?.data?.order ||
+      kapitalResponse?.data ||
+      kapitalResponse;
+
+    console.log("🔥 EXTRACTED ORDER:", order);
 
     if (!order) {
-      console.log("❌ Kapital order məlumatı gəlmədi:", orderId);
+      console.log("❌ KAPITAL ORDER TAPILMADI");
 
       return res.redirect(
         `${FRONTEND_URL}/payment-result?status=error&reason=order_not_found&orderId=${encodeURIComponent(
@@ -668,43 +749,93 @@ router.get("/kapital/callback", async (req, res) => {
       );
     }
 
-    console.log("🔥 KAPITAL REAL ORDER:", {
-      id: order.id,
-      status: order.status,
-      amount: order.amount,
-      currency: order.currency,
-    });
+    console.log("🔥 FINAL KAPITAL STATUS:", order.status);
 
-    /* -----------------------------------------------------
-         ACTIVATE PAYMENT
-      ----------------------------------------------------- */
+    const normalizedStatus = String(order.status || "")
+      .trim()
+      .toLowerCase();
 
-    const result = await activatePayment(payment, order);
+    console.log("🔥 NORMALIZED STATUS:", normalizedStatus);
 
-    console.log("🔥 ACTIVATE RESULT:", result);
+    if (normalizedStatus !== "fullypaid") {
+      console.log("⚠️ ÖDƏNİŞ HƏLƏ FULLYPAID DEYİL:", order.status);
 
-    /* -----------------------------------------------------
-         NOT FULLY PAID
-      ----------------------------------------------------- */
-
-    if (!result.paid) {
       return res.redirect(
         `${FRONTEND_URL}/payment-result?status=failed&orderId=${encodeURIComponent(
           orderId,
         )}&paymentStatus=${encodeURIComponent(
-          result.status || order.status || callbackStatus || "Unknown",
+          order.status || callbackStatus || "Unknown",
         )}`,
       );
     }
 
-    /* -----------------------------------------------------
-         SUCCESS
-      ----------------------------------------------------- */
-
+    console.log("==========================================");
+    console.log("💰 ÖDƏNİŞ FULLYPAID-DIR");
+    console.log("💰 PAYMENT TYPE:", payment.type);
+    console.log("💰 LISTING:", payment.listing);
     console.log("==========================================");
 
-    console.log("🎉 KAPİTAL ÖDƏNİŞİ UĞURLUDUR");
+    const listing = await Ad.findById(payment.listing);
 
+    console.log(
+      "🔥 LISTING BEFORE:",
+      listing
+        ? {
+            id: listing._id,
+            priorityType: listing.priorityType,
+            priority: listing.priority,
+            priorityExpires: listing.priorityExpires,
+          }
+        : null,
+    );
+
+    if (!listing) {
+      console.log("❌ ELAN TAPILMADI");
+
+      return res.redirect(
+        `${FRONTEND_URL}/payment-result?status=error&reason=listing_not_found`,
+      );
+    }
+
+    if (payment.type === "premium") {
+      listing.priorityType = "premium";
+      listing.priority = 1;
+      listing.priorityExpires = moment()
+        .tz("Asia/Baku")
+        .add(7, "days")
+        .toDate();
+    } else if (payment.type === "vip") {
+      listing.priorityType = "vip";
+      listing.priority = 2;
+      listing.priorityExpires = moment()
+        .tz("Asia/Baku")
+        .add(3, "days")
+        .toDate();
+    }
+
+    listing.isActive = true;
+
+    await listing.save();
+
+    console.log("🔥 LISTING AFTER SAVE:", {
+      id: listing._id,
+      priorityType: listing.priorityType,
+      priority: listing.priority,
+      priorityExpires: listing.priorityExpires,
+    });
+
+    payment.paid = true;
+    payment.paidAt = new Date();
+    payment.kapitalStatus = "FullyPaid";
+
+    await payment.save();
+
+    console.log("==========================================");
+    console.log("🎉🎉🎉 PREMIUM/VIP AKTIV EDİLDİ");
+    console.log("🎉 PAYMENT:", payment._id);
+    console.log("🎉 LISTING:", listing._id);
+    console.log("🎉 TYPE:", listing.priorityType);
+    console.log("🎉 PRIORITY:", listing.priority);
     console.log("==========================================");
 
     return res.redirect(
@@ -713,7 +844,10 @@ router.get("/kapital/callback", async (req, res) => {
       )}&type=${encodeURIComponent(payment.type)}`,
     );
   } catch (error) {
-    console.error("❌ KAPITAL CALLBACK ERROR:", error);
+    console.error("==========================================");
+    console.error("❌❌❌ KAPITAL CALLBACK ERROR");
+    console.error(error);
+    console.error("==========================================");
 
     return res.redirect(
       `${FRONTEND_URL}/payment-result?status=error&reason=callback_error`,
@@ -732,20 +866,12 @@ router.get("/status/:orderId", authMiddleware, async (req, res) => {
   try {
     const { orderId } = req.params;
 
-    /* -----------------------------------------------------
-         ORDER ID CHECK
-      ----------------------------------------------------- */
-
     if (!orderId) {
       return res.status(400).json({
         success: false,
         message: "orderId yoxdur",
       });
     }
-
-    /* -----------------------------------------------------
-         FIND PAYMENT
-      ----------------------------------------------------- */
 
     const payment = await Payment.findOne({
       kapitalOrderId: String(orderId),
@@ -758,31 +884,14 @@ router.get("/status/:orderId", authMiddleware, async (req, res) => {
       });
     }
 
-    /* -----------------------------------------------------
-         USER SECURITY
-      ----------------------------------------------------- */
-
-    if (payment.user.toString() !== req.user.id.toString()) {
+    if (String(payment.user) !== String(req.user.id)) {
       return res.status(403).json({
         success: false,
         message: "Bu ödənişə giriş yoxdur",
       });
     }
 
-    /* -----------------------------------------------------
-         GET KAPITAL ORDER
-      ----------------------------------------------------- */
-
-    const kapitalResponse = await kapitalRequest(
-      `${KAPITAL_API_URL}/order/${encodeURIComponent(
-        orderId,
-      )}?tranDetailLevel=2`,
-      {
-        method: "GET",
-      },
-    );
-
-    const order = kapitalResponse?.order;
+    const order = await getFullyPaidOrderWithRetry(orderId);
 
     if (!order) {
       return res.status(404).json({
@@ -798,15 +907,7 @@ router.get("/status/:orderId", authMiddleware, async (req, res) => {
       paid: payment.paid,
     });
 
-    /* -----------------------------------------------------
-         ACTIVATE PAYMENT
-      ----------------------------------------------------- */
-
     const result = await activatePayment(payment, order);
-
-    /* -----------------------------------------------------
-         RESPONSE
-      ----------------------------------------------------- */
 
     return res.json({
       success: true,
@@ -827,11 +928,11 @@ router.get("/status/:orderId", authMiddleware, async (req, res) => {
 
       listingId: result.listingId || payment.listing,
 
-      priority: result.priority || null,
+      priority: result.priority ?? null,
 
-      priorityType: result.priorityType || (payment.paid ? payment.type : null),
+      priorityType: result.priorityType ?? null,
 
-      priorityExpires: result.priorityExpires || null,
+      priorityExpires: result.priorityExpires ?? null,
     });
   } catch (error) {
     console.error("❌ KAPITAL STATUS ERROR:", error);
@@ -869,13 +970,9 @@ router.get("/", async (req, res) => {
       };
     });
 
-    /* -----------------------------------------------------
-       PRIORITY SORT
-    ----------------------------------------------------- */
-
     fixed.sort((a, b) => {
-      if (a.priority !== b.priority) {
-        return a.priority - b.priority;
+      if (Number(a.priority) !== Number(b.priority)) {
+        return Number(a.priority) - Number(b.priority);
       }
 
       return new Date(b.createdAt) - new Date(a.createdAt);
