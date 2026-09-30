@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
 
-const businessProfileViewSchema = new mongoose.Schema(
+const AdViewSchema = new mongoose.Schema(
   {
-    business: {
+    ad: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "BusinessProfile",
+      ref: "Ad",
       required: true,
       index: true,
     },
@@ -13,10 +13,8 @@ const businessProfileViewSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       default: null,
-      index: true,
     },
 
-    // Qeydiyyatsız/qonaq istifadəçi üçün
     visitorId: {
       type: String,
       default: null,
@@ -33,9 +31,9 @@ const businessProfileViewSchema = new mongoose.Schema(
   },
 );
 
-// Qeydiyyatlı istifadəçi üçün unikal baxış
-businessProfileViewSchema.index(
-  { business: 1, viewer: 1 },
+// Qeydiyyatlı istifadəçi eyni elana 1 dəfə
+AdViewSchema.index(
+  { ad: 1, viewer: 1 },
   {
     unique: true,
     partialFilterExpression: {
@@ -44,9 +42,9 @@ businessProfileViewSchema.index(
   },
 );
 
-// Qonaq üçün unikal baxış
-businessProfileViewSchema.index(
-  { business: 1, visitorId: 1 },
+// Qonaq istifadəçi eyni elana 1 dəfə
+AdViewSchema.index(
+  { ad: 1, visitorId: 1 },
   {
     unique: true,
     partialFilterExpression: {
@@ -55,9 +53,6 @@ businessProfileViewSchema.index(
   },
 );
 
-const BusinessProfileView = mongoose.model(
-  "BusinessProfileView",
-  businessProfileViewSchema,
-);
+const AdView = mongoose.model("AdView", AdViewSchema);
 
-export default BusinessProfileView;
+export default AdView;

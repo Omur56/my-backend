@@ -102,6 +102,7 @@ import statsRoutes from "./routes/countSay.js";
 import stickyAdsRoutes from "./routes/stickyAdsRoutes.js";
 
 import moment from "moment-timezone";
+import AdView from "./models/AdView.js";
 
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
@@ -491,10 +492,26 @@ app.get("/api/ads/today-count", async (req, res) => {
 
 // ========istfadəçilərin profil baxışı
 
-app.post("/api/business/:id/view", verifyToken, async (req, res) => {
+app.post("/api/business/:id/view", async (req, res) => {
   try {
     const businessId = req.params.id;
-    const viewerId = req.user.id;
+
+    const authHeader = req.headers.authorization;
+    let viewerId = null;
+
+    if (authHeader?.startsWith("Bearer ")) {
+      try {
+        const token = authHeader.split(" ")[1];
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        viewerId = decoded.id;
+      } catch (tokenError) {
+        viewerId = null;
+      }
+    }
+
+    const visitorId = req.headers["x-visitor-id"] || null;
 
     const business = await BusinessProfile.findById(businessId).select(
       "_id owner businessName",
@@ -506,37 +523,77 @@ app.post("/api/business/:id/view", verifyToken, async (req, res) => {
       });
     }
 
-    // Biznes sahibi öz profilinə baxanda baxış sayılmasın
-    if (String(business.owner) === String(viewerId)) {
+    // Biznes sahibi öz profilinə baxırsa sayılmır
+    if (viewerId && String(business.owner) === String(viewerId)) {
       return res.json({
         counted: false,
         message: "Biznes sahibi öz profilinə baxdı",
       });
     }
 
-    const existingView = await BusinessProfileView.findOne({
-      business: businessId,
-      viewer: viewerId,
-    });
+    // Qeydiyyatlı istifadəçi
+    if (viewerId) {
+      const existingView = await BusinessProfileView.findOne({
+        business: businessId,
+        viewer: viewerId,
+      });
 
-    if (existingView) {
-      existingView.lastViewedAt = new Date();
-      await existingView.save();
+      if (existingView) {
+        existingView.lastViewedAt = new Date();
+        await existingView.save();
+
+        return res.json({
+          counted: false,
+          type: "registered",
+          message: "Bu istifadəçinin baxışı artıq mövcuddur",
+        });
+      }
+
+      await BusinessProfileView.create({
+        business: businessId,
+        viewer: viewerId,
+      });
 
       return res.json({
-        counted: false,
-        message: "Bu istifadəçinin baxışı artıq mövcuddur",
+        counted: true,
+        type: "registered",
+        message: "Baxış qeydə alındı",
       });
     }
 
-    await BusinessProfileView.create({
-      business: businessId,
-      viewer: viewerId,
-    });
+    // Qonaq istifadəçi
+    if (visitorId) {
+      const existingView = await BusinessProfileView.findOne({
+        business: businessId,
+        visitorId,
+      });
+
+      if (existingView) {
+        existingView.lastViewedAt = new Date();
+        await existingView.save();
+
+        return res.json({
+          counted: false,
+          type: "guest",
+          message: "Bu qonağın baxışı artıq mövcuddur",
+        });
+      }
+
+      await BusinessProfileView.create({
+        business: businessId,
+        visitorId,
+      });
+
+      return res.json({
+        counted: true,
+        type: "guest",
+        message: "Qonaq baxışı qeydə alındı",
+      });
+    }
 
     return res.json({
-      counted: true,
-      message: "Baxış qeydə alındı",
+      counted: false,
+      message: "Visitor ID yoxdur",
     });
   } catch (error) {
     console.error("❌ BUSINESS VIEW ERROR:", error);
@@ -613,34 +670,173 @@ app.get("/api/business/:id/public-views", async (req, res) => {
   try {
     const businessId = req.params.id;
 
-    const business =
-      await BusinessProfile.findById(businessId).select("_id businessName");
-
-    if (!business) {
-      return res.status(404).json({
-        message: "Biznes profili tapılmadı",
-      });
-    }
-
     const totalViews = await BusinessProfileView.countDocuments({
       business: businessId,
-      viewer: { $ne: null },
+      $or: [
+        {
+          viewer: {
+            $ne: null,
+          },
+        },
+        {
+          visitorId: {
+            $ne: null,
+          },
+        },
+      ],
     });
 
-    return res.json({
-      success: true,
+    res.json({
       totalViews,
     });
   } catch (error) {
-    console.error("❌ PUBLIC BUSINESS VIEWS ERROR:", error);
+    console.error("❌ PUBLIC VIEW COUNT ERROR:", error);
 
-    return res.status(500).json({
+    res.status(500).json({
       message: "Baxış sayı alınmadı",
+      totalViews: 0,
+    });
+  }
+});
+// ======================================
+
+
+
+// elanlara baxış sayi üçün 
+
+
+app.post("/api/ads/:id/view", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const visitorId = req.headers["x-visitor-id"] || null;
+
+    let userId = null;
+
+    const authHeader = req.headers.authorization;
+
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.split(" ")[1];
+
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        userId = decoded.id || decoded.userId || decoded._id || null;
+      } catch (tokenError) {
+        userId = null;
+      }
+    }
+
+    const ad = await Ad.findOne({
+      $or: [{ _id: id }, { id: id }],
+    });
+
+    if (!ad) {
+      return res.status(404).json({
+        success: false,
+        message: "Elan tapılmadı",
+      });
+    }
+
+    // Elan sahibi öz elanına baxanda sayılmasın
+    if (userId && String(ad.userId) === String(userId)) {
+      return res.json({
+        success: true,
+        counted: false,
+        viewCount: ad.viewCount || 0,
+      });
+    }
+
+    let existingView = null;
+
+    // Qeydiyyatlı istifadəçi
+    if (userId) {
+      existingView = await AdView.findOne({
+        ad: ad._id,
+        viewer: userId,
+      });
+    }
+
+    // Qonaq istifadəçi
+    if (!userId && visitorId) {
+      existingView = await AdView.findOne({
+        ad: ad._id,
+        visitorId,
+      });
+    }
+
+    // Artıq baxılıbsa yenidən artırma
+    if (existingView) {
+      return res.json({
+        success: true,
+        counted: false,
+        viewCount: ad.viewCount || 0,
+      });
+    }
+
+    // Yeni baxış yarat
+    const viewData = {
+      ad: ad._id,
+    };
+
+    if (userId) {
+      viewData.viewer = userId;
+    } else if (visitorId) {
+      viewData.visitorId = visitorId;
+    } else {
+      return res.json({
+        success: true,
+        counted: false,
+        viewCount: ad.viewCount || 0,
+      });
+    }
+
+    try {
+      await AdView.create(viewData);
+
+      // Baxış sayını artır
+      const updatedAd = await Ad.findByIdAndUpdate(
+        ad._id,
+        {
+          $inc: {
+            viewCount: 1,
+          },
+        },
+        {
+          new: true,
+        },
+      );
+
+      return res.json({
+        success: true,
+        counted: true,
+        viewCount: updatedAd?.viewCount || 0,
+      });
+    } catch (createError) {
+      // Unique index səbəbindən paralel request gəlibsə
+      if (createError?.code === 11000) {
+        const currentAd = await Ad.findById(ad._id);
+
+        return res.json({
+          success: true,
+          counted: false,
+          viewCount: currentAd?.viewCount || 0,
+        });
+      }
+
+      throw createError;
+    }
+  } catch (error) {
+    console.error("Elan baxışı xətası:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Baxış sayı qeyd edilə bilmədi",
     });
   }
 });
 
-// ======================================
+// ===========================================
 // ---------count ---
 
 app.get("/count/car", async (req, res) => {
@@ -1978,7 +2174,9 @@ app.post(
       const files = req.files || [];
       const uploadedImages = [];
 
-      // 🔥 SAFE UPLOAD
+      // =======================================================
+      // ŞƏKİLLƏRİ CLOUDINARY-YƏ YÜKLƏ
+      // =======================================================
       for (const file of files) {
         const result = await uploadToCloudinary(file.buffer, "electronics");
 
@@ -1990,29 +2188,68 @@ app.post(
       const mainImage =
         uploadedImages[mainImageIndex] || uploadedImages[0] || null;
 
-      const contact = {
-        name: req.body["contact.name"] || "",
-        email: req.body["contact.email"] || "",
-        phone: req.body["contact.phone"] || "",
+      // =======================================================
+      // CONTACT
+      // Frontend JSON.stringify() ilə göndərir
+      // =======================================================
+      let contact = {
+        name: "",
+        email: "",
+        phone: "",
       };
 
+      if (req.body.contact) {
+        try {
+          contact =
+            typeof req.body.contact === "string"
+              ? JSON.parse(req.body.contact)
+              : req.body.contact;
+        } catch (contactError) {
+          console.error("❌ CONTACT JSON PARSE ERROR:", contactError);
+
+          return res.status(400).json({
+            error: "Əlaqə məlumatlarının formatı düzgün deyil",
+          });
+        }
+      }
+
+      // Təhlükəsizlik üçün boş dəyərləri normallaşdırırıq
+      contact = {
+        name: contact?.name || "",
+        email: contact?.email || "",
+        phone: contact?.phone || "",
+      };
+
+      console.log("📞 ELECTRONICS CONTACT:", contact);
+
+      // =======================================================
+      // TITLE
+      // =======================================================
       const title = `${req.body.brand || ""} ${req.body.model || ""}`.trim();
 
-      // 🏪 Biznes profilindən gələn businessId
+      // =======================================================
+      // BUSINESS ID
+      // =======================================================
       const businessId =
         req.body.businessId && String(req.body.businessId).trim() !== ""
           ? req.body.businessId
           : null;
 
+      // =======================================================
+      // ELAN YARAT
+      // =======================================================
       const newAd = await Ad.create({
         title,
+
         description: req.body.description || "",
+
         price: Number(req.body.price) || 0,
+
         location: req.body.location || "",
 
         category: "electronics",
 
-        // 🏪 Elanı biznes profilinə bağlayır
+        // 🏪 Biznes profilinə bağlanır
         businessId,
 
         electronics: {
@@ -2021,15 +2258,24 @@ app.post(
           type: req.body.type || "",
         },
 
-        contact,
+        // 📞 Əlaqə məlumatları
+        contact: {
+          name: contact.name,
+          email: contact.email,
+          phone: contact.phone,
+        },
 
         userId: req.user.id,
 
         images: uploadedImages,
+
         mainImage,
 
         priorityType: req.body.priorityType || "free",
       });
+
+      console.log("✅ ELECTRONICS CREATED:", newAd._id);
+      console.log("📞 SAVED CONTACT:", newAd.contact);
 
       res.status(201).json(newAd);
     } catch (err) {
@@ -3469,6 +3715,8 @@ app.get("/api/users/:id", async (req, res) => {
     res.status(500).json(err);
   }
 });
+
+
 
 // });
 
